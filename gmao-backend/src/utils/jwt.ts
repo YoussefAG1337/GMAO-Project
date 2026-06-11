@@ -35,7 +35,7 @@ export function signAccessToken(payload: AccessTokenPayload): string {
   const expiresIn = process.env.ACCESS_TOKEN_EXPIRY || '15m';
 
   return jwt.sign(payload, secret, {
-    expiresIn,
+    expiresIn: expiresIn as any,
     issuer: 'gmao-api',
     audience: 'gmao-client',
   });
@@ -55,7 +55,7 @@ export function signRefreshToken(payload: RefreshTokenPayload): string {
   const expiresIn = process.env.REFRESH_TOKEN_EXPIRY || '7d';
 
   return jwt.sign(payload, secret, {
-    expiresIn,
+    expiresIn: expiresIn as any,
     issuer: 'gmao-api',
     audience: 'gmao-client',
   });

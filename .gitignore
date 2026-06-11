@@ -5,6 +5,9 @@
 **/gmao-frontend/.next/
 **/gmao-frontend/out/
 **/gmao-frontend/build/
+AGENTS.md
+flow.md
+/UI
 
 # TypeScript build info
 *.tsbuildinfo
