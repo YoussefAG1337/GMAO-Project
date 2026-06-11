@@ -1,0 +1,91 @@
+// Schéma Prisma pour le système GMAO
+// Base de données: MySQL via XAMPP
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Rôles disponibles dans le système GMAO
+enum Role {
+  ADMIN
+  CHEF_MAINTENANCE
+  TECHNICIEN
+  MAGASINIER
+}
+
+/// Actions d'audit pour le suivi des connexions
+enum AuditAction {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+  TOKEN_REFRESH
+  ACCOUNT_LOCKED
+  PASSWORD_CHANGED
+}
+
+/// Utilisateur du système GMAO
+model User {
+  id                  Int       @id @default(autoincrement())
+  nom                 String    @db.VarChar(100)
+  prenom              String    @db.VarChar(100)
+  email               String    @unique @db.VarChar(255)
+  motDePasse          String    @db.VarChar(255)
+  role                Role      @default(TECHNICIEN)
+  actif               Boolean   @default(true)
+  tentativesEchouees  Int       @default(0)
+  verrouilleJusqua    DateTime? @db.Timestamp(6)
+  dernierLogin        DateTime? @db.Timestamp(6)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  refreshTokens RefreshToken[]
+  loginAudits   LoginAudit[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+/// Token de rafraîchissement pour la rotation sécurisée
+model RefreshToken {
+  id           Int       @id @default(autoincrement())
+  tokenHash    String    @db.VarChar(255)
+  userId       Int
+  tokenFamily  String    @db.VarChar(36)
+  expiresAt    DateTime  @db.Timestamp(6)
+  revoque      Boolean   @default(false)
+  revoqueRaison String?  @db.VarChar(100)
+  createdAt    DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@index([tokenFamily])
+  @@map("refresh_tokens")
+}
+
+/// Journal d'audit des connexions et actions de sécurité
+model LoginAudit {
+  id        Int         @id @default(autoincrement())
+  userId    Int?
+  email     String      @db.VarChar(255)
+  action    AuditAction
+  ipAddress String      @db.VarChar(45)
+  userAgent String?     @db.VarChar(500)
+  details   String?     @db.Text
+  createdAt DateTime    @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([email])
+  @@index([action])
+  @@index([createdAt])
+  @@map("login_audits")
+}
