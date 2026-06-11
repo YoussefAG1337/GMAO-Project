@@ -1,0 +1,77 @@
+name: 🔍 CI — Quality & Build
+
+# Trigger: When should this pipeline run?
+on:
+  push:
+    branches: [main]        # Runs when code is pushed to main
+  pull_request:
+    branches: [main]        # Runs when a Pull Request is opened against main
+
+# Jobs: What tasks should the pipeline perform?
+jobs:
+  # ────────────────────────────────
+  # Job 1: Verify the Backend API
+  # ────────────────────────────────
+  backend:
+    name: 🔧 Backend Checks
+    runs-on: ubuntu-latest   # Free Linux VM provided by GitHub
+
+    steps:
+      # Step 1: Clone the repository code onto the VM
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Install Node.js version 20
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: gmao-backend/package-lock.json
+
+      # Step 3: Install backend dependencies
+      # (npm ci is faster and more strict than npm install, ideal for CI)
+      - name: 📦 Install dependencies
+        working-directory: gmao-backend
+        run: npm ci
+
+      # Step 4: Generate the Prisma database client
+      - name: 🔄 Generate Prisma client
+        working-directory: gmao-backend
+        run: npx prisma generate
+
+      # Step 5: Run TypeScript compiler without outputting files to verify types
+      - name: 🔎 TypeScript type-check
+        working-directory: gmao-backend
+        run: npx tsc --noEmit
+
+  # ────────────────────────────────
+  # Job 2: Verify the Frontend UI
+  # ────────────────────────────────
+  frontend:
+    name: 🎨 Frontend Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: gmao-frontend/package-lock.json
+
+      - name: 📦 Install dependencies
+        working-directory: gmao-frontend
+        run: npm ci
+
+      - name: 🔎 TypeScript type-check
+        working-directory: gmao-frontend
+        run: npx tsc --noEmit
+
+      # Step 5: Verify that the Next.js app builds without compilation errors
+      - name: 🏗️ Build frontend
+        working-directory: gmao-frontend
+        run: npm run build

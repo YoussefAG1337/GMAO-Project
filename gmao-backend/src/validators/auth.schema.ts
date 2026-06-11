@@ -15,14 +15,19 @@ const passwordMessage =
 /**
  * Schéma de validation pour la connexion
  */
+/** Helper pour gérer les champs requis sous Zod v4 */
+const required = (msg: string) => ({
+  error: (issue: any) => issue.input === undefined ? msg : "Format incorrect"
+});
+
 export const loginSchema = z.object({
   email: z
-    .string({ required_error: 'L\'adresse email est requise' })
+    .string(required('L\'adresse email est requise'))
     .email('L\'adresse email n\'est pas valide')
     .max(255, 'L\'adresse email ne doit pas dépasser 255 caractères')
     .transform((val) => val.toLowerCase().trim()),
   motDePasse: z
-    .string({ required_error: 'Le mot de passe est requis' })
+    .string(required('Le mot de passe est requis'))
     .min(1, 'Le mot de passe est requis'),
 });
 
@@ -31,27 +36,28 @@ export const loginSchema = z.object({
  */
 export const registerSchema = z.object({
   nom: z
-    .string({ required_error: 'Le nom est requis' })
+    .string(required('Le nom est requis'))
     .min(2, 'Le nom doit contenir au moins 2 caractères')
     .max(100, 'Le nom ne doit pas dépasser 100 caractères')
     .trim(),
   prenom: z
-    .string({ required_error: 'Le prénom est requis' })
+    .string(required('Le prénom est requis'))
     .min(2, 'Le prénom doit contenir au moins 2 caractères')
     .max(100, 'Le prénom ne doit pas dépasser 100 caractères')
     .trim(),
   email: z
-    .string({ required_error: 'L\'adresse email est requise' })
+    .string(required('L\'adresse email est requise'))
     .email('L\'adresse email n\'est pas valide')
     .max(255, 'L\'adresse email ne doit pas dépasser 255 caractères')
     .transform((val) => val.toLowerCase().trim()),
   motDePasse: z
-    .string({ required_error: 'Le mot de passe est requis' })
+    .string(required('Le mot de passe est requis'))
     .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
     .regex(passwordRegex, passwordMessage),
   role: z.enum(['ADMIN', 'CHEF_MAINTENANCE', 'TECHNICIEN', 'MAGASINIER'], {
-    required_error: 'Le rôle est requis',
-    invalid_type_error: 'Le rôle doit être ADMIN, CHEF_MAINTENANCE, TECHNICIEN ou MAGASINIER',
+    error: (issue: any) => issue.input === undefined
+      ? 'Le rôle est requis'
+      : 'Le rôle doit être ADMIN, CHEF_MAINTENANCE, TECHNICIEN ou MAGASINIER',
   }),
 });
 
@@ -60,10 +66,10 @@ export const registerSchema = z.object({
  */
 export const changePasswordSchema = z.object({
   ancienMotDePasse: z
-    .string({ required_error: 'L\'ancien mot de passe est requis' })
+    .string(required('L\'ancien mot de passe est requis'))
     .min(1, 'L\'ancien mot de passe est requis'),
   nouveauMotDePasse: z
-    .string({ required_error: 'Le nouveau mot de passe est requis' })
+    .string(required('Le nouveau mot de passe est requis'))
     .min(8, 'Le nouveau mot de passe doit contenir au moins 8 caractères')
     .regex(passwordRegex, passwordMessage),
 });
