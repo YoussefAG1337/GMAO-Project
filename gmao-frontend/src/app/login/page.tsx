@@ -90,11 +90,11 @@ function LoginForm() {
       <div className="relative z-10 w-full max-w-md mx-4 animate-fade-in-up">
         {/* Glow effect surrounding the card */}
         <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-[#651FAA]/25 to-[#7c3aed]/25 blur-xl opacity-75 pointer-events-none" />
-        
+
         <Card className="relative glass-card border-white/[0.06] bg-zinc-950/45 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] shadow-black/80 overflow-hidden">
           {/* Subtle line glow at the top */}
           <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#651FAA]/50 to-[#7c3aed]/30" />
-          
+
           <CardHeader className="text-center space-y-4 pb-2 pt-8">
             {/* Logo animation */}
             <div className="flex justify-center">
@@ -132,7 +132,10 @@ function LoginForm() {
 
               {/* Email field */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/90">
+                <Label
+                  htmlFor="email"
+                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/90"
+                >
                   Adresse email
                 </Label>
                 <div className="relative group/input">
@@ -152,7 +155,10 @@ function LoginForm() {
 
               {/* Password field */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/90">
+                <Label
+                  htmlFor="password"
+                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/90"
+                >
                   Mot de passe
                 </Label>
                 <div className="relative group/input">
@@ -173,11 +179,7 @@ function LoginForm() {
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/80 hover:text-foreground transition-colors p-1"
                     tabIndex={-1}
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -208,11 +210,17 @@ function LoginForm() {
               <div className="mt-6 pt-5 border-t border-white/[0.05]">
                 <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                   <p className="text-xs text-muted-foreground/75 text-center leading-relaxed font-sans">
-                    <span className="font-semibold text-purple-400">Identifiants de démonstration :</span>
+                    <span className="font-semibold text-purple-400">
+                      Identifiants de démonstration :
+                    </span>
                     <br />
-                    <code className="text-purple-300 font-mono mt-1.5 inline-block bg-[#651FAA]/10 px-2 py-0.5 rounded">admin@gmao.com</code>
+                    <code className="text-purple-300 font-mono mt-1.5 inline-block bg-[#651FAA]/10 px-2 py-0.5 rounded">
+                      admin@gmao.com
+                    </code>
                     <span className="mx-2 text-muted-foreground/30">•</span>
-                    <code className="text-purple-300 font-mono mt-1.5 inline-block bg-[#651FAA]/10 px-2 py-0.5 rounded">Admin@123</code>
+                    <code className="text-purple-300 font-mono mt-1.5 inline-block bg-[#651FAA]/10 px-2 py-0.5 rounded">
+                      Admin@123
+                    </code>
                   </p>
                 </div>
               </div>
@@ -231,14 +239,16 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="relative min-h-screen flex items-center justify-center bg-[#07080d]">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 rounded-full border-4 border-[#651FAA]/30 border-t-[#651FAA] animate-spin mx-auto" />
-          <p className="text-sm text-purple-400/80 font-medium">Chargement de GMAO Pro...</p>
+    <Suspense
+      fallback={
+        <div className="relative min-h-screen flex items-center justify-center bg-[#07080d]">
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 rounded-full border-4 border-[#651FAA]/30 border-t-[#651FAA] animate-spin mx-auto" />
+            <p className="text-sm text-purple-400/80 font-medium">Chargement de GMAO Pro...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

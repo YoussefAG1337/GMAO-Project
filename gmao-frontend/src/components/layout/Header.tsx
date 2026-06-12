@@ -3,13 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import {
-  Menu,
-  ChevronRight,
-  LogOut,
-  Shield,
-  Activity,
-} from 'lucide-react';
+import { Menu, ChevronRight, LogOut, Shield, Activity } from 'lucide-react';
 import Link from 'next/link';
 
 interface HeaderProps {
@@ -36,18 +30,28 @@ const pathMap: Record<string, string> = {
 
 const roleLabels: Record<string, { label: string; style: string }> = {
   ADMIN: { label: 'Administrateur', style: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
-  CHEF_MAINTENANCE: { label: 'Chef de Maintenance', style: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
+  CHEF_MAINTENANCE: {
+    label: 'Chef de Maintenance',
+    style: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  },
   TECHNICIEN: { label: 'Technicien', style: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
   MAGASINIER: { label: 'Magasinier', style: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
 };
 
-export default function Header({ onMenuClick, isSidebarCollapsed, setIsSidebarCollapsed }: HeaderProps) {
+export default function Header({
+  onMenuClick,
+  isSidebarCollapsed,
+  setIsSidebarCollapsed,
+}: HeaderProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
   if (!user) return null;
 
-  const roleInfo = roleLabels[user.role] || { label: user.role, style: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20' };
+  const roleInfo = roleLabels[user.role] || {
+    label: user.role,
+    style: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
+  };
 
   // Build breadcrumbs
   const pathSegments = pathname.split('/').filter(Boolean);
@@ -118,13 +122,18 @@ export default function Header({ onMenuClick, isSidebarCollapsed, setIsSidebarCo
         </div>
 
         {/* User Role Badge */}
-        <div className={cn(
-          "flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
-          roleInfo.style
-        )}>
+        <div
+          className={cn(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]',
+            roleInfo.style,
+          )}
+        >
           <Shield className="w-3.5 h-3.5" />
           <span className="hidden md:inline">{roleInfo.label}</span>
-          <span className="md:hidden">{user.prenom[0]}{user.nom[0]}</span>
+          <span className="md:hidden">
+            {user.prenom[0]}
+            {user.nom[0]}
+          </span>
         </div>
 
         {/* Simple sign-out */}

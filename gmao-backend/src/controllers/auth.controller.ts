@@ -7,7 +7,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '../config/prisma';
-import { signAccessToken, signRefreshToken, verifyRefreshToken, hashToken, TokenExpiredError, JsonWebTokenError } from '../utils/jwt';
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+  hashToken,
+  TokenExpiredError,
+  JsonWebTokenError,
+} from '../utils/jwt';
 import { hashPassword, comparePassword } from '../utils/password';
 import { AuditAction } from '@prisma/client';
 
@@ -54,7 +61,7 @@ async function logAudit(
   email: string,
   req: Request,
   userId?: number | null,
-  details?: string
+  details?: string,
 ): Promise<void> {
   try {
     await prisma.loginAudit.create({
@@ -69,7 +76,7 @@ async function logAudit(
     });
   } catch (error) {
     // L'échec du log d'audit ne doit pas bloquer l'opération principale
-    console.error('[AUDIT] Erreur lors de l\'écriture du journal d\'audit:', error);
+    console.error("[AUDIT] Erreur lors de l'écriture du journal d'audit:", error);
   }
 }
 
@@ -110,9 +117,15 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
     // 3. Vérification du verrouillage du compte
     if (user.verrouilleJusqua && user.verrouilleJusqua > new Date()) {
       const minutesRestantes = Math.ceil(
-        (user.verrouilleJusqua.getTime() - Date.now()) / (1000 * 60)
+        (user.verrouilleJusqua.getTime() - Date.now()) / (1000 * 60),
       );
-      await logAudit(AuditAction.LOGIN_FAILED, email, req, user.id, `Compte verrouillé (${minutesRestantes} min restantes)`);
+      await logAudit(
+        AuditAction.LOGIN_FAILED,
+        email,
+        req,
+        user.id,
+        `Compte verrouillé (${minutesRestantes} min restantes)`,
+      );
       res.status(423).json({
         success: false,
         message: `Compte verrouillé suite à trop de tentatives échouées. Réessayez dans ${minutesRestantes} minute(s).`,
@@ -143,7 +156,13 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
           data: updateData,
         });
 
-        await logAudit(AuditAction.ACCOUNT_LOCKED, email, req, user.id, `Verrouillé après ${tentatives} tentatives`);
+        await logAudit(
+          AuditAction.ACCOUNT_LOCKED,
+          email,
+          req,
+          user.id,
+          `Verrouillé après ${tentatives} tentatives`,
+        );
 
         res.status(423).json({
           success: false,
@@ -158,7 +177,13 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
         data: updateData,
       });
 
-      await logAudit(AuditAction.LOGIN_FAILED, email, req, user.id, `Tentative ${tentatives}/${maxAttempts}`);
+      await logAudit(
+        AuditAction.LOGIN_FAILED,
+        email,
+        req,
+        user.id,
+        `Tentative ${tentatives}/${maxAttempts}`,
+      );
 
       res.status(401).json({
         success: false,
@@ -454,7 +479,11 @@ export async function me(req: Request, res: Response, next: NextFunction): Promi
  * Changement de mot de passe de l'utilisateur connecté
  * POST /api/auth/change-password
  */
-export async function changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function changePassword(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     if (!req.user) {
       res.status(401).json({
@@ -486,7 +515,7 @@ export async function changePassword(req: Request, res: Response, next: NextFunc
     if (!isOldPasswordValid) {
       res.status(401).json({
         success: false,
-        message: 'L\'ancien mot de passe est incorrect.',
+        message: "L'ancien mot de passe est incorrect.",
         code: 'INVALID_OLD_PASSWORD',
       });
       return;
@@ -497,7 +526,7 @@ export async function changePassword(req: Request, res: Response, next: NextFunc
     if (isSamePassword) {
       res.status(400).json({
         success: false,
-        message: 'Le nouveau mot de passe doit être différent de l\'ancien.',
+        message: "Le nouveau mot de passe doit être différent de l'ancien.",
         code: 'SAME_PASSWORD',
       });
       return;

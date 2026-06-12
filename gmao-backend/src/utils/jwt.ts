@@ -29,7 +29,7 @@ export interface RefreshTokenPayload {
 export function signAccessToken(payload: AccessTokenPayload): string {
   const secret = process.env.ACCESS_TOKEN_SECRET;
   if (!secret) {
-    throw new Error('ACCESS_TOKEN_SECRET non défini dans les variables d\'environnement');
+    throw new Error("ACCESS_TOKEN_SECRET non défini dans les variables d'environnement");
   }
 
   const expiresIn = process.env.ACCESS_TOKEN_EXPIRY || '15m';
@@ -49,7 +49,7 @@ export function signAccessToken(payload: AccessTokenPayload): string {
 export function signRefreshToken(payload: RefreshTokenPayload): string {
   const secret = process.env.REFRESH_TOKEN_SECRET;
   if (!secret) {
-    throw new Error('REFRESH_TOKEN_SECRET non défini dans les variables d\'environnement');
+    throw new Error("REFRESH_TOKEN_SECRET non défini dans les variables d'environnement");
   }
 
   const expiresIn = process.env.REFRESH_TOKEN_EXPIRY || '7d';
@@ -71,7 +71,7 @@ export function signRefreshToken(payload: RefreshTokenPayload): string {
 export function verifyAccessToken(token: string): AccessTokenPayload {
   const secret = process.env.ACCESS_TOKEN_SECRET;
   if (!secret) {
-    throw new Error('ACCESS_TOKEN_SECRET non défini dans les variables d\'environnement');
+    throw new Error("ACCESS_TOKEN_SECRET non défini dans les variables d'environnement");
   }
 
   return jwt.verify(token, secret, {
@@ -90,7 +90,7 @@ export function verifyAccessToken(token: string): AccessTokenPayload {
 export function verifyRefreshToken(token: string): RefreshTokenPayload {
   const secret = process.env.REFRESH_TOKEN_SECRET;
   if (!secret) {
-    throw new Error('REFRESH_TOKEN_SECRET non défini dans les variables d\'environnement');
+    throw new Error("REFRESH_TOKEN_SECRET non défini dans les variables d'environnement");
   }
 
   return jwt.verify(token, secret, {

@@ -20,7 +20,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
     if (!token) {
       res.status(401).json({
         success: false,
-        message: 'Accès non autorisé. Token d\'authentification manquant.',
+        message: "Accès non autorisé. Token d'authentification manquant.",
         code: 'NO_TOKEN',
       });
       return;
@@ -39,7 +39,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
     if (error instanceof TokenExpiredError) {
       res.status(401).json({
         success: false,
-        message: 'Le token d\'authentification a expiré. Veuillez rafraîchir votre session.',
+        message: "Le token d'authentification a expiré. Veuillez rafraîchir votre session.",
         code: 'TOKEN_EXPIRED',
       });
       return;
@@ -48,7 +48,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
     if (error instanceof JsonWebTokenError) {
       res.status(401).json({
         success: false,
-        message: 'Token d\'authentification invalide.',
+        message: "Token d'authentification invalide.",
         code: 'INVALID_TOKEN',
       });
       return;
@@ -56,7 +56,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
 
     res.status(401).json({
       success: false,
-      message: 'Erreur d\'authentification.',
+      message: "Erreur d'authentification.",
       code: 'AUTH_ERROR',
     });
   }
