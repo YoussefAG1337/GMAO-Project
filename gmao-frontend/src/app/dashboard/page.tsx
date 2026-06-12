@@ -257,7 +257,7 @@ export default function DashboardPage() {
                     Interventions récentes & Activités
                   </div>
                   <span className="text-xs bg-[#651FAA]/10 text-purple-300 border border-[#651FAA]/20 px-2 py-0.5 rounded-full">
-                    Aujourd'hui
+                    {"Aujourd'hui"}
                   </span>
                 </CardTitle>
               </CardHeader>

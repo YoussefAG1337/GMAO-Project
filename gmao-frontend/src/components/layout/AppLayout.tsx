@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { cn } from '@/lib/utils';
@@ -10,15 +10,14 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('gmao_sidebar_collapsed');
-    if (stored !== null) {
-      setIsSidebarCollapsed(stored === 'true');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('gmao_sidebar_collapsed');
+      return stored === 'true';
     }
-  }, []);
+    return false;
+  });
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const handleSetSidebarCollapsed = (value: boolean | ((prev: boolean) => boolean)) => {
     setIsSidebarCollapsed((prev) => {
