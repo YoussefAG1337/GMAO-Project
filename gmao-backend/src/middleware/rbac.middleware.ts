@@ -32,7 +32,7 @@ export function rbac(allowedRoles: Role[]) {
     if (!allowedRoles.includes(req.user.role)) {
       res.status(403).json({
         success: false,
-        message: 'Accès interdit. Vous n\'avez pas les permissions nécessaires pour cette action.',
+        message: "Accès interdit. Vous n'avez pas les permissions nécessaires pour cette action.",
         code: 'FORBIDDEN',
       });
       return;

@@ -82,7 +82,9 @@ class ApiClient {
             },
           });
           if (!retryResponse.ok) {
-            const errorData = await retryResponse.json().catch(() => ({ message: 'Erreur serveur' }));
+            const errorData = await retryResponse
+              .json()
+              .catch(() => ({ message: 'Erreur serveur' }));
             throw new ApiError(retryResponse.status, errorData.message, errorData.code);
           }
           return retryResponse.json();
@@ -105,7 +107,7 @@ class ApiClient {
           if (refreshResponse.ok) {
             this.isRefreshing = false;
             this.lastRefreshTime = Date.now();
-            
+
             // Retry the original request
             const retryResponsePromise = fetch(url, {
               ...options,
@@ -116,7 +118,9 @@ class ApiClient {
               },
             }).then(async (retryResponse) => {
               if (!retryResponse.ok) {
-                const errorData = await retryResponse.json().catch(() => ({ message: 'Erreur serveur' }));
+                const errorData = await retryResponse
+                  .json()
+                  .catch(() => ({ message: 'Erreur serveur' }));
                 throw new ApiError(retryResponse.status, errorData.message, errorData.code);
               }
               return retryResponse.json();

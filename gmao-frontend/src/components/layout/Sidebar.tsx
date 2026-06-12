@@ -143,13 +143,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     ],
   };
 
-  const allSections: SidebarSection[] = user.role === 'ADMIN' ? [...sections, adminSection] : sections;
+  const allSections: SidebarSection[] =
+    user.role === 'ADMIN' ? [...sections, adminSection] : sections;
 
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-30 flex flex-col border-r border-white/[0.06] bg-zinc-950/60 backdrop-blur-xl transition-all duration-300 ease-in-out",
-        isCollapsed ? "w-16" : "w-64"
+        'fixed inset-y-0 left-0 z-30 flex flex-col border-r border-white/[0.06] bg-zinc-950/60 backdrop-blur-xl transition-all duration-300 ease-in-out',
+        isCollapsed ? 'w-16' : 'w-64',
       )}
     >
       {/* Sidebar Header */}
@@ -187,33 +188,39 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             )}
             <ul className="space-y-1">
               {section.items.map((item, itemIdx) => {
-                const isActive = item.href === '/dashboard' || item.href === '/dashboard/stock'
-                  ? pathname === item.href
-                  : pathname === item.href || pathname.startsWith(item.href + '/');
+                const isActive =
+                  item.href === '/dashboard' || item.href === '/dashboard/stock'
+                    ? pathname === item.href
+                    : pathname === item.href || pathname.startsWith(item.href + '/');
                 const Icon = item.icon;
                 return (
                   <li key={itemIdx}>
                     <Link
                       href={item.href}
                       className={cn(
-                        "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5",
+                        'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5',
                         isActive
-                          ? "bg-[#651FAA]/10 text-purple-300 border border-[#651FAA]/20 shadow-[0_0_15px_rgba(101,31,170,0.1)]"
-                          : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03] border border-transparent"
+                          ? 'bg-[#651FAA]/10 text-purple-300 border border-[#651FAA]/20 shadow-[0_0_15px_rgba(101,31,170,0.1)]'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.03] border border-transparent',
                       )}
                       title={isCollapsed ? item.name : undefined}
                     >
-                      <Icon className={cn("w-5 h-5 shrink-0", isActive ? "text-purple-400" : "text-muted-foreground group-hover:text-foreground transition-colors")} />
-                      {!isCollapsed && (
-                        <span className="flex-1 truncate">{item.name}</span>
-                      )}
+                      <Icon
+                        className={cn(
+                          'w-5 h-5 shrink-0',
+                          isActive
+                            ? 'text-purple-400'
+                            : 'text-muted-foreground group-hover:text-foreground transition-colors',
+                        )}
+                      />
+                      {!isCollapsed && <span className="flex-1 truncate">{item.name}</span>}
                       {!isCollapsed && item.badge && (
                         <span
                           className={cn(
-                            "inline-flex h-5 items-center justify-center rounded-full px-2 text-[10px] font-bold border",
+                            'inline-flex h-5 items-center justify-center rounded-full px-2 text-[10px] font-bold border',
                             item.badge.type === 'danger'
-                              ? "bg-red-500/10 text-red-400 border-red-500/25 animate-pulse"
-                              : "bg-[#651FAA]/10 text-purple-300 border-[#651FAA]/20"
+                              ? 'bg-red-500/10 text-red-400 border-red-500/25 animate-pulse'
+                              : 'bg-[#651FAA]/10 text-purple-300 border-[#651FAA]/20',
                           )}
                         >
                           {item.badge.text}
@@ -239,16 +246,16 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             <ChevronRight className="w-4 h-4" />
           </button>
         )}
-        
+
         <Link
           href="/dashboard/settings"
           className={cn(
-            "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5",
+            'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5',
             pathname === '/dashboard/settings'
-              ? "bg-[#651FAA]/10 text-purple-300 border border-[#651FAA]/20"
-              : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03] border border-transparent"
+              ? 'bg-[#651FAA]/10 text-purple-300 border border-[#651FAA]/20'
+              : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.03] border border-transparent',
           )}
-          title={isCollapsed ? "Paramètres" : undefined}
+          title={isCollapsed ? 'Paramètres' : undefined}
         >
           <Settings className="w-5 h-5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
           {!isCollapsed && <span className="flex-1 truncate">Paramètres</span>}
@@ -256,7 +263,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         <button
           onClick={logout}
           className="w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
-          title={isCollapsed ? "Déconnexion" : undefined}
+          title={isCollapsed ? 'Déconnexion' : undefined}
         >
           <LogOut className="w-5 h-5 shrink-0 text-red-400 group-hover:text-red-300 transition-colors" />
           {!isCollapsed && <span className="flex-1 text-left truncate">Déconnexion</span>}

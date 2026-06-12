@@ -42,21 +42,22 @@ export default function AppLayout({ children }: AppLayoutProps) {
       )}
 
       {/* Sidebar Wrapper */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-30 transition-transform duration-300 lg:translate-x-0",
-        isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-      )}>
-        <Sidebar
-          isCollapsed={isSidebarCollapsed}
-          setIsCollapsed={handleSetSidebarCollapsed}
-        />
+      <div
+        className={cn(
+          'fixed inset-y-0 left-0 z-30 transition-transform duration-300 lg:translate-x-0',
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+        )}
+      >
+        <Sidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={handleSetSidebarCollapsed} />
       </div>
 
       {/* Main Content Layout */}
-      <div className={cn(
-        "flex flex-col min-h-screen transition-all duration-300",
-        isSidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
-      )}>
+      <div
+        className={cn(
+          'flex flex-col min-h-screen transition-all duration-300',
+          isSidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64',
+        )}
+      >
         <Header
           onMenuClick={() => setIsMobileOpen(!isMobileOpen)}
           isSidebarCollapsed={isSidebarCollapsed}

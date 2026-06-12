@@ -1,0 +1,5 @@
+# Normalize line endings across all platforms
+# This ensures that files in the repository always use LF,
+# while Windows users see CRLF in their working directory.
+* text=auto eol=lf
+*.ts linguist-language=TypeScript

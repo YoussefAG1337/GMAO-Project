@@ -17,7 +17,12 @@ interface AppError extends Error {
  * Capture toutes les erreurs et retourne une réponse JSON cohérente.
  * En développement, inclut la stack trace pour le débogage.
  */
-export function errorHandler(err: AppError, req: Request, res: Response, _next: NextFunction): void {
+export function errorHandler(
+  err: AppError,
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+): void {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Une erreur interne est survenue.';
 

@@ -12,7 +12,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "npx prisma migrate reset",
     "db:studio": "npx prisma studio",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"No backend tests defined yet\""
   },
   "keywords": [],
   "author": "",
