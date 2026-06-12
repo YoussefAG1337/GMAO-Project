@@ -1,77 +1,164 @@
-name: 🔍 CI — Quality & Build
+name: CI — Quality & Security
 
-# Trigger: When should this pipeline run?
 on:
   push:
-    branches: [main]        # Runs when code is pushed to main
+    branches: [main]
   pull_request:
-    branches: [main]        # Runs when a Pull Request is opened against main
+    branches: [main]
 
-# Jobs: What tasks should the pipeline perform?
+# Cancel in-flight runs for the same branch/PR when a new push arrives
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least-privilege permissions for the GITHUB_TOKEN
+permissions:
+  contents: read
+  pull-requests: write   # Needed to post coverage comments on PRs
+
+
+# JOB 1 — BACKEND
+
 jobs:
-  # ────────────────────────────────
-  # Job 1: Verify the Backend API
-  # ────────────────────────────────
   backend:
-    name: 🔧 Backend Checks
-    runs-on: ubuntu-latest   # Free Linux VM provided by GitHub
+    name: Backend Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # Prisma needs a valid DATABASE_URL at generate/validate time.
+      # We use a dummy MySQL URL — no real DB is needed for static checks.
+      DATABASE_URL: "mysql://ci:ci@localhost:3306/ci_db"
 
     steps:
-      # Step 1: Clone the repository code onto the VM
-      - name: 📥 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Install Node.js version 20
-      - name: 📦 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: gmao-backend/package-lock.json
 
-      # Step 3: Install backend dependencies
-      # (npm ci is faster and more strict than npm install, ideal for CI)
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         working-directory: gmao-backend
         run: npm ci
 
-      # Step 4: Generate the Prisma database client
-      - name: 🔄 Generate Prisma client
+      #Static Analysis
+
+      - name: Lint
+        working-directory: gmao-backend
+        run: npm run lint
+
+      - name: Check formatting
+        working-directory: gmao-backend
+        # Prettier in --check mode: exits with error if files are unformatted.
+        run: npx prettier --check "src/**/*.{ts,json}"
+
+      - name: Validate Prisma schema
+        working-directory: gmao-backend
+        run: npx prisma validate
+
+      - name: Generate Prisma client
         working-directory: gmao-backend
         run: npx prisma generate
 
-      # Step 5: Run TypeScript compiler without outputting files to verify types
-      - name: 🔎 TypeScript type-check
+      - name: TypeScript type-check
         working-directory: gmao-backend
         run: npx tsc --noEmit
 
-  # ────────────────────────────────
-  # Job 2: Verify the Frontend UI
-  # ────────────────────────────────
+      #Tests
+
+      - name: Run tests with coverage
+        working-directory: gmao-backend
+        run: npm test -- --coverage --coverageReporters=text-summary --passWithNoTests
+        # --passWithNoTests: pipeline doesn't fail on a project with no tests yet.
+
+      #Security
+
+      - name: Audit dependencies for known vulnerabilities
+        working-directory: gmao-backend
+        # --audit-level=high: only fail on HIGH or CRITICAL vulnerabilities.
+        run: npm audit --audit-level=high
+
+  
+  # JOB 2 — FRONTEND
+ 
   frontend:
-    name: 🎨 Frontend Checks
+    name: Frontend Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - name: 📥 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 📦 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: gmao-frontend/package-lock.json
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         working-directory: gmao-frontend
         run: npm ci
 
-      - name: 🔎 TypeScript type-check
+      #Static Analysis
+
+      - name: Lint
+        working-directory: gmao-frontend
+        run: npm run lint
+
+      - name: Check formatting
+        working-directory: gmao-frontend
+        run: npx prettier --check "src/**/*.{ts,tsx,css,json}"
+
+      - name: TypeScript type-check
         working-directory: gmao-frontend
         run: npx tsc --noEmit
 
-      # Step 5: Verify that the Next.js app builds without compilation errors
-      - name: 🏗️ Build frontend
+      #Build
+
+      - name: Cache Next.js build artifacts
+        uses: actions/cache@v4
+        with:
+          path: gmao-frontend/.next/cache
+          # Cache key tied to lockfile: invalidates when dependencies change.
+          key: nextjs-${{ runner.os }}-${{ hashFiles('gmao-frontend/package-lock.json') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-
+
+      - name: Build frontend
         working-directory: gmao-frontend
         run: npm run build
+        env:
+          # Prevents Next.js from sending anonymous telemetry during CI builds.
+          NEXT_TELEMETRY_DISABLED: 1
+
+      #Security
+
+      - name: Audit dependencies for known vulnerabilities
+        working-directory: gmao-frontend
+        run: npm audit --audit-level=high
+
+  # JOB 3 — SECRET SCANNING
+  # Runs independently to catch accidentally committed secrets.
+  # Does NOT need node, no working-directory needed.
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history so TruffleHog can scan all commits in the push.
+          fetch-depth: 0
+
+      - name: Scan for secrets with TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
