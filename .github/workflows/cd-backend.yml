@@ -1,0 +1,55 @@
+name:  CD — Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'gmao-backend/**'
+
+# Cancel in-flight runs when a new push arrives
+concurrency:
+  group: cd-backend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Azure App Service
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: gmao-backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: gmao-backend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: gmao-backend
+        run: npx prisma generate
+
+      - name: Build backend
+        working-directory: gmao-backend
+        run: npm run build
+
+      - name: Clean devDependencies (smaller payload)
+        working-directory: gmao-backend
+        run: npm prune --production
+
+      - name: Deploy to Azure
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: gmao-backend-supra
+          package: gmao-backend
+          publish-profile: ${{ secrets.AZURE_BACKEND_PUBLISH_PROFILE }}
