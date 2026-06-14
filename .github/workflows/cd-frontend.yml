@@ -44,15 +44,14 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
 
       # Next.js standalone build outputs to .next/standalone.
-      # To run properly on Azure App Service, we copy public and static assets into the standalone directory.
+      # We copy the public assets and static files directly into the standalone 
       - name: Copy assets to standalone folder
         run: |
-          cp -r gmao-frontend/public gmao-frontend/.next/standalone/gmao-frontend/public
-          cp -r gmao-frontend/.next/static gmao-frontend/.next/standalone/gmao-frontend/.next/static
-
+          cp -r gmao-frontend/public gmao-frontend/.next/standalone/public
+          cp -r gmao-frontend/.next/static gmao-frontend/.next/standalone/.next/static
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
           app-name: gmao-frontend-supra
-          package: gmao-frontend/.next/standalone/gmao-frontend
+          package: gmao-frontend/.next/standalone
           publish-profile: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}
