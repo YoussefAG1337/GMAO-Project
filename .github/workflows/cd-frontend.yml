@@ -40,7 +40,7 @@ jobs:
         working-directory: gmao-frontend
         run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: "https://gmao-backend-supra-ggbmdqgef4beeab3.swedencentral-01.azurewebsites.net/api"
+          NEXT_PUBLIC_API_URL: "/api"
           NEXT_TELEMETRY_DISABLED: 1
 
       # Next.js standalone build outputs to .next/standalone.
