@@ -182,7 +182,9 @@ export const deleteDI = async (req: Request, res: Response, next: NextFunction):
   try {
     const { id } = req.params;
 
-    const di = await prisma.demandeIntervention.findUnique({ where: { id: parseInt(id as string, 10) } });
+    const di = await prisma.demandeIntervention.findUnique({
+      where: { id: parseInt(id as string, 10) },
+    });
     if (!di) {
       res.status(404).json({ success: false, message: 'DI introuvable' });
       return;
