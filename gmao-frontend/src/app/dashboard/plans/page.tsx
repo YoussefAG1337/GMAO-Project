@@ -19,7 +19,7 @@ const freqLabels: Record<string, string> = {
   MENSUELLE: 'Chaque Mois',
   TRIMESTRIELLE: 'Chaque Trimestre',
   SEMESTRIELLE: 'Chaque Semestre',
-  ANNUELLE: 'Chaque Année'
+  ANNUELLE: 'Chaque Année',
 };
 
 export default function PlansMaintenancePage() {
@@ -41,7 +41,7 @@ export default function PlansMaintenancePage() {
     ligneId: '',
     posteId: '',
     frequence: 'MENSUELLE',
-    prochaineExecution: ''
+    prochaineExecution: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,7 +52,9 @@ export default function PlansMaintenancePage() {
         atelierId: Number(formData.atelierId),
         ligneId: Number(formData.ligneId),
         posteId: Number(formData.posteId),
-        prochaineExecution: formData.prochaineExecution ? new Date(formData.prochaineExecution).toISOString() : undefined,
+        prochaineExecution: formData.prochaineExecution
+          ? new Date(formData.prochaineExecution).toISOString()
+          : undefined,
       });
       toast.success('Plan de maintenance créé avec succès');
       setIsModalOpen(false);
@@ -87,10 +89,15 @@ export default function PlansMaintenancePage() {
               <CalendarRange className="w-8 h-8 text-emerald-400" />
               Plans Préventifs
             </h2>
-            <p className="text-muted-foreground mt-2">Génération automatique des interventions de maintenance régulières.</p>
+            <p className="text-muted-foreground mt-2">
+              Génération automatique des interventions de maintenance régulières.
+            </p>
           </div>
           {isAdminOrChef && (
-            <Button onClick={() => setIsModalOpen(true)} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20">
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Nouveau Plan
             </Button>
@@ -100,40 +107,63 @@ export default function PlansMaintenancePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {plans.map((plan: any) => (
-          <Card key={plan.id} className="border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl hover:border-emerald-500/30 transition-all shadow-lg flex flex-col">
+          <Card
+            key={plan.id}
+            className="border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl hover:border-emerald-500/30 transition-all shadow-lg flex flex-col"
+          >
             <CardContent className="p-6 flex flex-col flex-1">
               <div className="flex justify-between items-start mb-4">
                 <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400">
                   <RefreshCw className={`w-6 h-6 ${plan.actif ? 'animate-spin-slow' : ''}`} />
                 </div>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${plan.actif ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-gray-500/10 text-gray-400 border-gray-500/20'}`}>
+                <span
+                  className={`px-2.5 py-1 rounded-full text-xs font-bold border ${plan.actif ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-gray-500/10 text-gray-400 border-gray-500/20'}`}
+                >
                   {plan.actif ? 'Actif' : 'Inactif'}
                 </span>
               </div>
-              
+
               <h3 className="text-lg font-bold text-white leading-tight">{plan.intitule}</h3>
               <p className="text-xs text-emerald-400/80 font-bold uppercase tracking-wider mt-2 mb-3">
                 {freqLabels[plan.frequence] || plan.frequence}
               </p>
-              
+
               <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-xl space-y-2 mt-auto">
                 <div className="text-xs text-muted-foreground flex justify-between">
                   <span>Cible:</span>
-                  <span className="text-white text-right max-w-[150px] truncate" title={`${plan.atelier?.nom} > ${plan.poste?.nom}`}>{plan.poste?.nom}</span>
+                  <span
+                    className="text-white text-right max-w-[150px] truncate"
+                    title={`${plan.atelier?.nom} > ${plan.poste?.nom}`}
+                  >
+                    {plan.poste?.nom}
+                  </span>
                 </div>
                 <div className="text-xs text-muted-foreground flex justify-between">
                   <span>Prochaine exécution:</span>
                   <span className="text-emerald-300 font-semibold flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {plan.prochaineExecution ? format(new Date(plan.prochaineExecution), 'dd MMM yyyy', { locale: fr }) : '-'}
+                    {plan.prochaineExecution
+                      ? format(new Date(plan.prochaineExecution), 'dd MMM yyyy', { locale: fr })
+                      : '-'}
                   </span>
                 </div>
               </div>
 
               {isAdminOrChef && (
                 <div className="mt-4 flex gap-2 pt-4 border-t border-white/[0.06]">
-                  <Button variant="ghost" size="sm" className="flex-1 text-muted-foreground hover:text-white bg-white/[0.02]">Modifier</Button>
-                  <Button onClick={() => togglePlan(plan.id, plan.actif)} variant="ghost" size="sm" className={`flex-1 ${plan.actif ? 'text-amber-400 hover:text-amber-300 bg-amber-400/10' : 'text-emerald-400 hover:text-emerald-300 bg-emerald-400/10'}`}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1 text-muted-foreground hover:text-white bg-white/[0.02]"
+                  >
+                    Modifier
+                  </Button>
+                  <Button
+                    onClick={() => togglePlan(plan.id, plan.actif)}
+                    variant="ghost"
+                    size="sm"
+                    className={`flex-1 ${plan.actif ? 'text-amber-400 hover:text-amber-300 bg-amber-400/10' : 'text-emerald-400 hover:text-emerald-300 bg-emerald-400/10'}`}
+                  >
                     <Power className="w-4 h-4 mr-2" /> {plan.actif ? 'Désactiver' : 'Activer'}
                   </Button>
                 </div>
@@ -142,50 +172,106 @@ export default function PlansMaintenancePage() {
           </Card>
         ))}
         {plans.length === 0 && (
-          <div className="col-span-full p-8 text-center text-muted-foreground">Aucun plan de maintenance préventive configuré.</div>
+          <div className="col-span-full p-8 text-center text-muted-foreground">
+            Aucun plan de maintenance préventive configuré.
+          </div>
         )}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Créer un Plan de Maintenance">
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Créer un Plan de Maintenance"
+      >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Intitulé du plan</label>
-            <input type="text" required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground" placeholder="Ex: Entretien mensuel compresseur" value={formData.intitule} onChange={e => setFormData({...formData, intitule: e.target.value})} />
+            <input
+              type="text"
+              required
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+              placeholder="Ex: Entretien mensuel compresseur"
+              value={formData.intitule}
+              onChange={(e) => setFormData({ ...formData, intitule: e.target.value })}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Atelier</label>
-              <select required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={formData.atelierId} onChange={e => setFormData({...formData, atelierId: e.target.value})}>
+              <select
+                required
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={formData.atelierId}
+                onChange={(e) => setFormData({ ...formData, atelierId: e.target.value })}
+              >
                 <option value="">Sélectionner</option>
-                {ateliers?.map((a: any) => <option key={a.id} value={a.id}>{a.nom}</option>)}
+                {ateliers?.map((a: any) => (
+                  <option key={a.id} value={a.id}>
+                    {a.nom}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Ligne</label>
-              <select required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={formData.ligneId} onChange={e => setFormData({...formData, ligneId: e.target.value})}>
+              <select
+                required
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={formData.ligneId}
+                onChange={(e) => setFormData({ ...formData, ligneId: e.target.value })}
+              >
                 <option value="">Sélectionner</option>
-                {lignes?.filter((l: any) => !formData.atelierId || l.atelierId === Number(formData.atelierId)).map((l: any) => <option key={l.id} value={l.id}>{l.nom}</option>)}
+                {lignes
+                  ?.filter(
+                    (l: any) => !formData.atelierId || l.atelierId === Number(formData.atelierId),
+                  )
+                  .map((l: any) => (
+                    <option key={l.id} value={l.id}>
+                      {l.nom}
+                    </option>
+                  ))}
               </select>
             </div>
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium text-white">Poste (Équipement cible)</label>
-              <select required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={formData.posteId} onChange={e => setFormData({...formData, posteId: e.target.value})}>
+              <select
+                required
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={formData.posteId}
+                onChange={(e) => setFormData({ ...formData, posteId: e.target.value })}
+              >
                 <option value="">Sélectionner</option>
-                {postes?.filter((p: any) => !formData.ligneId || p.ligneId === Number(formData.ligneId)).map((p: any) => <option key={p.id} value={p.id}>{p.nom}</option>)}
+                {postes
+                  ?.filter((p: any) => !formData.ligneId || p.ligneId === Number(formData.ligneId))
+                  .map((p: any) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nom}
+                    </option>
+                  ))}
               </select>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Description et instructions</label>
-            <textarea rows={3} className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+            <textarea
+              rows={3}
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Fréquence</label>
-              <select required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={formData.frequence} onChange={e => setFormData({...formData, frequence: e.target.value})}>
+              <select
+                required
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={formData.frequence}
+                onChange={(e) => setFormData({ ...formData, frequence: e.target.value })}
+              >
                 <option value="HEBDOMADAIRE">Hebdomadaire</option>
                 <option value="MENSUELLE">Mensuelle</option>
                 <option value="TRIMESTRIELLE">Trimestrielle</option>
@@ -195,13 +281,23 @@ export default function PlansMaintenancePage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Première exécution</label>
-              <input type="date" required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground" value={formData.prochaineExecution} onChange={e => setFormData({...formData, prochaineExecution: e.target.value})} />
+              <input
+                type="date"
+                required
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+                value={formData.prochaineExecution}
+                onChange={(e) => setFormData({ ...formData, prochaineExecution: e.target.value })}
+              />
             </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.05]">
-            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Annuler</Button>
-            <Button type="submit" className="bg-emerald-500 hover:bg-emerald-600 text-white">Créer le Plan</Button>
+            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button type="submit" className="bg-emerald-500 hover:bg-emerald-600 text-white">
+              Créer le Plan
+            </Button>
           </div>
         </form>
       </Modal>

@@ -29,7 +29,7 @@ export enum StatutDI {
   NOUVELLE = 'NOUVELLE',
   EN_COURS = 'EN_COURS',
   RESOLUE = 'RESOLUE',
-  CLOTUREE = 'CLOTUREE'
+  CLOTUREE = 'CLOTUREE',
 }
 
 export enum StatutOT {
@@ -37,20 +37,20 @@ export enum StatutOT {
   ASSIGNE = 'ASSIGNE',
   EN_COURS = 'EN_COURS',
   EN_ATTENTE_VALIDATION = 'EN_ATTENTE_VALIDATION',
-  FERME = 'FERME'
+  FERME = 'FERME',
 }
 
 export enum Priorite {
   BASSE = 'BASSE',
   MOYENNE = 'MOYENNE',
   HAUTE = 'HAUTE',
-  CRITIQUE = 'CRITIQUE'
+  CRITIQUE = 'CRITIQUE',
 }
 
 export enum TypeMaintenance {
   PREVENTIVE = 'PREVENTIVE',
   CORRECTIVE = 'CORRECTIVE',
-  AMELIORATIVE = 'AMELIORATIVE'
+  AMELIORATIVE = 'AMELIORATIVE',
 }
 
 export enum FrequenceMaintenance {
@@ -58,7 +58,7 @@ export enum FrequenceMaintenance {
   MENSUELLE = 'MENSUELLE',
   TRIMESTRIELLE = 'TRIMESTRIELLE',
   SEMESTRIELLE = 'SEMESTRIELLE',
-  ANNUELLE = 'ANNUELLE'
+  ANNUELLE = 'ANNUELLE',
 }
 
 // ----------------------------------------------------

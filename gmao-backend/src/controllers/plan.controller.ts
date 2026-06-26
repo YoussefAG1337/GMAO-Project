@@ -21,22 +21,26 @@ export const getPlans = async (req: Request, res: Response, next: NextFunction):
         atelier: { select: { nom: true } },
         ligne: { select: { nom: true } },
         poste: { select: { nom: true } },
-        creePar: { select: { nom: true, prenom: true } }
+        creePar: { select: { nom: true, prenom: true } },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
 
     res.status(200).json({
       success: true,
       message: 'Plans de maintenance récupérés',
-      data: plans
+      data: plans,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const getPlanById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getPlanById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -49,9 +53,9 @@ export const getPlanById = async (req: Request, res: Response, next: NextFunctio
         creePar: { select: { id: true, nom: true, prenom: true } },
         ordresTravail: {
           orderBy: { datePrevue: 'desc' },
-          take: 10
-        }
-      }
+          take: 10,
+        },
+      },
     });
 
     if (!plan) {
@@ -62,28 +66,43 @@ export const getPlanById = async (req: Request, res: Response, next: NextFunctio
     res.status(200).json({
       success: true,
       message: 'Plan récupéré',
-      data: plan
+      data: plan,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const createPlan = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const createPlan = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const userId = req.user!.userId;
-    const { intitule, description, atelierId, ligneId, posteId, frequence, prochaineExecution } = req.body;
+    const { intitule, description, atelierId, ligneId, posteId, frequence, prochaineExecution } =
+      req.body;
 
     const prochaineDate = prochaineExecution ? new Date(prochaineExecution) : new Date();
 
     if (!prochaineExecution) {
       // Calcul basique depuis aujourd'hui si non fourni
       switch (frequence) {
-        case FrequenceMaintenance.HEBDOMADAIRE: prochaineDate.setDate(prochaineDate.getDate() + 7); break;
-        case FrequenceMaintenance.MENSUELLE: prochaineDate.setMonth(prochaineDate.getMonth() + 1); break;
-        case FrequenceMaintenance.TRIMESTRIELLE: prochaineDate.setMonth(prochaineDate.getMonth() + 3); break;
-        case FrequenceMaintenance.SEMESTRIELLE: prochaineDate.setMonth(prochaineDate.getMonth() + 6); break;
-        case FrequenceMaintenance.ANNUELLE: prochaineDate.setFullYear(prochaineDate.getFullYear() + 1); break;
+        case FrequenceMaintenance.HEBDOMADAIRE:
+          prochaineDate.setDate(prochaineDate.getDate() + 7);
+          break;
+        case FrequenceMaintenance.MENSUELLE:
+          prochaineDate.setMonth(prochaineDate.getMonth() + 1);
+          break;
+        case FrequenceMaintenance.TRIMESTRIELLE:
+          prochaineDate.setMonth(prochaineDate.getMonth() + 3);
+          break;
+        case FrequenceMaintenance.SEMESTRIELLE:
+          prochaineDate.setMonth(prochaineDate.getMonth() + 6);
+          break;
+        case FrequenceMaintenance.ANNUELLE:
+          prochaineDate.setFullYear(prochaineDate.getFullYear() + 1);
+          break;
       }
     }
 
@@ -96,21 +115,25 @@ export const createPlan = async (req: Request, res: Response, next: NextFunction
         posteId,
         frequence,
         prochaineExecution: prochaineDate,
-        creeParId: userId
-      }
+        creeParId: userId,
+      },
     });
 
     res.status(201).json({
       success: true,
       message: 'Plan de maintenance créé',
-      data: plan
+      data: plan,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const updatePlan = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updatePlan = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { id } = req.params;
     const { prochaineExecution, ...updateData } = req.body;
@@ -121,30 +144,34 @@ export const updatePlan = async (req: Request, res: Response, next: NextFunction
 
     const plan = await prisma.planMaintenance.update({
       where: { id: parseInt(id, 10) },
-      data: updateData
+      data: updateData,
     });
 
     res.status(200).json({
       success: true,
       message: 'Plan mis à jour',
-      data: plan
+      data: plan,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const deletePlan = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const deletePlan = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
     await prisma.planMaintenance.delete({
-      where: { id: parseInt(id, 10) }
+      where: { id: parseInt(id, 10) },
     });
 
     res.status(200).json({
       success: true,
-      message: 'Plan de maintenance supprimé'
+      message: 'Plan de maintenance supprimé',
     });
   } catch (error) {
     next(error);

@@ -208,7 +208,10 @@ function LoginForm() {
 
             {/* Signup hint */}
             <div className="mt-6 text-center">
-              <Link href="/signup" className="text-sm text-purple-400 hover:text-purple-300 hover:underline">
+              <Link
+                href="/signup"
+                className="text-sm text-purple-400 hover:text-purple-300 hover:underline"
+              >
                 Pas encore de compte ? S&apos;inscrire
               </Link>
             </div>

@@ -17,14 +17,14 @@ const statutColors: Record<string, string> = {
   NOUVELLE: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
   EN_COURS: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   RESOLUE: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  CLOTUREE: 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+  CLOTUREE: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
 };
 
 const prioriteColors: Record<string, string> = {
   BASSE: 'text-gray-400',
   MOYENNE: 'text-blue-400',
   HAUTE: 'text-amber-400',
-  CRITIQUE: 'text-rose-400'
+  CRITIQUE: 'text-rose-400',
 };
 
 export default function DemandesInterventionPage() {
@@ -48,7 +48,7 @@ export default function DemandesInterventionPage() {
     posteId: '',
     produit: '',
     description: '',
-    priorite: 'MOYENNE'
+    priorite: 'MOYENNE',
   });
 
   const [isCreateOTModalOpen, setIsCreateOTModalOpen] = useState(false);
@@ -61,7 +61,7 @@ export default function DemandesInterventionPage() {
     priorite: 'MOYENNE',
     typeMaintenance: 'CORRECTIVE',
     datePrevue: '',
-    technicienId: ''
+    technicienId: '',
   });
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -72,7 +72,7 @@ export default function DemandesInterventionPage() {
   const [editFormData, setEditFormData] = useState({
     produit: '',
     description: '',
-    priorite: 'MOYENNE'
+    priorite: 'MOYENNE',
   });
 
   const handleOpenEdit = (di: any) => {
@@ -80,7 +80,7 @@ export default function DemandesInterventionPage() {
     setEditFormData({
       produit: di.produit || '',
       description: di.description || '',
-      priorite: di.priorite || 'MOYENNE'
+      priorite: di.priorite || 'MOYENNE',
     });
     setIsEditModalOpen(true);
   };
@@ -90,7 +90,7 @@ export default function DemandesInterventionPage() {
     if (!selectedDiId) return;
     try {
       await api.put(`/dis/${selectedDiId}`, editFormData);
-      toast.success('Demande d\'intervention modifiée avec succès');
+      toast.success("Demande d'intervention modifiée avec succès");
       setIsEditModalOpen(false);
       mutate();
     } catch (err: any) {
@@ -102,7 +102,7 @@ export default function DemandesInterventionPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette DI ?')) return;
     try {
       await api.delete(`/dis/${id}`);
-      toast.success('Demande d\'intervention supprimée avec succès');
+      toast.success("Demande d'intervention supprimée avec succès");
       mutate();
     } catch (err: any) {
       toast.error(err.message || 'Erreur lors de la suppression');
@@ -119,7 +119,7 @@ export default function DemandesInterventionPage() {
       priorite: di.priorite || 'MOYENNE',
       typeMaintenance: 'CORRECTIVE',
       datePrevue: '',
-      technicienId: ''
+      technicienId: '',
     });
     setIsCreateOTModalOpen(true);
   };
@@ -135,16 +135,18 @@ export default function DemandesInterventionPage() {
         description: otFormData.description,
         priorite: otFormData.priorite,
         typeMaintenance: otFormData.typeMaintenance,
-        datePrevue: otFormData.datePrevue ? new Date(otFormData.datePrevue).toISOString() : undefined,
+        datePrevue: otFormData.datePrevue
+          ? new Date(otFormData.datePrevue).toISOString()
+          : undefined,
       });
 
       if (otFormData.technicienId) {
         await api.patch(`/ots/${(response as any).data.id}/assign`, {
-          technicienId: Number(otFormData.technicienId)
+          technicienId: Number(otFormData.technicienId),
         });
       }
 
-      toast.success("Ordre de travail généré avec succès");
+      toast.success('Ordre de travail généré avec succès');
       setIsCreateOTModalOpen(false);
       mutate();
     } catch (err: any) {
@@ -161,7 +163,7 @@ export default function DemandesInterventionPage() {
         ligneId: Number(formData.ligneId),
         posteId: Number(formData.posteId),
       });
-      toast.success('Demande d\'intervention créée avec succès');
+      toast.success("Demande d'intervention créée avec succès");
       setIsModalOpen(false);
       mutate();
     } catch (err: any) {
@@ -177,7 +179,7 @@ export default function DemandesInterventionPage() {
         ligneId: di.ligneId,
         posteId: di.posteId,
         description: `Suite à DI: ${di.description}`,
-        priorite: di.priorite
+        priorite: di.priorite,
       });
       toast.success(`Ordre de travail généré depuis ${di.numeroDI}`);
       mutate();
@@ -201,11 +203,14 @@ export default function DemandesInterventionPage() {
               <MessageSquareWarning className="w-8 h-8 text-amber-400" />
               Demandes d&apos;Intervention (DI)
             </h2>
-            <p className="text-muted-foreground mt-2">Gestion des signalements de pannes et incidents.</p>
+            <p className="text-muted-foreground mt-2">
+              Gestion des signalements de pannes et incidents.
+            </p>
           </div>
-          <Button 
+          <Button
             onClick={() => setIsModalOpen(true)}
-            className="bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30">
+            className="bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Signaler un incident
           </Button>
@@ -220,99 +225,193 @@ export default function DemandesInterventionPage() {
             <Filter className="w-4 h-4 mr-2" /> Filtres
           </Button>
         </div>
-        
+
         <div className="divide-y divide-white/[0.06]">
           {dis.map((di: any) => (
-            <div key={di.id} className="p-4 md:p-6 hover:bg-white/[0.02] transition-colors flex flex-col md:flex-row gap-4 md:items-center justify-between group">
+            <div
+              key={di.id}
+              className="p-4 md:p-6 hover:bg-white/[0.02] transition-colors flex flex-col md:flex-row gap-4 md:items-center justify-between group"
+            >
               <div className="flex items-start gap-4 flex-1">
                 <div className="hidden sm:flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 shrink-0">
                   <span className="text-xs text-muted-foreground font-mono">{di.numeroDI}</span>
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-bold text-white text-base md:text-lg">{di.produit || 'Équipement en panne'}</h4>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${statutColors[di.statut]}`}>
+                    <h4 className="font-bold text-white text-base md:text-lg">
+                      {di.produit || 'Équipement en panne'}
+                    </h4>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${statutColors[di.statut]}`}
+                    >
                       {di.statut.replace('_', ' ')}
                     </span>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${prioriteColors[di.priorite]}`}>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider ${prioriteColors[di.priorite]}`}
+                    >
                       • {di.priorite}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-1">{di.description}</p>
                   <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground/70">
-                    <span>📍 {di.atelier?.nom} &rsaquo; {di.ligne?.nom} &rsaquo; {di.poste?.nom}</span>
-                    <span>👤 {di.declarePar?.nom} {di.declarePar?.prenom}</span>
-                    <span>🕒 {format(new Date(di.dateDeclaration), 'dd MMM yyyy HH:mm', { locale: fr })}</span>
+                    <span>
+                      📍 {di.atelier?.nom} &rsaquo; {di.ligne?.nom} &rsaquo; {di.poste?.nom}
+                    </span>
+                    <span>
+                      👤 {di.declarePar?.nom} {di.declarePar?.prenom}
+                    </span>
+                    <span>
+                      🕒 {format(new Date(di.dateDeclaration), 'dd MMM yyyy HH:mm', { locale: fr })}
+                    </span>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0 md:opacity-0 group-hover:opacity-100 transition-opacity">
                 {isAdminOrChefTech && di.statut === 'NOUVELLE' && (
-                  <Button onClick={() => handleOpenCreateOT(di)} size="sm" className="bg-[#651FAA] hover:bg-purple-600 text-white">
+                  <Button
+                    onClick={() => handleOpenCreateOT(di)}
+                    size="sm"
+                    className="bg-[#651FAA] hover:bg-purple-600 text-white"
+                  >
                     Créer OT
                   </Button>
                 )}
                 {isAdminOrChef && (
-                  <Button onClick={() => handleOpenEdit(di)} size="sm" variant="ghost" className="text-amber-400 hover:text-amber-300 hover:bg-amber-400/10">
+                  <Button
+                    onClick={() => handleOpenEdit(di)}
+                    size="sm"
+                    variant="ghost"
+                    className="text-amber-400 hover:text-amber-300 hover:bg-amber-400/10"
+                  >
                     Modifier
                   </Button>
                 )}
                 {isAdminOrChef && di.statut === 'NOUVELLE' && (
-                  <Button onClick={() => handleDeleteDI(di.id)} size="sm" variant="ghost" className="text-rose-400 hover:text-rose-300 hover:bg-rose-400/10">
+                  <Button
+                    onClick={() => handleDeleteDI(di.id)}
+                    size="sm"
+                    variant="ghost"
+                    className="text-rose-400 hover:text-rose-300 hover:bg-rose-400/10"
+                  >
                     Supprimer
                   </Button>
                 )}
-                <Button onClick={() => { setSelectedItem(di); setIsDetailsModalOpen(true); }} size="sm" variant="ghost" className="text-muted-foreground hover:text-white">
+                <Button
+                  onClick={() => {
+                    setSelectedItem(di);
+                    setIsDetailsModalOpen(true);
+                  }}
+                  size="sm"
+                  variant="ghost"
+                  className="text-muted-foreground hover:text-white"
+                >
                   Détails <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </div>
           ))}
           {dis.length === 0 && (
-            <div className="p-8 text-center text-muted-foreground">Aucune demande d&apos;intervention trouvée.</div>
+            <div className="p-8 text-center text-muted-foreground">
+              Aucune demande d&apos;intervention trouvée.
+            </div>
           )}
         </div>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Signaler un incident">
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Signaler un incident"
+      >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Atelier</label>
-              <select required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={formData.atelierId} onChange={e => setFormData({...formData, atelierId: e.target.value})}>
+              <select
+                required
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={formData.atelierId}
+                onChange={(e) => setFormData({ ...formData, atelierId: e.target.value })}
+              >
                 <option value="">Sélectionner</option>
-                {ateliers?.map((a: any) => <option key={a.id} value={a.id}>{a.nom}</option>)}
+                {ateliers?.map((a: any) => (
+                  <option key={a.id} value={a.id}>
+                    {a.nom}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Ligne</label>
-              <select required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={formData.ligneId} onChange={e => setFormData({...formData, ligneId: e.target.value})}>
+              <select
+                required
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={formData.ligneId}
+                onChange={(e) => setFormData({ ...formData, ligneId: e.target.value })}
+              >
                 <option value="">Sélectionner</option>
-                {lignes?.filter((l: any) => !formData.atelierId || l.atelierId === Number(formData.atelierId)).map((l: any) => <option key={l.id} value={l.id}>{l.nom}</option>)}
+                {lignes
+                  ?.filter(
+                    (l: any) => !formData.atelierId || l.atelierId === Number(formData.atelierId),
+                  )
+                  .map((l: any) => (
+                    <option key={l.id} value={l.id}>
+                      {l.nom}
+                    </option>
+                  ))}
               </select>
             </div>
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium text-white">Poste (Équipement)</label>
-              <select required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={formData.posteId} onChange={e => setFormData({...formData, posteId: e.target.value})}>
+              <select
+                required
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={formData.posteId}
+                onChange={(e) => setFormData({ ...formData, posteId: e.target.value })}
+              >
                 <option value="">Sélectionner</option>
-                {postes?.filter((p: any) => !formData.ligneId || p.ligneId === Number(formData.ligneId)).map((p: any) => <option key={p.id} value={p.id}>{p.nom}</option>)}
+                {postes
+                  ?.filter((p: any) => !formData.ligneId || p.ligneId === Number(formData.ligneId))
+                  .map((p: any) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nom}
+                    </option>
+                  ))}
               </select>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Titre / Produit</label>
-            <input type="text" required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground" placeholder="Ex: Surchauffe moteur" value={formData.produit} onChange={e => setFormData({...formData, produit: e.target.value})} />
+            <input
+              type="text"
+              required
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+              placeholder="Ex: Surchauffe moteur"
+              value={formData.produit}
+              onChange={(e) => setFormData({ ...formData, produit: e.target.value })}
+            />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Description détaillée</label>
-            <textarea required rows={4} className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground" placeholder="Décrivez le problème constaté..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+            <textarea
+              required
+              rows={4}
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+              placeholder="Décrivez le problème constaté..."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Priorité</label>
-            <select className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={formData.priorite} onChange={e => setFormData({...formData, priorite: e.target.value})}>
+            <select
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+              value={formData.priorite}
+              onChange={(e) => setFormData({ ...formData, priorite: e.target.value })}
+            >
               <option value="BASSE">Basse</option>
               <option value="MOYENNE">Moyenne</option>
               <option value="HAUTE">Haute</option>
@@ -321,52 +420,98 @@ export default function DemandesInterventionPage() {
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.05]">
-            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Annuler</Button>
-            <Button type="submit" className="bg-amber-500 hover:bg-amber-600 text-white">Soumettre la DI</Button>
+            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button type="submit" className="bg-amber-500 hover:bg-amber-600 text-white">
+              Soumettre la DI
+            </Button>
           </div>
         </form>
       </Modal>
 
       {/* Modal Détails */}
-      <Modal isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} title="Détails de la Demande d'Intervention">
+      <Modal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        title="Détails de la Demande d'Intervention"
+      >
         {selectedItem && (
           <div className="space-y-4 text-sm text-white">
             <div className="bg-white/5 p-4 rounded-xl border border-white/10">
               <div className="grid grid-cols-2 gap-4">
-                <div><span className="text-muted-foreground block text-xs">Numéro</span> {selectedItem.numeroDI}</div>
-                <div><span className="text-muted-foreground block text-xs">Statut</span> {selectedItem.statut}</div>
-                <div><span className="text-muted-foreground block text-xs">Titre</span> {selectedItem.produit || 'N/A'}</div>
-                <div><span className="text-muted-foreground block text-xs">Priorité</span> {selectedItem.priorite}</div>
+                <div>
+                  <span className="text-muted-foreground block text-xs">Numéro</span>{' '}
+                  {selectedItem.numeroDI}
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs">Statut</span>{' '}
+                  {selectedItem.statut}
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs">Titre</span>{' '}
+                  {selectedItem.produit || 'N/A'}
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-xs">Priorité</span>{' '}
+                  {selectedItem.priorite}
+                </div>
               </div>
             </div>
             <div>
               <span className="text-muted-foreground block text-xs mb-1">Description</span>
-              <p className="bg-zinc-900 p-3 rounded-lg border border-white/5">{selectedItem.description}</p>
+              <p className="bg-zinc-900 p-3 rounded-lg border border-white/5">
+                {selectedItem.description}
+              </p>
             </div>
             <div className="bg-white/5 p-4 rounded-xl border border-white/10">
               <span className="text-muted-foreground block text-xs mb-2">Localisation</span>
-              <p>📍 {selectedItem.atelier?.nom} &rsaquo; {selectedItem.ligne?.nom} &rsaquo; {selectedItem.poste?.nom}</p>
+              <p>
+                📍 {selectedItem.atelier?.nom} &rsaquo; {selectedItem.ligne?.nom} &rsaquo;{' '}
+                {selectedItem.poste?.nom}
+              </p>
             </div>
           </div>
         )}
       </Modal>
 
       {/* Modal Édition DI */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Modifier la Demande d'Intervention">
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="Modifier la Demande d'Intervention"
+      >
         <form onSubmit={handleEditSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Titre / Produit</label>
-            <input type="text" required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground" value={editFormData.produit} onChange={e => setEditFormData({...editFormData, produit: e.target.value})} />
+            <input
+              type="text"
+              required
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+              value={editFormData.produit}
+              onChange={(e) => setEditFormData({ ...editFormData, produit: e.target.value })}
+            />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Description détaillée</label>
-            <textarea required rows={4} minLength={10} className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground" value={editFormData.description} onChange={e => setEditFormData({...editFormData, description: e.target.value})} />
+            <textarea
+              required
+              rows={4}
+              minLength={10}
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+              value={editFormData.description}
+              onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+            />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Priorité</label>
-            <select className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={editFormData.priorite} onChange={e => setEditFormData({...editFormData, priorite: e.target.value})}>
+            <select
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+              value={editFormData.priorite}
+              onChange={(e) => setEditFormData({ ...editFormData, priorite: e.target.value })}
+            >
               <option value="BASSE">Basse</option>
               <option value="MOYENNE">Moyenne</option>
               <option value="HAUTE">Haute</option>
@@ -375,24 +520,44 @@ export default function DemandesInterventionPage() {
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.05]">
-            <Button type="button" variant="ghost" onClick={() => setIsEditModalOpen(false)}>Annuler</Button>
-            <Button type="submit" className="bg-amber-500 hover:bg-amber-600 text-white">Enregistrer</Button>
+            <Button type="button" variant="ghost" onClick={() => setIsEditModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button type="submit" className="bg-amber-500 hover:bg-amber-600 text-white">
+              Enregistrer
+            </Button>
           </div>
         </form>
       </Modal>
 
       {/* Modal Création OT depuis DI */}
-      <Modal isOpen={isCreateOTModalOpen} onClose={() => setIsCreateOTModalOpen(false)} title="Générer un Ordre de Travail">
+      <Modal
+        isOpen={isCreateOTModalOpen}
+        onClose={() => setIsCreateOTModalOpen(false)}
+        title="Générer un Ordre de Travail"
+      >
         <form onSubmit={handleSubmitOT} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Description de l&apos;intervention</label>
-            <textarea required rows={3} className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground" value={otFormData.description} onChange={e => setOtFormData({...otFormData, description: e.target.value})} />
+            <label className="text-sm font-medium text-white">
+              Description de l&apos;intervention
+            </label>
+            <textarea
+              required
+              rows={3}
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+              value={otFormData.description}
+              onChange={(e) => setOtFormData({ ...otFormData, description: e.target.value })}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Type de maintenance</label>
-              <select className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={otFormData.typeMaintenance} onChange={e => setOtFormData({...otFormData, typeMaintenance: e.target.value})}>
+              <select
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={otFormData.typeMaintenance}
+                onChange={(e) => setOtFormData({ ...otFormData, typeMaintenance: e.target.value })}
+              >
                 <option value="CORRECTIVE">Corrective</option>
                 <option value="PREVENTIVE">Préventive</option>
                 <option value="AMELIORATIVE">Améliorative</option>
@@ -400,7 +565,11 @@ export default function DemandesInterventionPage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Priorité</label>
-              <select className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={otFormData.priorite} onChange={e => setOtFormData({...otFormData, priorite: e.target.value})}>
+              <select
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={otFormData.priorite}
+                onChange={(e) => setOtFormData({ ...otFormData, priorite: e.target.value })}
+              >
                 <option value="BASSE">Basse</option>
                 <option value="MOYENNE">Moyenne</option>
                 <option value="HAUTE">Haute</option>
@@ -409,22 +578,37 @@ export default function DemandesInterventionPage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Technicien</label>
-              <select className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={otFormData.technicienId} onChange={e => setOtFormData({...otFormData, technicienId: e.target.value})}>
+              <select
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={otFormData.technicienId}
+                onChange={(e) => setOtFormData({ ...otFormData, technicienId: e.target.value })}
+              >
                 <option value="">Non assigné</option>
                 {techniciens.map((tech: any) => (
-                  <option key={tech.id} value={tech.id}>{tech.prenom} {tech.nom}</option>
+                  <option key={tech.id} value={tech.id}>
+                    {tech.prenom} {tech.nom}
+                  </option>
                 ))}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Date prévue</label>
-              <input type="date" className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground" value={otFormData.datePrevue} onChange={e => setOtFormData({...otFormData, datePrevue: e.target.value})} />
+              <input
+                type="date"
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+                value={otFormData.datePrevue}
+                onChange={(e) => setOtFormData({ ...otFormData, datePrevue: e.target.value })}
+              />
             </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.05]">
-            <Button type="button" variant="ghost" onClick={() => setIsCreateOTModalOpen(false)}>Annuler</Button>
-            <Button type="submit" className="bg-[#651FAA] hover:bg-purple-600 text-white">Créer l&apos;OT</Button>
+            <Button type="button" variant="ghost" onClick={() => setIsCreateOTModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button type="submit" className="bg-[#651FAA] hover:bg-purple-600 text-white">
+              Créer l&apos;OT
+            </Button>
           </div>
         </form>
       </Modal>

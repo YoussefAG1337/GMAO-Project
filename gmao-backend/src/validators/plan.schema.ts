@@ -15,7 +15,7 @@ export const createPlanSchema = z.object({
   atelierId: z.number(required("L'ID de l'atelier est requis")).int().positive(),
   ligneId: z.number(required("L'ID de la ligne est requis")).int().positive(),
   posteId: z.number(required("L'ID du poste est requis")).int().positive(),
-  frequence: z.nativeEnum(FrequenceMaintenance, required("La fréquence est requise")),
+  frequence: z.nativeEnum(FrequenceMaintenance, required('La fréquence est requise')),
   prochaineExecution: z.string().optional(),
 });
 

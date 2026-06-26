@@ -13,19 +13,20 @@ const fetcher = (url: string) => api.get(url).then((res: any) => res.data);
 export default function RapportsPage() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const { data: rapports, error, isLoading } = useSWR('/ots/rapports', fetcher);
 
-  const filteredRapports = rapports?.filter((r: any) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      r.diagnostic?.toLowerCase().includes(searchLower) ||
-      r.actionsRealisees?.toLowerCase().includes(searchLower) ||
-      r.ordreTravail?.numeroOT?.toLowerCase().includes(searchLower) ||
-      r.redacteur?.nom?.toLowerCase().includes(searchLower) ||
-      r.redacteur?.prenom?.toLowerCase().includes(searchLower)
-    );
-  }) || [];
+  const filteredRapports =
+    rapports?.filter((r: any) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        r.diagnostic?.toLowerCase().includes(searchLower) ||
+        r.actionsRealisees?.toLowerCase().includes(searchLower) ||
+        r.ordreTravail?.numeroOT?.toLowerCase().includes(searchLower) ||
+        r.redacteur?.nom?.toLowerCase().includes(searchLower) ||
+        r.redacteur?.prenom?.toLowerCase().includes(searchLower)
+      );
+    }) || [];
 
   if (isLoading) {
     return (
@@ -48,7 +49,9 @@ export default function RapportsPage() {
             Rapports d&apos;Intervention
           </h1>
           <p className="text-muted-foreground mt-1">
-            {user?.role === 'TECHNICIEN' ? 'Consultez l\'historique de vos interventions.' : 'Consultez tous les rapports d\'intervention de l\'usine.'}
+            {user?.role === 'TECHNICIEN'
+              ? "Consultez l'historique de vos interventions."
+              : "Consultez tous les rapports d'intervention de l'usine."}
           </p>
         </div>
 
@@ -66,14 +69,22 @@ export default function RapportsPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {filteredRapports.map((rapport: any) => (
-          <div key={rapport.id} className="bg-zinc-950/50 border border-white/10 rounded-xl p-6 hover:border-purple-500/30 transition-all duration-300 shadow-xl">
+          <div
+            key={rapport.id}
+            className="bg-zinc-950/50 border border-white/10 rounded-xl p-6 hover:border-purple-500/30 transition-all duration-300 shadow-xl"
+          >
             <div className="flex justify-between items-start mb-4">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-400 text-xs font-semibold border border-purple-500/20 mb-2">
                   <Wrench className="w-3 h-3" />
                   {rapport.ordreTravail?.numeroOT || 'OT Inconnu'}
                 </span>
-                <h3 className="text-lg font-medium text-white line-clamp-1" title={rapport.diagnostic}>{rapport.diagnostic}</h3>
+                <h3
+                  className="text-lg font-medium text-white line-clamp-1"
+                  title={rapport.diagnostic}
+                >
+                  {rapport.diagnostic}
+                </h3>
               </div>
               <div className="text-xs text-muted-foreground flex flex-col items-end gap-1">
                 <span className="flex items-center gap-1">
@@ -89,21 +100,31 @@ export default function RapportsPage() {
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Actions Réalisées</h4>
-                <p className="text-sm text-zinc-300 whitespace-pre-wrap">{rapport.actionsRealisees}</p>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Actions Réalisées
+                </h4>
+                <p className="text-sm text-zinc-300 whitespace-pre-wrap">
+                  {rapport.actionsRealisees}
+                </p>
               </div>
 
               {rapport.causePanne && (
                 <div>
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Cause de la Panne</h4>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    Cause de la Panne
+                  </h4>
                   <p className="text-sm text-zinc-300">{rapport.causePanne}</p>
                 </div>
               )}
 
               {rapport.piecesUtilisees && (
                 <div>
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Pièces Utilisées</h4>
-                  <p className="text-sm text-amber-200/80 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">{rapport.piecesUtilisees}</p>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    Pièces Utilisées
+                  </h4>
+                  <p className="text-sm text-amber-200/80 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
+                    {rapport.piecesUtilisees}
+                  </p>
                 </div>
               )}
 
@@ -111,7 +132,7 @@ export default function RapportsPage() {
                 <div className="flex items-center gap-2 text-xs text-zinc-400 bg-white/[0.02] p-2 rounded-lg border border-white/[0.05]">
                   <MapPin className="w-3.5 h-3.5 text-blue-400" />
                   <span>
-                    {rapport.ordreTravail.atelier.nom} 
+                    {rapport.ordreTravail.atelier.nom}
                     {rapport.ordreTravail.ligne ? ` › ${rapport.ordreTravail.ligne.nom}` : ''}
                     {rapport.ordreTravail.poste ? ` › ${rapport.ordreTravail.poste.nom}` : ''}
                   </span>
@@ -125,10 +146,12 @@ export default function RapportsPage() {
                   </div>
                   <div>
                     <p className="text-[10px] text-muted-foreground uppercase">Intervention</p>
-                    <p className="text-sm font-semibold text-white">{rapport.tempsIntervention} min</p>
+                    <p className="text-sm font-semibold text-white">
+                      {rapport.tempsIntervention} min
+                    </p>
                   </div>
                 </div>
-                {(rapport.tempsArret > 0) && (
+                {rapport.tempsArret > 0 && (
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded-md bg-rose-500/10 text-rose-400">
                       <Clock className="w-4 h-4" />

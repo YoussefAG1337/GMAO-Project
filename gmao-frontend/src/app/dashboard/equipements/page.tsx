@@ -16,9 +16,21 @@ export default function EquipementsPage() {
   const { user } = useAuth();
   const isAdminOrChef = user?.role === 'ADMIN' || user?.role === 'CHEF_MAINTENANCE';
 
-  const { data: ateliers, mutate: mutateAteliers, isLoading: loadingA } = useSWR('/equipements/ateliers', fetcher);
-  const { data: lignes, mutate: mutateLignes, isLoading: loadingL } = useSWR('/equipements/lignes', fetcher);
-  const { data: postes, mutate: mutatePostes, isLoading: loadingP } = useSWR('/equipements/postes', fetcher);
+  const {
+    data: ateliers,
+    mutate: mutateAteliers,
+    isLoading: loadingA,
+  } = useSWR('/equipements/ateliers', fetcher);
+  const {
+    data: lignes,
+    mutate: mutateLignes,
+    isLoading: loadingL,
+  } = useSWR('/equipements/lignes', fetcher);
+  const {
+    data: postes,
+    mutate: mutatePostes,
+    isLoading: loadingP,
+  } = useSWR('/equipements/postes', fetcher);
 
   const [activeTab, setActiveTab] = useState<'ATELIERS' | 'LIGNES' | 'POSTES'>('ATELIERS');
 
@@ -29,7 +41,7 @@ export default function EquipementsPage() {
     nom: '',
     description: '',
     atelierId: '',
-    ligneId: ''
+    ligneId: '',
   });
 
   const handleOpenModal = (type: 'ATELIER' | 'LIGNE' | 'POSTE') => {
@@ -44,21 +56,21 @@ export default function EquipementsPage() {
       if (modalType === 'ATELIER') {
         await api.post('/equipements/ateliers', {
           nom: formData.nom,
-          description: formData.description
+          description: formData.description,
         });
         mutateAteliers();
       } else if (modalType === 'LIGNE') {
         await api.post('/equipements/lignes', {
           nom: formData.nom,
           description: formData.description,
-          atelierId: Number(formData.atelierId)
+          atelierId: Number(formData.atelierId),
         });
         mutateLignes();
       } else if (modalType === 'POSTE') {
         await api.post('/equipements/postes', {
           nom: formData.nom,
           description: formData.description,
-          ligneId: Number(formData.ligneId)
+          ligneId: Number(formData.ligneId),
         });
         mutatePostes();
       }
@@ -72,7 +84,9 @@ export default function EquipementsPage() {
   const isLoading = loadingA || loadingL || loadingP;
 
   if (isLoading) {
-    return <div className="p-8 text-center text-muted-foreground">Chargement des équipements...</div>;
+    return (
+      <div className="p-8 text-center text-muted-foreground">Chargement des équipements...</div>
+    );
   }
 
   return (
@@ -86,17 +100,28 @@ export default function EquipementsPage() {
               <Factory className="w-8 h-8 text-purple-400" />
               Référentiel Équipements
             </h2>
-            <p className="text-muted-foreground mt-2">Gestion des ateliers, lignes de production et postes de travail.</p>
+            <p className="text-muted-foreground mt-2">
+              Gestion des ateliers, lignes de production et postes de travail.
+            </p>
           </div>
           {isAdminOrChef && (
             <div className="flex gap-3 flex-wrap">
-              <Button onClick={() => handleOpenModal('ATELIER')} className="bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border border-purple-500/30">
+              <Button
+                onClick={() => handleOpenModal('ATELIER')}
+                className="bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border border-purple-500/30"
+              >
                 <Plus className="w-4 h-4 mr-2" /> Atelier
               </Button>
-              <Button onClick={() => handleOpenModal('LIGNE')} className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30">
+              <Button
+                onClick={() => handleOpenModal('LIGNE')}
+                className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30"
+              >
                 <Plus className="w-4 h-4 mr-2" /> Ligne
               </Button>
-              <Button onClick={() => handleOpenModal('POSTE')} className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30">
+              <Button
+                onClick={() => handleOpenModal('POSTE')}
+                className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30"
+              >
                 <Plus className="w-4 h-4 mr-2" /> Poste
               </Button>
             </div>
@@ -128,101 +153,174 @@ export default function EquipementsPage() {
 
       {/* Grid Content */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {activeTab === 'ATELIERS' && ateliers?.map((item: any) => (
-          <Card key={item.id} className="border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl hover:border-purple-500/30 transition-all group">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 rounded-xl bg-purple-500/10 text-purple-400">
-                  <Factory className="w-6 h-6" />
-                </div>
-                {isAdminOrChef && (
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="text-muted-foreground hover:text-white"><Edit2 className="w-4 h-4" /></button>
-                    <button className="text-muted-foreground hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+        {activeTab === 'ATELIERS' &&
+          ateliers?.map((item: any) => (
+            <Card
+              key={item.id}
+              className="border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl hover:border-purple-500/30 transition-all group"
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-purple-500/10 text-purple-400">
+                    <Factory className="w-6 h-6" />
                   </div>
-                )}
-              </div>
-              <h3 className="text-lg font-bold text-white">{item.nom}</h3>
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.description || 'Aucune description'}</p>
-              <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                <span className="bg-white/5 px-2.5 py-1 rounded-md">{item._count?.lignes || 0} Ligne(s)</span>
-                {item.actif ? <span className="text-emerald-400">Actif</span> : <span className="text-rose-400">Inactif</span>}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  {isAdminOrChef && (
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="text-muted-foreground hover:text-white">
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button className="text-muted-foreground hover:text-red-400">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-white">{item.nom}</h3>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {item.description || 'Aucune description'}
+                </p>
+                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="bg-white/5 px-2.5 py-1 rounded-md">
+                    {item._count?.lignes || 0} Ligne(s)
+                  </span>
+                  {item.actif ? (
+                    <span className="text-emerald-400">Actif</span>
+                  ) : (
+                    <span className="text-rose-400">Inactif</span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
 
-        {activeTab === 'LIGNES' && lignes?.map((item: any) => (
-          <Card key={item.id} className="border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl hover:border-blue-500/30 transition-all group">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 rounded-xl bg-blue-500/10 text-blue-400">
-                  <Layers className="w-6 h-6" />
-                </div>
-                {isAdminOrChef && (
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="text-muted-foreground hover:text-white"><Edit2 className="w-4 h-4" /></button>
-                    <button className="text-muted-foreground hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+        {activeTab === 'LIGNES' &&
+          lignes?.map((item: any) => (
+            <Card
+              key={item.id}
+              className="border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl hover:border-blue-500/30 transition-all group"
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-blue-500/10 text-blue-400">
+                    <Layers className="w-6 h-6" />
                   </div>
-                )}
-              </div>
-              <h3 className="text-lg font-bold text-white">{item.nom}</h3>
-              <p className="text-xs text-blue-300/70 font-semibold mb-2 uppercase tracking-wider">{item.atelier?.nom}</p>
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.description || 'Aucune description'}</p>
-              <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                <span className="bg-white/5 px-2.5 py-1 rounded-md">{item._count?.postes || 0} Poste(s)</span>
-                {item.actif ? <span className="text-emerald-400">Actif</span> : <span className="text-rose-400">Inactif</span>}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  {isAdminOrChef && (
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="text-muted-foreground hover:text-white">
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button className="text-muted-foreground hover:text-red-400">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-white">{item.nom}</h3>
+                <p className="text-xs text-blue-300/70 font-semibold mb-2 uppercase tracking-wider">
+                  {item.atelier?.nom}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {item.description || 'Aucune description'}
+                </p>
+                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="bg-white/5 px-2.5 py-1 rounded-md">
+                    {item._count?.postes || 0} Poste(s)
+                  </span>
+                  {item.actif ? (
+                    <span className="text-emerald-400">Actif</span>
+                  ) : (
+                    <span className="text-rose-400">Inactif</span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
 
-        {activeTab === 'POSTES' && postes?.map((item: any) => (
-          <Card key={item.id} className="border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl hover:border-emerald-500/30 transition-all group">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400">
-                  <Cpu className="w-6 h-6" />
-                </div>
-                {isAdminOrChef && (
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="text-muted-foreground hover:text-white"><Edit2 className="w-4 h-4" /></button>
-                    <button className="text-muted-foreground hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+        {activeTab === 'POSTES' &&
+          postes?.map((item: any) => (
+            <Card
+              key={item.id}
+              className="border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl hover:border-emerald-500/30 transition-all group"
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400">
+                    <Cpu className="w-6 h-6" />
                   </div>
-                )}
-              </div>
-              <h3 className="text-lg font-bold text-white">{item.nom}</h3>
-              <p className="text-xs text-emerald-300/70 font-semibold mb-2 uppercase tracking-wider">
-                {item.ligne?.atelier?.nom} &rsaquo; {item.ligne?.nom}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.description || 'Aucune description'}</p>
-              <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                {item.actif ? <span className="text-emerald-400">Actif</span> : <span className="text-rose-400">Inactif</span>}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  {isAdminOrChef && (
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="text-muted-foreground hover:text-white">
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button className="text-muted-foreground hover:text-red-400">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-white">{item.nom}</h3>
+                <p className="text-xs text-emerald-300/70 font-semibold mb-2 uppercase tracking-wider">
+                  {item.ligne?.atelier?.nom} &rsaquo; {item.ligne?.nom}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {item.description || 'Aucune description'}
+                </p>
+                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  {item.actif ? (
+                    <span className="text-emerald-400">Actif</span>
+                  ) : (
+                    <span className="text-rose-400">Inactif</span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Ajouter un(e) ${modalType.charAt(0) + modalType.slice(1).toLowerCase()}`}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={`Ajouter un(e) ${modalType.charAt(0) + modalType.slice(1).toLowerCase()}`}
+      >
         <form onSubmit={handleSubmit} className="space-y-4">
-          
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Nom de l&apos;équipement</label>
-            <input type="text" required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground" placeholder="Ex: Convoyeur A" value={formData.nom} onChange={e => setFormData({...formData, nom: e.target.value})} />
+            <input
+              type="text"
+              required
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+              placeholder="Ex: Convoyeur A"
+              value={formData.nom}
+              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+            />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Description (optionnelle)</label>
-            <textarea rows={3} className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground" placeholder="Description de l'équipement..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+            <textarea
+              rows={3}
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+              placeholder="Description de l'équipement..."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
           </div>
 
           {modalType === 'LIGNE' && (
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Atelier Parent</label>
-              <select required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={formData.atelierId} onChange={e => setFormData({...formData, atelierId: e.target.value})}>
+              <select
+                required
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={formData.atelierId}
+                onChange={(e) => setFormData({ ...formData, atelierId: e.target.value })}
+              >
                 <option value="">Sélectionner un atelier</option>
-                {ateliers?.map((a: any) => <option key={a.id} value={a.id}>{a.nom}</option>)}
+                {ateliers?.map((a: any) => (
+                  <option key={a.id} value={a.id}>
+                    {a.nom}
+                  </option>
+                ))}
               </select>
             </div>
           )}
@@ -230,16 +328,29 @@ export default function EquipementsPage() {
           {modalType === 'POSTE' && (
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Ligne Parente</label>
-              <select required className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white" value={formData.ligneId} onChange={e => setFormData({...formData, ligneId: e.target.value})}>
+              <select
+                required
+                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
+                value={formData.ligneId}
+                onChange={(e) => setFormData({ ...formData, ligneId: e.target.value })}
+              >
                 <option value="">Sélectionner une ligne</option>
-                {lignes?.map((l: any) => <option key={l.id} value={l.id}>{l.atelier?.nom} &rsaquo; {l.nom}</option>)}
+                {lignes?.map((l: any) => (
+                  <option key={l.id} value={l.id}>
+                    {l.atelier?.nom} &rsaquo; {l.nom}
+                  </option>
+                ))}
               </select>
             </div>
           )}
 
           <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.05]">
-            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Annuler</Button>
-            <Button type="submit" className="bg-[#651FAA] hover:bg-purple-600 text-white">Créer</Button>
+            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button type="submit" className="bg-[#651FAA] hover:bg-purple-600 text-white">
+              Créer
+            </Button>
           </div>
         </form>
       </Modal>

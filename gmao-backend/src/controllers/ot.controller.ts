@@ -8,7 +8,14 @@ import prisma from '../config/prisma';
 
 export const getOTs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { statut, typeMaintenance, technicienId, atelierId, page = '1', limit = '20' } = req.query;
+    const {
+      statut,
+      typeMaintenance,
+      technicienId,
+      atelierId,
+      page = '1',
+      limit = '20',
+    } = req.query;
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
@@ -32,15 +39,12 @@ export const getOTs = async (req: Request, res: Response, next: NextFunction): P
           ligne: { select: { nom: true } },
           poste: { select: { nom: true } },
           technicien: { select: { nom: true, prenom: true } },
-          demandeIntervention: { select: { numeroDI: true } }
+          demandeIntervention: { select: { numeroDI: true } },
         },
-        orderBy: [
-          { datePrevue: 'asc' },
-          { createdAt: 'desc' }
-        ],
+        orderBy: [{ datePrevue: 'asc' }, { createdAt: 'desc' }],
         skip,
-        take: limitNum
-      })
+        take: limitNum,
+      }),
     ]);
 
     res.status(200).json({
@@ -51,8 +55,8 @@ export const getOTs = async (req: Request, res: Response, next: NextFunction): P
         page: pageNum,
         limit: limitNum,
         totalPages: Math.ceil(total / limitNum),
-        ots
-      }
+        ots,
+      },
     });
   } catch (error) {
     next(error);
@@ -71,8 +75,8 @@ export const getOTById = async (req: Request, res: Response, next: NextFunction)
         poste: true,
         technicien: { select: { id: true, nom: true, prenom: true } },
         demandeIntervention: true,
-        rapportIntervention: true
-      }
+        rapportIntervention: true,
+      },
     });
 
     if (!ot) {
@@ -83,7 +87,7 @@ export const getOTById = async (req: Request, res: Response, next: NextFunction)
     res.status(200).json({
       success: true,
       message: 'OT récupéré avec succès',
-      data: ot
+      data: ot,
     });
   } catch (error) {
     next(error);
@@ -92,14 +96,26 @@ export const getOTById = async (req: Request, res: Response, next: NextFunction)
 
 export const createOT = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { demandeInterventionId, technicienId, atelierId, ligneId, posteId, datePrevue, priorite, typeMaintenance, description } = req.body;
+    const {
+      demandeInterventionId,
+      technicienId,
+      atelierId,
+      ligneId,
+      posteId,
+      datePrevue,
+      priorite,
+      typeMaintenance,
+      description,
+    } = req.body;
 
     let finalAtelierId = atelierId;
     let finalLigneId = ligneId;
     let finalPosteId = posteId;
 
     if (demandeInterventionId) {
-      const di = await prisma.demandeIntervention.findUnique({ where: { id: demandeInterventionId } });
+      const di = await prisma.demandeIntervention.findUnique({
+        where: { id: demandeInterventionId },
+      });
       if (!di) {
         res.status(404).json({ success: false, message: 'DI introuvable', code: 'NOT_FOUND' });
         return;
@@ -111,7 +127,7 @@ export const createOT = async (req: Request, res: Response, next: NextFunction):
       if (di.statut === StatutDI.NOUVELLE) {
         await prisma.demandeIntervention.update({
           where: { id: demandeInterventionId },
-          data: { statut: StatutDI.EN_COURS }
+          data: { statut: StatutDI.EN_COURS },
         });
       }
     }
@@ -128,20 +144,20 @@ export const createOT = async (req: Request, res: Response, next: NextFunction):
         priorite,
         typeMaintenance,
         description,
-        statut: technicienId ? StatutOT.ASSIGNE : StatutOT.CREE
-      }
+        statut: technicienId ? StatutOT.ASSIGNE : StatutOT.CREE,
+      },
     });
 
     const formattedNumero = 'OT-' + ot.id.toString().padStart(6, '0');
     const updatedOT = await prisma.ordreTravail.update({
       where: { id: ot.id },
-      data: { numeroOT: formattedNumero }
+      data: { numeroOT: formattedNumero },
     });
 
     res.status(201).json({
       success: true,
       message: 'OT créé avec succès',
-      data: updatedOT
+      data: updatedOT,
     });
   } catch (error) {
     next(error);
@@ -159,13 +175,13 @@ export const updateOT = async (req: Request, res: Response, next: NextFunction):
 
     const ot = await prisma.ordreTravail.update({
       where: { id: parseInt(id, 10) },
-      data: updateData
+      data: updateData,
     });
 
     res.status(200).json({
       success: true,
       message: 'OT mis à jour avec succès',
-      data: ot
+      data: ot,
     });
   } catch (error) {
     next(error);
@@ -179,13 +195,13 @@ export const assignOT = async (req: Request, res: Response, next: NextFunction):
 
     const ot = await prisma.ordreTravail.update({
       where: { id: parseInt(id, 10) },
-      data: { technicienId, statut: StatutOT.ASSIGNE }
+      data: { technicienId, statut: StatutOT.ASSIGNE },
     });
 
     res.status(200).json({
       success: true,
       message: 'Technicien assigné avec succès',
-      data: ot
+      data: ot,
     });
   } catch (error) {
     next(error);
@@ -204,38 +220,52 @@ export const startOT = async (req: Request, res: Response, next: NextFunction): 
     }
 
     if (ot.technicienId !== userId && req.user!.role !== Role.ADMIN) {
-      res.status(403).json({ success: false, message: 'Vous ne pouvez pas démarrer un OT qui ne vous est pas assigné' });
+      res
+        .status(403)
+        .json({
+          success: false,
+          message: 'Vous ne pouvez pas démarrer un OT qui ne vous est pas assigné',
+        });
       return;
     }
 
     const updatedOT = await prisma.ordreTravail.update({
       where: { id: parseInt(id, 10) },
-      data: { statut: StatutOT.EN_COURS, dateDebut: new Date() }
+      data: { statut: StatutOT.EN_COURS, dateDebut: new Date() },
     });
 
     res.status(200).json({
       success: true,
       message: 'Intervention démarrée',
-      data: updatedOT
+      data: updatedOT,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const submitRapport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const submitRapport = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = req.user!.userId;
 
-    const ot = await prisma.ordreTravail.findUnique({ where: { id: parseInt(id, 10) }, include: { rapportIntervention: true } });
+    const ot = await prisma.ordreTravail.findUnique({
+      where: { id: parseInt(id, 10) },
+      include: { rapportIntervention: true },
+    });
     if (!ot) {
       res.status(404).json({ success: false, message: 'OT introuvable' });
       return;
     }
 
     if (ot.technicienId !== userId && req.user!.role !== Role.ADMIN) {
-      res.status(403).json({ success: false, message: 'Seul le technicien assigné peut soumettre le rapport' });
+      res
+        .status(403)
+        .json({ success: false, message: 'Seul le technicien assigné peut soumettre le rapport' });
       return;
     }
 
@@ -248,52 +278,56 @@ export const submitRapport = async (req: Request, res: Response, next: NextFunct
       data: {
         ...req.body,
         ordreTravailId: ot.id,
-        redacteurId: userId
-      }
+        redacteurId: userId,
+      },
     });
 
     await prisma.ordreTravail.update({
       where: { id: ot.id },
-      data: { statut: StatutOT.EN_ATTENTE_VALIDATION, dateFin: new Date() }
+      data: { statut: StatutOT.EN_ATTENTE_VALIDATION, dateFin: new Date() },
     });
 
     if (ot.demandeInterventionId) {
       await prisma.demandeIntervention.update({
         where: { id: ot.demandeInterventionId },
-        data: { statut: StatutDI.RESOLUE }
+        data: { statut: StatutDI.RESOLUE },
       });
     }
 
     res.status(201).json({
       success: true,
       message: 'Rapport soumis avec succès, en attente de validation',
-      data: rapport
+      data: rapport,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const validateOT = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const validateOT = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = req.user!.userId;
 
     const ot = await prisma.ordreTravail.update({
       where: { id: parseInt(id, 10) },
-      data: { statut: StatutOT.FERME, valideParId: userId, dateValidation: new Date() }
+      data: { statut: StatutOT.FERME, valideParId: userId, dateValidation: new Date() },
     });
 
     if (ot.demandeInterventionId) {
       const allOTs = await prisma.ordreTravail.findMany({
-        where: { demandeInterventionId: ot.demandeInterventionId }
+        where: { demandeInterventionId: ot.demandeInterventionId },
       });
-      const allClosed = allOTs.every(o => o.statut === StatutOT.FERME);
+      const allClosed = allOTs.every((o) => o.statut === StatutOT.FERME);
 
       if (allClosed) {
         await prisma.demandeIntervention.update({
           where: { id: ot.demandeInterventionId },
-          data: { statut: StatutDI.CLOTUREE }
+          data: { statut: StatutDI.CLOTUREE },
         });
       }
     }
@@ -301,7 +335,7 @@ export const validateOT = async (req: Request, res: Response, next: NextFunction
     res.status(200).json({
       success: true,
       message: 'OT validé et fermé',
-      data: ot
+      data: ot,
     });
   } catch (error) {
     next(error);
@@ -319,7 +353,9 @@ export const deleteOT = async (req: Request, res: Response, next: NextFunction):
     }
 
     if (ot.statut !== StatutOT.CREE) {
-      res.status(400).json({ success: false, message: 'Seul un OT à l\'état CREE peut être supprimé' });
+      res
+        .status(400)
+        .json({ success: false, message: "Seul un OT à l'état CREE peut être supprimé" });
       return;
     }
 
@@ -331,17 +367,21 @@ export const deleteOT = async (req: Request, res: Response, next: NextFunction):
   }
 };
 
-export const getOTStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getOTStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const [byStatut, byType] = await Promise.all([
       prisma.ordreTravail.groupBy({ by: ['statut'], _count: true }),
-      prisma.ordreTravail.groupBy({ by: ['typeMaintenance'], _count: true })
+      prisma.ordreTravail.groupBy({ by: ['typeMaintenance'], _count: true }),
     ]);
 
     res.status(200).json({
       success: true,
       message: 'Statistiques OT',
-      data: { byStatut, byType }
+      data: { byStatut, byType },
     });
   } catch (error) {
     next(error);

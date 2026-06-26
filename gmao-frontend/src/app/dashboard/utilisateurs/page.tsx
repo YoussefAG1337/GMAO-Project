@@ -29,20 +29,23 @@ export default function UtilisateursPage() {
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-4">
         <ShieldAlert className="w-16 h-16 text-rose-500/80" />
         <h2 className="text-xl font-semibold text-white">Accès Restreint</h2>
-        <p className="text-muted-foreground">Vous n&apos;avez pas les droits pour accéder à cette page.</p>
+        <p className="text-muted-foreground">
+          Vous n&apos;avez pas les droits pour accéder à cette page.
+        </p>
       </div>
     );
   }
 
-  const filteredUsers = users?.filter((u: any) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      u.nom.toLowerCase().includes(searchLower) ||
-      u.prenom.toLowerCase().includes(searchLower) ||
-      u.email.toLowerCase().includes(searchLower) ||
-      u.role.toLowerCase().includes(searchLower)
-    );
-  }) || [];
+  const filteredUsers =
+    users?.filter((u: any) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        u.nom.toLowerCase().includes(searchLower) ||
+        u.prenom.toLowerCase().includes(searchLower) ||
+        u.email.toLowerCase().includes(searchLower) ||
+        u.role.toLowerCase().includes(searchLower)
+      );
+    }) || [];
 
   const handleOpenEdit = (u: any) => {
     setSelectedUser(u);
@@ -72,7 +75,7 @@ export default function UtilisateursPage() {
       toast.success('Compte approuvé avec succès');
       mutate();
     } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de l\'approbation');
+      toast.error(err.message || "Erreur lors de l'approbation");
     }
   };
 
@@ -113,11 +116,21 @@ export default function UtilisateursPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-white/[0.02] border-b border-white/10">
-                  <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Utilisateur</th>
-                  <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact</th>
-                  <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rôle</th>
-                  <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Statut</th>
-                  <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
+                  <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Utilisateur
+                  </th>
+                  <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Contact
+                  </th>
+                  <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Rôle
+                  </th>
+                  <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Statut
+                  </th>
+                  <th className="p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
@@ -126,10 +139,13 @@ export default function UtilisateursPage() {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold text-sm">
-                          {u.prenom.charAt(0)}{u.nom.charAt(0)}
+                          {u.prenom.charAt(0)}
+                          {u.nom.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-white">{u.prenom} {u.nom}</p>
+                          <p className="text-sm font-medium text-white">
+                            {u.prenom} {u.nom}
+                          </p>
                           <p className="text-xs text-muted-foreground">ID: {u.id}</p>
                         </div>
                       </div>
@@ -178,14 +194,16 @@ export default function UtilisateursPage() {
             </table>
           </div>
           {filteredUsers.length === 0 && (
-            <div className="p-8 text-center text-muted-foreground">
-              Aucun utilisateur trouvé.
-            </div>
+            <div className="p-8 text-center text-muted-foreground">Aucun utilisateur trouvé.</div>
           )}
         </div>
       )}
 
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Modifier l'utilisateur">
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="Modifier l'utilisateur"
+      >
         <form onSubmit={handleUpdateUser} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Rôle</label>
@@ -193,7 +211,7 @@ export default function UtilisateursPage() {
               required
               className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
               value={editForm.role}
-              onChange={e => setEditForm({ ...editForm, role: e.target.value })}
+              onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
             >
               <option value="ADMIN">Administrateur</option>
               <option value="CHEF_MAINTENANCE">Chef de Maintenance</option>
@@ -208,15 +226,21 @@ export default function UtilisateursPage() {
               required
               className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
               value={editForm.actif ? 'true' : 'false'}
-              onChange={e => setEditForm({ ...editForm, actif: e.target.value === 'true' })}
+              onChange={(e) => setEditForm({ ...editForm, actif: e.target.value === 'true' })}
             >
               <option value="true">Actif (Autorisé à se connecter)</option>
               <option value="false">En attente / Désactivé</option>
             </select>
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.05]">
-            <Button type="button" variant="ghost" onClick={() => setIsEditModalOpen(false)}>Annuler</Button>
-            <Button type="submit" disabled={isUpdating} className="bg-purple-600 hover:bg-purple-700 text-white">
+            <Button type="button" variant="ghost" onClick={() => setIsEditModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              disabled={isUpdating}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
               {isUpdating ? 'Enregistrement...' : 'Enregistrer'}
             </Button>
           </div>

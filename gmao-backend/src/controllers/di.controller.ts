@@ -10,7 +10,7 @@ import prisma from '../config/prisma';
 export const getDIs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { statut, priorite, atelierId, ligneId, posteId, page = '1', limit = '20' } = req.query;
-    
+
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
@@ -30,24 +30,24 @@ export const getDIs = async (req: Request, res: Response, next: NextFunction): P
           atelier: { select: { nom: true } },
           ligne: { select: { nom: true } },
           poste: { select: { nom: true } },
-          declarePar: { select: { nom: true, prenom: true } }
+          declarePar: { select: { nom: true, prenom: true } },
         },
         orderBy: { dateDeclaration: 'desc' },
         skip,
-        take: limitNum
-      })
+        take: limitNum,
+      }),
     ]);
 
     res.status(200).json({
       success: true,
-      message: 'Demandes d\'intervention récupérées avec succès',
+      message: "Demandes d'intervention récupérées avec succès",
       data: {
         total,
         page: pageNum,
         limit: limitNum,
         totalPages: Math.ceil(total / limitNum),
-        dis
-      }
+        dis,
+      },
     });
   } catch (error) {
     next(error);
@@ -66,24 +66,24 @@ export const getDIById = async (req: Request, res: Response, next: NextFunction)
         poste: true,
         declarePar: { select: { id: true, nom: true, prenom: true, email: true } },
         ordresTravail: {
-          include: { technicien: { select: { nom: true, prenom: true } } }
-        }
-      }
+          include: { technicien: { select: { nom: true, prenom: true } } },
+        },
+      },
     });
 
     if (!di) {
       res.status(404).json({
         success: false,
-        message: 'Demande d\'intervention introuvable',
-        code: 'NOT_FOUND'
+        message: "Demande d'intervention introuvable",
+        code: 'NOT_FOUND',
       });
       return;
     }
 
     res.status(200).json({
       success: true,
-      message: 'Demande d\'intervention récupérée avec succès',
-      data: di
+      message: "Demande d'intervention récupérée avec succès",
+      data: di,
     });
   } catch (error) {
     next(error);
@@ -93,7 +93,16 @@ export const getDIById = async (req: Request, res: Response, next: NextFunction)
 export const createDI = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user!.userId;
-    const { atelierId, ligneId, posteId, produit, referenceProduit, familleProduit, description, priorite } = req.body;
+    const {
+      atelierId,
+      ligneId,
+      posteId,
+      produit,
+      referenceProduit,
+      familleProduit,
+      description,
+      priorite,
+    } = req.body;
 
     // Validate hierarchy consistency
     const poste = await prisma.poste.findUnique({ where: { id: posteId } });
@@ -101,7 +110,7 @@ export const createDI = async (req: Request, res: Response, next: NextFunction):
       res.status(400).json({
         success: false,
         message: "Le poste n'existe pas ou n'appartient pas à la ligne spécifiée",
-        code: 'BAD_REQUEST'
+        code: 'BAD_REQUEST',
       });
       return;
     }
@@ -111,7 +120,7 @@ export const createDI = async (req: Request, res: Response, next: NextFunction):
       res.status(400).json({
         success: false,
         message: "La ligne n'existe pas ou n'appartient pas à l'atelier spécifié",
-        code: 'BAD_REQUEST'
+        code: 'BAD_REQUEST',
       });
       return;
     }
@@ -128,21 +137,21 @@ export const createDI = async (req: Request, res: Response, next: NextFunction):
         familleProduit,
         description,
         priorite,
-        declareParId: userId
-      }
+        declareParId: userId,
+      },
     });
 
     // Update with proper formatted numeroDI
     const formattedNumero = 'DI-' + di.id.toString().padStart(6, '0');
     const updatedDi = await prisma.demandeIntervention.update({
       where: { id: di.id },
-      data: { numeroDI: formattedNumero }
+      data: { numeroDI: formattedNumero },
     });
 
     res.status(201).json({
       success: true,
-      message: 'Demande d\'intervention créée avec succès',
-      data: updatedDi
+      message: "Demande d'intervention créée avec succès",
+      data: updatedDi,
     });
   } catch (error) {
     next(error);
@@ -156,13 +165,13 @@ export const updateDI = async (req: Request, res: Response, next: NextFunction):
 
     const di = await prisma.demandeIntervention.update({
       where: { id: parseInt(id, 10) },
-      data: updateData
+      data: updateData,
     });
 
     res.status(200).json({
       success: true,
-      message: 'Demande d\'intervention mise à jour avec succès',
-      data: di
+      message: "Demande d'intervention mise à jour avec succès",
+      data: di,
     });
   } catch (error) {
     next(error);
@@ -182,36 +191,40 @@ export const deleteDI = async (req: Request, res: Response, next: NextFunction):
     if (di.statut !== StatutDI.NOUVELLE) {
       res.status(400).json({
         success: false,
-        message: 'Impossible de supprimer une DI qui n\'est plus à l\'état NOUVELLE',
-        code: 'BAD_REQUEST'
+        message: "Impossible de supprimer une DI qui n'est plus à l'état NOUVELLE",
+        code: 'BAD_REQUEST',
       });
       return;
     }
 
     await prisma.demandeIntervention.delete({
-      where: { id: parseInt(id, 10) }
+      where: { id: parseInt(id, 10) },
     });
 
     res.status(200).json({
       success: true,
-      message: 'Demande d\'intervention supprimée avec succès'
+      message: "Demande d'intervention supprimée avec succès",
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const getDIStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getDIStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const stats = await prisma.demandeIntervention.groupBy({
       by: ['statut'],
-      _count: true
+      _count: true,
     });
 
     res.status(200).json({
       success: true,
       message: 'Statistiques des DI récupérées',
-      data: stats
+      data: stats,
     });
   } catch (error) {
     next(error);

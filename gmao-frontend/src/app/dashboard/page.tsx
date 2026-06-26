@@ -22,9 +22,20 @@ import {
   PieChart as PieChartIcon,
   BarChart3,
   CheckCircle2,
-  FileText
+  FileText,
 } from 'lucide-react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts';
 
 const roleLabels: Record<string, { label: string; color: string }> = {
   ADMIN: { label: 'Administrateur', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
@@ -43,7 +54,10 @@ export default function DashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
 
   const { data: stats, isLoading: statsLoading } = useSWR('/dashboard/stats', fetcher);
-  const { data: kpis, isLoading: kpisLoading } = useSWR(user?.role === 'ADMIN' || user?.role === 'CHEF_MAINTENANCE' ? '/dashboard/kpis' : null, fetcher);
+  const { data: kpis, isLoading: kpisLoading } = useSWR(
+    user?.role === 'ADMIN' || user?.role === 'CHEF_MAINTENANCE' ? '/dashboard/kpis' : null,
+    fetcher,
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -64,15 +78,27 @@ export default function DashboardPage() {
     color: 'bg-gray-500/10 text-gray-400',
   };
 
-  const repartitionData = stats ? [
-    { name: 'Corrective', value: stats.repartitionCorrectivePreventive.corrective, color: '#f43f5e' },
-    { name: 'Préventive', value: stats.repartitionCorrectivePreventive.preventive, color: '#10b981' }
-  ] : [];
+  const repartitionData = stats
+    ? [
+        {
+          name: 'Corrective',
+          value: stats.repartitionCorrectivePreventive.corrective,
+          color: '#f43f5e',
+        },
+        {
+          name: 'Préventive',
+          value: stats.repartitionCorrectivePreventive.preventive,
+          color: '#10b981',
+        },
+      ]
+    : [];
 
-  const barData = stats ? stats.pannesParLigne.map((p: any) => ({
-    name: p.ligneNom,
-    pannes: p.count
-  })) : [];
+  const barData = stats
+    ? stats.pannesParLigne.map((p: any) => ({
+        name: p.ligneNom,
+        pannes: p.count,
+      }))
+    : [];
 
   return (
     <div className="space-y-8">
@@ -98,13 +124,18 @@ export default function DashboardPage() {
                 <Sparkles className="w-5 h-5 text-purple-400 animate-pulse-glow hidden sm:inline" />
               </div>
               <div className="flex flex-wrap gap-2">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${roleBadge.color}`}>
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${roleBadge.color}`}
+                >
                   <Shield className="w-3 h-3" />
                   {roleBadge.label}
                 </span>
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/80 bg-white/[0.02] border border-white/[0.04] px-2.5 py-0.5 rounded-full">
                   <Clock className="w-3 h-3" />
-                  Dernière connexion : {isMounted && user.dernierLogin ? new Date(user.dernierLogin).toLocaleString('fr-FR') : '...'}
+                  Dernière connexion :{' '}
+                  {isMounted && user.dernierLogin
+                    ? new Date(user.dernierLogin).toLocaleString('fr-FR')
+                    : '...'}
                 </span>
               </div>
             </div>
@@ -122,14 +153,20 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl transition-all duration-300 hover:border-amber-500/30 hover:shadow-amber-500/10 shadow-lg shadow-black/30 group">
               <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-muted-foreground/80 tracking-wide uppercase">Incidents Ouverts (DI)</span>
+                  <span className="text-xs font-semibold text-muted-foreground/80 tracking-wide uppercase">
+                    Incidents Ouverts (DI)
+                  </span>
                   <div className="p-2 rounded-xl border bg-amber-500/10 text-amber-400 border-amber-500/20 transform group-hover:scale-110 transition-transform duration-300">
                     <AlertTriangle className="w-5 h-5" />
                   </div>
                 </div>
                 <div>
-                  <div className="text-3xl font-extrabold tracking-tight text-white mb-1">{stats?.incidentsOuverts || 0}</div>
-                  <p className="text-xs text-muted-foreground/70 font-medium">Demandes en attente</p>
+                  <div className="text-3xl font-extrabold tracking-tight text-white mb-1">
+                    {stats?.incidentsOuverts || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground/70 font-medium">
+                    Demandes en attente
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -137,14 +174,20 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl transition-all duration-300 hover:border-[#651FAA]/30 hover:shadow-[#651FAA]/10 shadow-lg shadow-black/30 group">
               <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-muted-foreground/80 tracking-wide uppercase">OTs En Cours</span>
+                  <span className="text-xs font-semibold text-muted-foreground/80 tracking-wide uppercase">
+                    OTs En Cours
+                  </span>
                   <div className="p-2 rounded-xl border bg-[#651FAA]/10 text-purple-300 border-[#651FAA]/20 transform group-hover:scale-110 transition-transform duration-300">
                     <Wrench className="w-5 h-5" />
                   </div>
                 </div>
                 <div>
-                  <div className="text-3xl font-extrabold tracking-tight text-white mb-1">{stats?.otEnCours || 0}</div>
-                  <p className="text-xs text-muted-foreground/70 font-medium">Interventions actives</p>
+                  <div className="text-3xl font-extrabold tracking-tight text-white mb-1">
+                    {stats?.otEnCours || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground/70 font-medium">
+                    Interventions actives
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -152,14 +195,20 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl transition-all duration-300 hover:border-blue-500/30 hover:shadow-blue-500/10 shadow-lg shadow-black/30 group">
               <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-muted-foreground/80 tracking-wide uppercase">OTs à Valider</span>
+                  <span className="text-xs font-semibold text-muted-foreground/80 tracking-wide uppercase">
+                    OTs à Valider
+                  </span>
                   <div className="p-2 rounded-xl border bg-blue-500/10 text-blue-400 border-blue-500/20 transform group-hover:scale-110 transition-transform duration-300">
                     <FileText className="w-5 h-5" />
                   </div>
                 </div>
                 <div>
-                  <div className="text-3xl font-extrabold tracking-tight text-white mb-1">{stats?.otEnAttenteValidation || 0}</div>
-                  <p className="text-xs text-muted-foreground/70 font-medium">En attente de clôture</p>
+                  <div className="text-3xl font-extrabold tracking-tight text-white mb-1">
+                    {stats?.otEnAttenteValidation || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground/70 font-medium">
+                    En attente de clôture
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -167,7 +216,9 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/30 hover:shadow-emerald-500/10 shadow-lg shadow-black/30 group">
               <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-muted-foreground/80 tracking-wide uppercase">Disponibilité (TRS)</span>
+                  <span className="text-xs font-semibold text-muted-foreground/80 tracking-wide uppercase">
+                    Disponibilité (TRS)
+                  </span>
                   <div className="p-2 rounded-xl border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transform group-hover:scale-110 transition-transform duration-300">
                     <Activity className="w-5 h-5" />
                   </div>
@@ -176,7 +227,9 @@ export default function DashboardPage() {
                   <div className="text-3xl font-extrabold tracking-tight text-white mb-1">
                     {kpis ? `${kpis.disponibilite.toFixed(1)}%` : '--'}
                   </div>
-                  <p className="text-xs text-muted-foreground/70 font-medium">Disponibilité globale usine</p>
+                  <p className="text-xs text-muted-foreground/70 font-medium">
+                    Disponibilité globale usine
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -194,16 +247,23 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden border-amber-500/20 bg-amber-500/5 backdrop-blur-xl transition-all duration-300 hover:border-amber-500/40 shadow-lg group">
               <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-amber-400 tracking-wide uppercase">À Faire Aujourd&apos;hui</span>
+                  <span className="text-sm font-semibold text-amber-400 tracking-wide uppercase">
+                    À Faire Aujourd&apos;hui
+                  </span>
                   <div className="p-2 rounded-xl border bg-amber-500/10 text-amber-400 border-amber-500/20">
                     <AlertTriangle className="w-6 h-6" />
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground/80 font-medium mb-4">Vous avez des ordres de travail en attente dans votre file.</p>
-                  <Link 
+                  <p className="text-sm text-muted-foreground/80 font-medium mb-4">
+                    Vous avez des ordres de travail en attente dans votre file.
+                  </p>
+                  <Link
                     href="/dashboard/ots"
-                    className={cn(buttonVariants({ variant: 'default' }), "w-full bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-lg shadow-amber-500/20")}
+                    className={cn(
+                      buttonVariants({ variant: 'default' }),
+                      'w-full bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-lg shadow-amber-500/20',
+                    )}
                   >
                     Voir mes interventions assignées
                   </Link>
@@ -214,16 +274,23 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden border-[#651FAA]/20 bg-[#651FAA]/5 backdrop-blur-xl transition-all duration-300 hover:border-[#651FAA]/40 shadow-lg group">
               <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-purple-400 tracking-wide uppercase">Signaler un Incident</span>
+                  <span className="text-sm font-semibold text-purple-400 tracking-wide uppercase">
+                    Signaler un Incident
+                  </span>
                   <div className="p-2 rounded-xl border bg-[#651FAA]/10 text-purple-400 border-[#651FAA]/20">
                     <Wrench className="w-6 h-6" />
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground/80 font-medium mb-4">Signalez une nouvelle panne détectée sur le terrain.</p>
-                  <Link 
+                  <p className="text-sm text-muted-foreground/80 font-medium mb-4">
+                    Signalez une nouvelle panne détectée sur le terrain.
+                  </p>
+                  <Link
                     href="/dashboard/dis"
-                    className={cn(buttonVariants({ variant: 'default' }), "w-full bg-[#651FAA] hover:bg-purple-600 text-white font-bold shadow-lg shadow-[#651FAA]/20")}
+                    className={cn(
+                      buttonVariants({ variant: 'default' }),
+                      'w-full bg-[#651FAA] hover:bg-purple-600 text-white font-bold shadow-lg shadow-[#651FAA]/20',
+                    )}
                   >
                     Créer une Demande (DI)
                   </Link>
@@ -247,7 +314,8 @@ export default function DashboardPage() {
             <CardContent className="p-6 h-[300px] flex items-center justify-center">
               {statsLoading ? (
                 <div className="text-muted-foreground">Chargement...</div>
-              ) : stats?.repartitionCorrectivePreventive.corrective === 0 && stats?.repartitionCorrectivePreventive.preventive === 0 ? (
+              ) : stats?.repartitionCorrectivePreventive.corrective === 0 &&
+                stats?.repartitionCorrectivePreventive.preventive === 0 ? (
                 <div className="text-muted-foreground">Aucune donnée</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -265,8 +333,12 @@ export default function DashboardPage() {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', borderRadius: '8px' }}
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#09090b',
+                        borderColor: '#27272a',
+                        borderRadius: '8px',
+                      }}
                       itemStyle={{ color: '#fff' }}
                     />
                   </PieChart>
@@ -291,11 +363,28 @@ export default function DashboardPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={barData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                    <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <Tooltip 
+                    <XAxis
+                      dataKey="name"
+                      stroke="#a1a1aa"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="#a1a1aa"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      allowDecimals={false}
+                    />
+                    <Tooltip
                       cursor={{ fill: '#27272a', opacity: 0.4 }}
-                      contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', borderRadius: '8px', color: '#fff' }}
+                      contentStyle={{
+                        backgroundColor: '#09090b',
+                        borderColor: '#27272a',
+                        borderRadius: '8px',
+                        color: '#fff',
+                      }}
                     />
                     <Bar dataKey="pannes" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -359,20 +448,32 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="p-6">
                 {kpisLoading ? (
-                  <div className="text-center text-muted-foreground py-8">Chargement des indicateurs...</div>
+                  <div className="text-center text-muted-foreground py-8">
+                    Chargement des indicateurs...
+                  </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.03]">
-                      <p className="text-xs text-muted-foreground mb-1">MTTR (Temps Moyen Réparation)</p>
-                      <p className="text-2xl font-bold text-white">{kpis?.mttr ? `${kpis.mttr.toFixed(1)} h` : 'N/A'}</p>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        MTTR (Temps Moyen Réparation)
+                      </p>
+                      <p className="text-2xl font-bold text-white">
+                        {kpis?.mttr ? `${kpis.mttr.toFixed(1)} h` : 'N/A'}
+                      </p>
                     </div>
                     <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.03]">
-                      <p className="text-xs text-muted-foreground mb-1">MTBF (Temps Moyen Entre Pannes)</p>
-                      <p className="text-2xl font-bold text-white">{kpis?.mtbf ? `${kpis.mtbf.toFixed(1)} h` : 'N/A'}</p>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        MTBF (Temps Moyen Entre Pannes)
+                      </p>
+                      <p className="text-2xl font-bold text-white">
+                        {kpis?.mtbf ? `${kpis.mtbf.toFixed(1)} h` : 'N/A'}
+                      </p>
                     </div>
                     <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.03]">
                       <p className="text-xs text-muted-foreground mb-1">Durée totale pannes</p>
-                      <p className="text-2xl font-bold text-rose-400">{kpis?.dureeTotalePannes ? `${kpis.dureeTotalePannes.toFixed(1)} h` : '0 h'}</p>
+                      <p className="text-2xl font-bold text-rose-400">
+                        {kpis?.dureeTotalePannes ? `${kpis.dureeTotalePannes.toFixed(1)} h` : '0 h'}
+                      </p>
                     </div>
                     <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.03]">
                       <p className="text-xs text-muted-foreground mb-1">Total Interventions</p>

@@ -18,7 +18,7 @@ import {
   AlertCircle,
   Shield,
   User as UserIcon,
-  CheckCircle2
+  CheckCircle2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -29,7 +29,7 @@ function SignupForm() {
   const [prenom, setPrenom] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -45,7 +45,7 @@ function SignupForm() {
         nom,
         prenom,
         email,
-        motDePasse: password
+        motDePasse: password,
       });
       setSuccess(true);
       toast.success('Inscription réussie !', {
@@ -77,7 +77,8 @@ function SignupForm() {
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-white">Demande envoyée</h2>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Votre compte a été créé avec succès. Un administrateur doit maintenant valider votre accès avant que vous ne puissiez vous connecter.
+                Votre compte a été créé avec succès. Un administrateur doit maintenant valider votre
+                accès avant que vous ne puissiez vous connecter.
               </p>
             </div>
             <Button
@@ -208,7 +209,10 @@ function SignupForm() {
             </form>
 
             <div className="mt-6 text-center">
-              <Link href="/login" className="text-sm text-purple-400 hover:text-purple-300 hover:underline">
+              <Link
+                href="/login"
+                className="text-sm text-purple-400 hover:text-purple-300 hover:underline"
+              >
                 Déjà un compte ? Se connecter
               </Link>
             </div>

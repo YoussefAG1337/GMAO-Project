@@ -5,7 +5,12 @@
 import { Router } from 'express';
 import { Role } from '@prisma/client';
 import {
-  getDIs, getDIById, createDI, updateDI, deleteDI, getDIStats
+  getDIs,
+  getDIById,
+  createDI,
+  updateDI,
+  deleteDI,
+  getDIStats,
 } from '../controllers/di.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { rbac } from '../middleware/rbac.middleware';
@@ -24,20 +29,11 @@ router.post(
   '/',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
   validate(createDISchema),
-  createDI
+  createDI,
 );
 
-router.put(
-  '/:id',
-  rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
-  validate(updateDISchema),
-  updateDI
-);
+router.put('/:id', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]), validate(updateDISchema), updateDI);
 
-router.delete(
-  '/:id',
-  rbac([Role.ADMIN]),
-  deleteDI
-);
+router.delete('/:id', rbac([Role.ADMIN]), deleteDI);
 
 export default router;

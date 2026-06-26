@@ -22,11 +22,7 @@ export const createAtelierSchema = z.object({
 });
 
 export const updateAtelierSchema = z.object({
-  nom: z
-    .string()
-    .max(100, 'Le nom ne doit pas dépasser 100 caractères')
-    .trim()
-    .optional(),
+  nom: z.string().max(100, 'Le nom ne doit pas dépasser 100 caractères').trim().optional(),
   description: z.string().optional(),
   actif: z.boolean().optional(),
 });
@@ -45,11 +41,7 @@ export const createLigneSchema = z.object({
 });
 
 export const updateLigneSchema = z.object({
-  nom: z
-    .string()
-    .max(100, 'Le nom ne doit pas dépasser 100 caractères')
-    .trim()
-    .optional(),
+  nom: z.string().max(100, 'Le nom ne doit pas dépasser 100 caractères').trim().optional(),
   description: z.string().optional(),
   atelierId: z.number().int().positive().optional(),
   actif: z.boolean().optional(),
@@ -69,11 +61,7 @@ export const createPosteSchema = z.object({
 });
 
 export const updatePosteSchema = z.object({
-  nom: z
-    .string()
-    .max(100, 'Le nom ne doit pas dépasser 100 caractères')
-    .trim()
-    .optional(),
+  nom: z.string().max(100, 'Le nom ne doit pas dépasser 100 caractères').trim().optional(),
   description: z.string().optional(),
   ligneId: z.number().int().positive().optional(),
   actif: z.boolean().optional(),

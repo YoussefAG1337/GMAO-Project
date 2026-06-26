@@ -18,32 +18,50 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction):
     const users = await prisma.user.findMany({
       where,
       select: {
-        id: true, nom: true, prenom: true, email: true, role: true, actif: true, dernierLogin: true, createdAt: true,
-        _count: { select: { ordresTravailTechnicien: true } }
+        id: true,
+        nom: true,
+        prenom: true,
+        email: true,
+        role: true,
+        actif: true,
+        dernierLogin: true,
+        createdAt: true,
+        _count: { select: { ordresTravailTechnicien: true } },
       },
-      orderBy: { nom: 'asc' }
+      orderBy: { nom: 'asc' },
     });
 
     res.status(200).json({
       success: true,
       message: 'Utilisateurs récupérés',
-      data: users
+      data: users,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const getUserById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getUserById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
     const user = await prisma.user.findUnique({
       where: { id: parseInt(id, 10) },
       select: {
-        id: true, nom: true, prenom: true, email: true, role: true, actif: true, dernierLogin: true, createdAt: true,
-        loginAudits: { orderBy: { createdAt: 'desc' }, take: 5 }
-      }
+        id: true,
+        nom: true,
+        prenom: true,
+        email: true,
+        role: true,
+        actif: true,
+        dernierLogin: true,
+        createdAt: true,
+        loginAudits: { orderBy: { createdAt: 'desc' }, take: 5 },
+      },
     });
 
     if (!user) {
@@ -54,14 +72,18 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
     res.status(200).json({
       success: true,
       message: 'Utilisateur récupéré',
-      data: user
+      data: user,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const createUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const createUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { nom, prenom, email, motDePasse, role } = req.body;
 
@@ -75,22 +97,30 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
     const user = await prisma.user.create({
       data: {
-        nom, prenom, email, motDePasse: hashedPassword, role
+        nom,
+        prenom,
+        email,
+        motDePasse: hashedPassword,
+        role,
       },
-      select: { id: true, nom: true, prenom: true, email: true, role: true, actif: true }
+      select: { id: true, nom: true, prenom: true, email: true, role: true, actif: true },
     });
 
     res.status(201).json({
       success: true,
       message: 'Utilisateur créé',
-      data: user
+      data: user,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { id } = req.params;
     const { email, ...updateData } = req.body;
@@ -107,54 +137,64 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
     const user = await prisma.user.update({
       where: { id: parseInt(id, 10) },
       data: updateData,
-      select: { id: true, nom: true, prenom: true, email: true, role: true, actif: true }
+      select: { id: true, nom: true, prenom: true, email: true, role: true, actif: true },
     });
 
     res.status(200).json({
       success: true,
       message: 'Utilisateur mis à jour',
-      data: user
+      data: user,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const deleteUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
     if (parseInt(id, 10) === req.user!.userId) {
-      res.status(400).json({ success: false, message: 'Vous ne pouvez pas vous supprimer vous-même' });
+      res
+        .status(400)
+        .json({ success: false, message: 'Vous ne pouvez pas vous supprimer vous-même' });
       return;
     }
 
     await prisma.user.update({
       where: { id: parseInt(id, 10) },
-      data: { actif: false }
+      data: { actif: false },
     });
 
     res.status(200).json({
       success: true,
-      message: 'Utilisateur désactivé'
+      message: 'Utilisateur désactivé',
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const getTechniciens = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getTechniciens = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const techniciens = await prisma.user.findMany({
       where: { role: Role.TECHNICIEN, actif: true },
       select: { id: true, nom: true, prenom: true },
-      orderBy: { nom: 'asc' }
+      orderBy: { nom: 'asc' },
     });
 
     res.status(200).json({
       success: true,
       message: 'Techniciens récupérés',
-      data: techniciens
+      data: techniciens,
     });
   } catch (error) {
     next(error);

@@ -6,17 +6,32 @@
 import { Router } from 'express';
 import { Role } from '@prisma/client';
 import {
-  getAteliers, getAtelierById, createAtelier, updateAtelier, deleteAtelier,
-  getLignes, getLigneById, createLigne, updateLigne, deleteLigne,
-  getPostes, getPosteById, createPoste, updatePoste, deletePoste
+  getAteliers,
+  getAtelierById,
+  createAtelier,
+  updateAtelier,
+  deleteAtelier,
+  getLignes,
+  getLigneById,
+  createLigne,
+  updateLigne,
+  deleteLigne,
+  getPostes,
+  getPosteById,
+  createPoste,
+  updatePoste,
+  deletePoste,
 } from '../controllers/equipement.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { rbac } from '../middleware/rbac.middleware';
 import { validate } from '../middleware/validation.middleware';
 import {
-  createAtelierSchema, updateAtelierSchema,
-  createLigneSchema, updateLigneSchema,
-  createPosteSchema, updatePosteSchema
+  createAtelierSchema,
+  updateAtelierSchema,
+  createLigneSchema,
+  updateLigneSchema,
+  createPosteSchema,
+  updatePosteSchema,
 } from '../validators/equipement.schema';
 
 const router = Router();
@@ -35,21 +50,17 @@ router.post(
   '/ateliers',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
   validate(createAtelierSchema),
-  createAtelier
+  createAtelier,
 );
 
 router.put(
   '/ateliers/:id',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
   validate(updateAtelierSchema),
-  updateAtelier
+  updateAtelier,
 );
 
-router.delete(
-  '/ateliers/:id',
-  rbac([Role.ADMIN]),
-  deleteAtelier
-);
+router.delete('/ateliers/:id', rbac([Role.ADMIN]), deleteAtelier);
 
 // ==========================================
 // LIGNES
@@ -62,21 +73,17 @@ router.post(
   '/lignes',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
   validate(createLigneSchema),
-  createLigne
+  createLigne,
 );
 
 router.put(
   '/lignes/:id',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
   validate(updateLigneSchema),
-  updateLigne
+  updateLigne,
 );
 
-router.delete(
-  '/lignes/:id',
-  rbac([Role.ADMIN]),
-  deleteLigne
-);
+router.delete('/lignes/:id', rbac([Role.ADMIN]), deleteLigne);
 
 // ==========================================
 // POSTES
@@ -89,20 +96,16 @@ router.post(
   '/postes',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
   validate(createPosteSchema),
-  createPoste
+  createPoste,
 );
 
 router.put(
   '/postes/:id',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
   validate(updatePosteSchema),
-  updatePoste
+  updatePoste,
 );
 
-router.delete(
-  '/postes/:id',
-  rbac([Role.ADMIN]),
-  deletePoste
-);
+router.delete('/postes/:id', rbac([Role.ADMIN]), deletePoste);
 
 export default router;

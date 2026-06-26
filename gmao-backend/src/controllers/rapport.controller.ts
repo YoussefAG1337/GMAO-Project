@@ -6,7 +6,11 @@ import { Request, Response, NextFunction } from 'express';
 import { Role } from '@prisma/client';
 import prisma from '../config/prisma';
 
-export const getRapports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getRapports = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const where: any = {};
     if (req.user!.role === Role.TECHNICIEN) {
@@ -16,29 +20,33 @@ export const getRapports = async (req: Request, res: Response, next: NextFunctio
     const rapports = await prisma.rapportIntervention.findMany({
       where,
       include: {
-        ordreTravail: { 
+        ordreTravail: {
           include: {
             atelier: { select: { nom: true } },
             ligne: { select: { nom: true } },
-            poste: { select: { nom: true } }
-          }
+            poste: { select: { nom: true } },
+          },
         },
-        redacteur: { select: { nom: true, prenom: true } }
+        redacteur: { select: { nom: true, prenom: true } },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
 
     res.status(200).json({
       success: true,
       message: 'Rapports récupérés',
-      data: rapports
+      data: rapports,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const getRapportById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getRapportById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -46,8 +54,8 @@ export const getRapportById = async (req: Request, res: Response, next: NextFunc
       where: { id: parseInt(id, 10) },
       include: {
         ordreTravail: true,
-        redacteur: { select: { nom: true, prenom: true } }
-      }
+        redacteur: { select: { nom: true, prenom: true } },
+      },
     });
 
     if (!rapport) {
@@ -58,19 +66,23 @@ export const getRapportById = async (req: Request, res: Response, next: NextFunc
     res.status(200).json({
       success: true,
       message: 'Rapport récupéré',
-      data: rapport
+      data: rapport,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const getRapportByOT = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getRapportByOT = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { otId } = req.params;
 
     const rapport = await prisma.rapportIntervention.findUnique({
-      where: { ordreTravailId: parseInt(otId, 10) }
+      where: { ordreTravailId: parseInt(otId, 10) },
     });
 
     if (!rapport) {
@@ -81,7 +93,7 @@ export const getRapportByOT = async (req: Request, res: Response, next: NextFunc
     res.status(200).json({
       success: true,
       message: 'Rapport récupéré',
-      data: rapport
+      data: rapport,
     });
   } catch (error) {
     next(error);

@@ -18,22 +18,32 @@ export const initPreventiveCron = () => {
         where: {
           actif: true,
           prochaineExecution: {
-            lte: today
-          }
-        }
+            lte: today,
+          },
+        },
       });
 
       let generatedCount = 0;
 
       for (const plan of plans) {
         const nextDate = new Date(plan.prochaineExecution || today);
-        
+
         switch (plan.frequence) {
-          case FrequenceMaintenance.HEBDOMADAIRE: nextDate.setDate(nextDate.getDate() + 7); break;
-          case FrequenceMaintenance.MENSUELLE: nextDate.setMonth(nextDate.getMonth() + 1); break;
-          case FrequenceMaintenance.TRIMESTRIELLE: nextDate.setMonth(nextDate.getMonth() + 3); break;
-          case FrequenceMaintenance.SEMESTRIELLE: nextDate.setMonth(nextDate.getMonth() + 6); break;
-          case FrequenceMaintenance.ANNUELLE: nextDate.setFullYear(nextDate.getFullYear() + 1); break;
+          case FrequenceMaintenance.HEBDOMADAIRE:
+            nextDate.setDate(nextDate.getDate() + 7);
+            break;
+          case FrequenceMaintenance.MENSUELLE:
+            nextDate.setMonth(nextDate.getMonth() + 1);
+            break;
+          case FrequenceMaintenance.TRIMESTRIELLE:
+            nextDate.setMonth(nextDate.getMonth() + 3);
+            break;
+          case FrequenceMaintenance.SEMESTRIELLE:
+            nextDate.setMonth(nextDate.getMonth() + 6);
+            break;
+          case FrequenceMaintenance.ANNUELLE:
+            nextDate.setFullYear(nextDate.getFullYear() + 1);
+            break;
         }
 
         const ot = await prisma.ordreTravail.create({
@@ -47,21 +57,21 @@ export const initPreventiveCron = () => {
             description: plan.description || plan.intitule,
             priorite: Priorite.MOYENNE,
             datePrevue: today,
-            statut: StatutOT.CREE
-          }
+            statut: StatutOT.CREE,
+          },
         });
 
         await prisma.ordreTravail.update({
           where: { id: ot.id },
-          data: { numeroOT: 'OT-' + ot.id.toString().padStart(6, '0') }
+          data: { numeroOT: 'OT-' + ot.id.toString().padStart(6, '0') },
         });
 
         await prisma.planMaintenance.update({
           where: { id: plan.id },
           data: {
             dernierExecution: new Date(),
-            prochaineExecution: nextDate
-          }
+            prochaineExecution: nextDate,
+          },
         });
 
         generatedCount++;
