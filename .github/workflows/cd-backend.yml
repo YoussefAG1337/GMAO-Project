@@ -56,7 +56,7 @@ jobs:
         run: npm prune --production
 
       - name: Deploy to Azure
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@v2
         with:
           app-name: gmao-backend-supra
           package: gmao-backend

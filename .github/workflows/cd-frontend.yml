@@ -50,7 +50,7 @@ jobs:
           cp -r gmao-frontend/public gmao-frontend/.next/standalone/public
           cp -r gmao-frontend/.next/static gmao-frontend/.next/standalone/.next/static
       - name: Deploy to Azure App Service
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@v2
         with:
           app-name: gmao-frontend-supra
           package: gmao-frontend/.next/standalone
