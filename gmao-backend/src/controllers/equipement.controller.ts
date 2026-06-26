@@ -49,7 +49,7 @@ export const getAtelierById = async (
     const { id } = req.params;
 
     const atelier = await prisma.atelier.findUnique({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       include: {
         lignes: {
           include: {
@@ -112,7 +112,7 @@ export const updateAtelier = async (
     const { nom, description, actif } = req.body;
 
     const atelier = await prisma.atelier.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: { nom, description, actif },
     });
 
@@ -135,7 +135,7 @@ export const deleteAtelier = async (
     const { id } = req.params;
 
     const atelier = await prisma.atelier.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: { actif: false },
     });
 
@@ -189,7 +189,7 @@ export const getLigneById = async (
     const { id } = req.params;
 
     const ligne = await prisma.ligne.findUnique({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       include: {
         atelier: true,
         postes: true,
@@ -270,7 +270,7 @@ export const updateLigne = async (
     }
 
     const ligne = await prisma.ligne.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: { nom, description, atelierId, actif },
     });
 
@@ -293,7 +293,7 @@ export const deleteLigne = async (
     const { id } = req.params;
 
     const ligne = await prisma.ligne.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: { actif: false },
     });
 
@@ -351,7 +351,7 @@ export const getPosteById = async (
     const { id } = req.params;
 
     const poste = await prisma.poste.findUnique({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       include: {
         ligne: {
           include: { atelier: true },
@@ -432,7 +432,7 @@ export const updatePoste = async (
     }
 
     const poste = await prisma.poste.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: { nom, description, ligneId, actif },
     });
 
@@ -455,7 +455,7 @@ export const deletePoste = async (
     const { id } = req.params;
 
     const poste = await prisma.poste.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: { actif: false },
     });
 

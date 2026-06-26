@@ -59,7 +59,7 @@ export const getDIById = async (req: Request, res: Response, next: NextFunction)
     const { id } = req.params;
 
     const di = await prisma.demandeIntervention.findUnique({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       include: {
         atelier: true,
         ligne: true,
@@ -164,7 +164,7 @@ export const updateDI = async (req: Request, res: Response, next: NextFunction):
     const updateData = req.body;
 
     const di = await prisma.demandeIntervention.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: updateData,
     });
 
@@ -182,7 +182,7 @@ export const deleteDI = async (req: Request, res: Response, next: NextFunction):
   try {
     const { id } = req.params;
 
-    const di = await prisma.demandeIntervention.findUnique({ where: { id: parseInt(id, 10) } });
+    const di = await prisma.demandeIntervention.findUnique({ where: { id: parseInt(id as string, 10) } });
     if (!di) {
       res.status(404).json({ success: false, message: 'DI introuvable' });
       return;
@@ -198,7 +198,7 @@ export const deleteDI = async (req: Request, res: Response, next: NextFunction):
     }
 
     await prisma.demandeIntervention.delete({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
     });
 
     res.status(200).json({

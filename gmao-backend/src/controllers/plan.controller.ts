@@ -45,7 +45,7 @@ export const getPlanById = async (
     const { id } = req.params;
 
     const plan = await prisma.planMaintenance.findUnique({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       include: {
         atelier: true,
         ligne: true,
@@ -143,7 +143,7 @@ export const updatePlan = async (
     }
 
     const plan = await prisma.planMaintenance.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: updateData,
     });
 
@@ -166,7 +166,7 @@ export const deletePlan = async (
     const { id } = req.params;
 
     await prisma.planMaintenance.delete({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
     });
 
     res.status(200).json({

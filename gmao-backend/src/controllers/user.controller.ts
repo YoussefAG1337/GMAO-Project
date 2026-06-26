@@ -50,7 +50,7 @@ export const getUserById = async (
     const { id } = req.params;
 
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       select: {
         id: true,
         nom: true,
@@ -127,7 +127,7 @@ export const updateUser = async (
 
     if (email) {
       const existingUser = await prisma.user.findUnique({ where: { email } });
-      if (existingUser && existingUser.id !== parseInt(id, 10)) {
+      if (existingUser && existingUser.id !== parseInt(id as string, 10)) {
         res.status(400).json({ success: false, message: 'Cet email est déjà utilisé' });
         return;
       }
@@ -135,7 +135,7 @@ export const updateUser = async (
     }
 
     const user = await prisma.user.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: updateData,
       select: { id: true, nom: true, prenom: true, email: true, role: true, actif: true },
     });
@@ -158,7 +158,7 @@ export const deleteUser = async (
   try {
     const { id } = req.params;
 
-    if (parseInt(id, 10) === req.user!.userId) {
+    if (parseInt(id as string, 10) === req.user!.userId) {
       res
         .status(400)
         .json({ success: false, message: 'Vous ne pouvez pas vous supprimer vous-même' });
@@ -166,7 +166,7 @@ export const deleteUser = async (
     }
 
     await prisma.user.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: { actif: false },
     });
 

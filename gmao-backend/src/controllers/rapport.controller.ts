@@ -51,7 +51,7 @@ export const getRapportById = async (
     const { id } = req.params;
 
     const rapport = await prisma.rapportIntervention.findUnique({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       include: {
         ordreTravail: true,
         redacteur: { select: { nom: true, prenom: true } },
@@ -82,7 +82,7 @@ export const getRapportByOT = async (
     const { otId } = req.params;
 
     const rapport = await prisma.rapportIntervention.findUnique({
-      where: { ordreTravailId: parseInt(otId, 10) },
+      where: { ordreTravailId: parseInt(otId as string, 10) },
     });
 
     if (!rapport) {

@@ -68,7 +68,7 @@ export const getOTById = async (req: Request, res: Response, next: NextFunction)
     const { id } = req.params;
 
     const ot = await prisma.ordreTravail.findUnique({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       include: {
         atelier: true,
         ligne: true,
@@ -174,7 +174,7 @@ export const updateOT = async (req: Request, res: Response, next: NextFunction):
     }
 
     const ot = await prisma.ordreTravail.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: updateData,
     });
 
@@ -194,7 +194,7 @@ export const assignOT = async (req: Request, res: Response, next: NextFunction):
     const { technicienId } = req.body;
 
     const ot = await prisma.ordreTravail.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: { technicienId, statut: StatutOT.ASSIGNE },
     });
 
@@ -213,7 +213,7 @@ export const startOT = async (req: Request, res: Response, next: NextFunction): 
     const { id } = req.params;
     const userId = req.user!.userId;
 
-    const ot = await prisma.ordreTravail.findUnique({ where: { id: parseInt(id, 10) } });
+    const ot = await prisma.ordreTravail.findUnique({ where: { id: parseInt(id as string, 10) } });
     if (!ot) {
       res.status(404).json({ success: false, message: 'OT introuvable' });
       return;
@@ -228,7 +228,7 @@ export const startOT = async (req: Request, res: Response, next: NextFunction): 
     }
 
     const updatedOT = await prisma.ordreTravail.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: { statut: StatutOT.EN_COURS, dateDebut: new Date() },
     });
 
@@ -252,7 +252,7 @@ export const submitRapport = async (
     const userId = req.user!.userId;
 
     const ot = await prisma.ordreTravail.findUnique({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       include: { rapportIntervention: true },
     });
     if (!ot) {
@@ -312,7 +312,7 @@ export const validateOT = async (
     const userId = req.user!.userId;
 
     const ot = await prisma.ordreTravail.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
       data: { statut: StatutOT.FERME, valideParId: userId, dateValidation: new Date() },
     });
 
@@ -344,7 +344,7 @@ export const deleteOT = async (req: Request, res: Response, next: NextFunction):
   try {
     const { id } = req.params;
 
-    const ot = await prisma.ordreTravail.findUnique({ where: { id: parseInt(id, 10) } });
+    const ot = await prisma.ordreTravail.findUnique({ where: { id: parseInt(id as string, 10) } });
     if (!ot) {
       res.status(404).json({ success: false, message: 'OT introuvable' });
       return;
@@ -357,7 +357,7 @@ export const deleteOT = async (req: Request, res: Response, next: NextFunction):
       return;
     }
 
-    await prisma.ordreTravail.delete({ where: { id: parseInt(id, 10) } });
+    await prisma.ordreTravail.delete({ where: { id: parseInt(id as string, 10) } });
 
     res.status(200).json({ success: true, message: 'OT supprimé' });
   } catch (error) {
