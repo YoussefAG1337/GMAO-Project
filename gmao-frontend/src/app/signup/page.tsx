@@ -203,7 +203,7 @@ function SignupForm() {
                 className="w-full mt-2 bg-[#651FAA] hover:bg-purple-600 text-white rounded-xl h-11"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                S'inscrire
+                S&apos;inscrire
               </Button>
             </form>
 

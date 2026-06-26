@@ -45,7 +45,7 @@ export default function RapportsPage() {
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <FileText className="w-6 h-6 text-purple-400" />
-            Rapports d'Intervention
+            Rapports d&apos;Intervention
           </h1>
           <p className="text-muted-foreground mt-1">
             {user?.role === 'TECHNICIEN' ? 'Consultez l\'historique de vos interventions.' : 'Consultez tous les rapports d\'intervention de l\'usine.'}

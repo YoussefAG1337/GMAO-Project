@@ -74,7 +74,7 @@ export const createPlan = async (req: Request, res: Response, next: NextFunction
     const userId = req.user!.userId;
     const { intitule, description, atelierId, ligneId, posteId, frequence, prochaineExecution } = req.body;
 
-    let prochaineDate = prochaineExecution ? new Date(prochaineExecution) : new Date();
+    const prochaineDate = prochaineExecution ? new Date(prochaineExecution) : new Date();
 
     if (!prochaineExecution) {
       // Calcul basique depuis aujourd'hui si non fourni

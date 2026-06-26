@@ -194,7 +194,7 @@ export default function DashboardPage() {
             <Card className="relative overflow-hidden border-amber-500/20 bg-amber-500/5 backdrop-blur-xl transition-all duration-300 hover:border-amber-500/40 shadow-lg group">
               <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-amber-400 tracking-wide uppercase">À Faire Aujourd'hui</span>
+                  <span className="text-sm font-semibold text-amber-400 tracking-wide uppercase">À Faire Aujourd&apos;hui</span>
                   <div className="p-2 rounded-xl border bg-amber-500/10 text-amber-400 border-amber-500/20">
                     <AlertTriangle className="w-6 h-6" />
                   </div>

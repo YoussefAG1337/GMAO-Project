@@ -41,6 +41,12 @@ jobs:
         working-directory: gmao-backend
         run: npx prisma generate
 
+      - name: Deploy Database Migrations
+        working-directory: gmao-backend
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Build backend
         working-directory: gmao-backend
         run: npm run build

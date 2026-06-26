@@ -29,7 +29,7 @@ export default function UtilisateursPage() {
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-4">
         <ShieldAlert className="w-16 h-16 text-rose-500/80" />
         <h2 className="text-xl font-semibold text-white">Accès Restreint</h2>
-        <p className="text-muted-foreground">Vous n'avez pas les droits pour accéder à cette page.</p>
+        <p className="text-muted-foreground">Vous n&apos;avez pas les droits pour accéder à cette page.</p>
       </div>
     );
   }

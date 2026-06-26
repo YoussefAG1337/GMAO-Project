@@ -65,7 +65,7 @@ export const getKPIs = async (req: Request, res: Response, next: NextFunction): 
   try {
     const { dateDebut, dateFin } = req.query;
     
-    let whereClause: any = {};
+    const whereClause: any = {};
     if (dateDebut && dateFin) {
       whereClause.createdAt = {
         gte: new Date(dateDebut as string),
