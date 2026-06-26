@@ -61,6 +61,28 @@ export const registerSchema = z.object({
   }),
 });
 
+export const signupSchema = z.object({
+  nom: z
+    .string(required('Le nom est requis'))
+    .min(2, 'Le nom doit contenir au moins 2 caractères')
+    .max(100, 'Le nom ne doit pas dépasser 100 caractères')
+    .trim(),
+  prenom: z
+    .string(required('Le prénom est requis'))
+    .min(2, 'Le prénom doit contenir au moins 2 caractères')
+    .max(100, 'Le prénom ne doit pas dépasser 100 caractères')
+    .trim(),
+  email: z
+    .string(required("L'adresse email est requise"))
+    .email("L'adresse email n'est pas valide")
+    .max(255, "L'adresse email ne doit pas dépasser 255 caractères")
+    .transform((val) => val.toLowerCase().trim()),
+  motDePasse: z
+    .string(required('Le mot de passe est requis'))
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+    .regex(passwordRegex, passwordMessage),
+});
+
 /**
  * Schéma de validation pour le changement de mot de passe
  */
@@ -77,4 +99,5 @@ export const changePasswordSchema = z.object({
 /** Types inférés depuis les schémas Zod */
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type SignupInput = z.infer<typeof signupSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

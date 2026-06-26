@@ -4,13 +4,20 @@
  */
 
 import { Router } from 'express';
-import { login, refresh, logout, me, changePassword } from '../controllers/auth.controller';
+import { login, refresh, logout, me, changePassword, signup } from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { authLimiter, refreshLimiter } from '../middleware/rateLimiter.middleware';
 import { validate } from '../middleware/validation.middleware';
-import { loginSchema, changePasswordSchema } from '../validators/auth.schema';
+import { loginSchema, changePasswordSchema, signupSchema } from '../validators/auth.schema';
 
 const router = Router();
+
+/**
+ * @route   POST /api/auth/signup
+ * @desc    Inscription d'un utilisateur (compte inactif par défaut)
+ * @access  Public (limité par authLimiter)
+ */
+router.post('/signup', authLimiter, validate(signupSchema), signup);
 
 /**
  * @route   POST /api/auth/login

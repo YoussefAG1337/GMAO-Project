@@ -81,6 +81,47 @@ async function logAudit(
 }
 
 /**
+ * Inscription d'un nouvel utilisateur (en attente de validation)
+ * POST /api/auth/signup
+ */
+export async function signup(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { nom, prenom, email, motDePasse } = req.body;
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      res.status(409).json({
+        success: false,
+        message: 'Un compte avec cet email existe déjà.',
+        code: 'EMAIL_ALREADY_EXISTS',
+      });
+      return;
+    }
+
+    const hashedPassword = await hashPassword(motDePasse);
+
+    const newUser = await prisma.user.create({
+      data: {
+        nom,
+        prenom,
+        email,
+        motDePasse: hashedPassword,
+        role: 'TECHNICIEN',
+        actif: false,
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Compte créé avec succès. En attente de validation par un administrateur.',
+      data: { id: newUser.id, email: newUser.email, statut: 'EN_ATTENTE' },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * Connexion de l'utilisateur
  * POST /api/auth/login
  */

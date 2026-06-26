@@ -1,0 +1,57 @@
+name: CD — Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'gmao-frontend/**'
+      - '.github/workflows/cd-frontend.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: cd-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build_and_deploy:
+    name: Build & Deploy Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: gmao-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: gmao-frontend
+        run: npm ci
+
+      - name: Build frontend (Standalone Mode)
+        working-directory: gmao-frontend
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: "/api"
+          NEXT_TELEMETRY_DISABLED: 1
+
+      # Next.js standalone build outputs to .next/standalone.
+      # We copy the public assets and static files directly into the standalone 
+      - name: Copy assets to standalone folder
+        run: |
+          cp -r gmao-frontend/public gmao-frontend/.next/standalone/public
+          cp -r gmao-frontend/.next/static gmao-frontend/.next/standalone/.next/static
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: gmao-frontend-supra
+          package: gmao-frontend/.next/standalone
+          publish-profile: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}

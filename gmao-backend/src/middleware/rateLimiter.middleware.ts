@@ -8,11 +8,10 @@ import rateLimit from 'express-rate-limit';
 
 /**
  * Limiteur pour les tentatives de connexion
- * 5 requêtes par fenêtre de 15 minutes
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
+  max: process.env.NODE_ENV === 'production' ? 5 : 5000,
   message: {
     success: false,
     message: 'Trop de tentatives de connexion. Veuillez réessayer dans 15 minutes.',
@@ -45,7 +44,7 @@ export const refreshLimiter = rateLimit({
  */
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  max: 10000,
   message: {
     success: false,
     message: 'Trop de requêtes. Veuillez réessayer plus tard.',

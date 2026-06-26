@@ -71,6 +71,22 @@ async function main() {
   });
   console.log(`✅ Technicien créé: ${technicien.prenom} ${technicien.nom} (${technicien.email})`);
 
+  // Création du chef technicien
+  const chefTechPassword = await hashPassword('ChefTech@123');
+  const chefTechnicien = await prisma.user.upsert({
+    where: { email: 'cheftech@gmao.com' },
+    update: {},
+    create: {
+      nom: 'Tech',
+      prenom: 'Chef',
+      email: 'cheftech@gmao.com',
+      motDePasse: chefTechPassword,
+      role: 'CHEF_TECHNICIEN',
+      actif: true,
+    },
+  });
+  console.log(`✅ Chef Technicien créé: ${chefTechnicien.prenom} ${chefTechnicien.nom} (${chefTechnicien.email})`);
+
   // Création du magasinier
   const magasinier = await prisma.user.upsert({
     where: { email: 'fatima@gmao.com' },

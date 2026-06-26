@@ -29,3 +29,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+azure_logs
+logs.zip
+progress.md
+learnings.md
+memory.md
+skills
