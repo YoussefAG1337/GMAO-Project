@@ -23,6 +23,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Factory,
+  MessageSquareWarning,
+  FileText,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -66,20 +68,24 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       title: 'Maintenance',
       items: [
         {
-          name: 'Interventions',
-          href: '/dashboard/interventions',
+          name: 'Demandes (DI)',
+          href: '/dashboard/dis',
+          icon: MessageSquareWarning,
+        },
+        {
+          name: 'Ordres (OT)',
+          href: '/dashboard/ots',
           icon: Wrench,
-          badge: { text: '12', type: 'info' },
+        },
+        {
+          name: 'Rapports (RI)',
+          href: '/dashboard/rapports',
+          icon: FileText,
         },
         {
           name: 'Plans préventifs',
-          href: '/dashboard/preventif',
+          href: '/dashboard/plans',
           icon: CalendarRange,
-        },
-        {
-          name: 'Calendrier',
-          href: '/dashboard/calendrier',
-          icon: Calendar,
         },
       ],
     },

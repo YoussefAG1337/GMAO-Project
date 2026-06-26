@@ -20,6 +20,7 @@ import {
   Shield,
   ArrowRight,
 } from 'lucide-react';
+import Link from 'next/link';
 
 function LoginForm() {
   const router = useRouter();
@@ -204,6 +205,13 @@ function LoginForm() {
                 )}
               </Button>
             </form>
+
+            {/* Signup hint */}
+            <div className="mt-6 text-center">
+              <Link href="/signup" className="text-sm text-purple-400 hover:text-purple-300 hover:underline">
+                Pas encore de compte ? S'inscrire
+              </Link>
+            </div>
 
             {/* Demo credentials hint */}
             {process.env.NODE_ENV === 'development' && (
