@@ -220,12 +220,10 @@ export const startOT = async (req: Request, res: Response, next: NextFunction): 
     }
 
     if (ot.technicienId !== userId && req.user!.role !== Role.ADMIN) {
-      res
-        .status(403)
-        .json({
-          success: false,
-          message: 'Vous ne pouvez pas démarrer un OT qui ne vous est pas assigné',
-        });
+      res.status(403).json({
+        success: false,
+        message: 'Vous ne pouvez pas démarrer un OT qui ne vous est pas assigné',
+      });
       return;
     }
 
