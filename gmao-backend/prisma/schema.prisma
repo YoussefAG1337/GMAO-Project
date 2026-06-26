@@ -14,6 +14,7 @@ datasource db {
 enum Role {
   ADMIN
   CHEF_MAINTENANCE
+  CHEF_TECHNICIEN
   TECHNICIEN
   MAGASINIER
 }
@@ -26,6 +27,46 @@ enum AuditAction {
   TOKEN_REFRESH
   ACCOUNT_LOCKED
   PASSWORD_CHANGED
+}
+
+/// Statuts possibles d'une Demande d'Intervention
+enum StatutDI {
+  NOUVELLE
+  EN_COURS
+  RESOLUE
+  CLOTUREE
+}
+
+/// Statuts possibles d'un Ordre de Travail
+enum StatutOT {
+  CREE
+  ASSIGNE
+  EN_COURS
+  EN_ATTENTE_VALIDATION
+  FERME
+}
+
+/// Niveaux de priorité
+enum Priorite {
+  BASSE
+  MOYENNE
+  HAUTE
+  CRITIQUE
+}
+
+/// Types de maintenance
+enum TypeMaintenance {
+  CORRECTIVE
+  PREVENTIVE
+}
+
+/// Fréquences de maintenance préventive
+enum FrequenceMaintenance {
+  HEBDOMADAIRE
+  MENSUELLE
+  TRIMESTRIELLE
+  SEMESTRIELLE
+  ANNUELLE
 }
 
 /// Utilisateur du système GMAO
@@ -45,6 +86,13 @@ model User {
 
   refreshTokens RefreshToken[]
   loginAudits   LoginAudit[]
+
+  // Relations GMAO
+  demandesIntervention    DemandeIntervention[] @relation("DIDeclarePar")
+  ordresTravailTechnicien OrdreTravail[]        @relation("OTTechnicien")
+  ordresTravailValides    OrdreTravail[]        @relation("OTValidePar")
+  rapportsIntervention    RapportIntervention[] @relation("RapportRedacteur")
+  plansMaintenance        PlanMaintenance[]     @relation("PlanCreePar")
 
   @@index([email])
   @@index([role])
@@ -88,4 +136,201 @@ model LoginAudit {
   @@index([action])
   @@index([createdAt])
   @@map("login_audits")
+}
+
+// ============================================================
+// MODÈLES GMAO — Structure Industrielle
+// ============================================================
+
+/// Atelier de production (niveau le plus haut de la hiérarchie)
+model Atelier {
+  id          Int      @id @default(autoincrement())
+  nom         String   @db.VarChar(100)
+  description String?  @db.Text
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lignes               Ligne[]
+  demandesIntervention DemandeIntervention[]
+  ordresTravail        OrdreTravail[]
+  plansMaintenance     PlanMaintenance[]
+
+  @@map("ateliers")
+}
+
+/// Ligne de production (appartient à un Atelier)
+model Ligne {
+  id          Int      @id @default(autoincrement())
+  nom         String   @db.VarChar(100)
+  description String?  @db.Text
+  atelierId   Int
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  atelier              Atelier               @relation(fields: [atelierId], references: [id], onDelete: Cascade)
+  postes               Poste[]
+  demandesIntervention DemandeIntervention[]
+  ordresTravail        OrdreTravail[]
+  plansMaintenance     PlanMaintenance[]
+
+  @@index([atelierId])
+  @@map("lignes")
+}
+
+/// Poste de travail (appartient à une Ligne)
+model Poste {
+  id          Int      @id @default(autoincrement())
+  nom         String   @db.VarChar(100)
+  description String?  @db.Text
+  ligneId     Int
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ligne                Ligne                 @relation(fields: [ligneId], references: [id], onDelete: Cascade)
+  demandesIntervention DemandeIntervention[]
+  ordresTravail        OrdreTravail[]
+  plansMaintenance     PlanMaintenance[]
+
+  @@index([ligneId])
+  @@map("postes")
+}
+
+// ============================================================
+// MODÈLES GMAO — Maintenance Corrective
+// ============================================================
+
+/// Demande d'Intervention (DI) — ticket initial d'un incident
+model DemandeIntervention {
+  id                Int       @id @default(autoincrement())
+  numeroDI          String    @unique @db.VarChar(20)
+  atelierId         Int
+  ligneId           Int
+  posteId           Int
+  produit           String?   @db.VarChar(200)
+  referenceProduit  String?   @db.VarChar(100)
+  familleProduit    String?   @db.VarChar(100)
+  description       String    @db.Text
+  priorite          Priorite  @default(MOYENNE)
+  statut            StatutDI  @default(NOUVELLE)
+  declareParId      Int
+  dateDeclaration   DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  atelier       Atelier   @relation(fields: [atelierId], references: [id])
+  ligne         Ligne     @relation(fields: [ligneId], references: [id])
+  poste         Poste     @relation(fields: [posteId], references: [id])
+  declarePar    User      @relation("DIDeclarePar", fields: [declareParId], references: [id])
+  ordresTravail OrdreTravail[]
+
+  @@index([atelierId])
+  @@index([ligneId])
+  @@index([posteId])
+  @@index([declareParId])
+  @@index([statut])
+  @@index([priorite])
+  @@index([dateDeclaration])
+  @@map("demandes_intervention")
+}
+
+/// Ordre de Travail (OT) — tâche de maintenance assignée
+model OrdreTravail {
+  id                    Int              @id @default(autoincrement())
+  numeroOT              String           @unique @db.VarChar(20)
+  demandeInterventionId Int?
+  technicienId          Int?
+  atelierId             Int
+  ligneId               Int
+  posteId               Int
+  datePrevue            DateTime?        @db.Date
+  priorite              Priorite         @default(MOYENNE)
+  statut                StatutOT         @default(CREE)
+  typeMaintenance       TypeMaintenance  @default(CORRECTIVE)
+  description           String?          @db.Text
+  planMaintenanceId     Int?
+  valideParId           Int?
+  dateValidation        DateTime?
+  dateDebut             DateTime?
+  dateFin               DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  demandeIntervention DemandeIntervention? @relation(fields: [demandeInterventionId], references: [id])
+  technicien          User?                @relation("OTTechnicien", fields: [technicienId], references: [id])
+  atelier             Atelier              @relation(fields: [atelierId], references: [id])
+  ligne               Ligne                @relation(fields: [ligneId], references: [id])
+  poste               Poste                @relation(fields: [posteId], references: [id])
+  planMaintenance     PlanMaintenance?     @relation(fields: [planMaintenanceId], references: [id])
+  validePar           User?                @relation("OTValidePar", fields: [valideParId], references: [id])
+  rapportIntervention RapportIntervention?
+
+  @@index([demandeInterventionId])
+  @@index([technicienId])
+  @@index([atelierId])
+  @@index([ligneId])
+  @@index([posteId])
+  @@index([statut])
+  @@index([typeMaintenance])
+  @@index([planMaintenanceId])
+  @@index([datePrevue])
+  @@map("ordres_travail")
+}
+
+/// Rapport d'Intervention — bilan post-intervention (1:1 avec OT)
+model RapportIntervention {
+  id                Int      @id @default(autoincrement())
+  ordreTravailId    Int      @unique
+  diagnostic        String   @db.Text
+  causePanne        String?  @db.Text
+  actionsRealisees  String   @db.Text
+  tempsIntervention Int      /// durée en minutes
+  tempsArret        Int?     /// durée d'arrêt machine en minutes
+  piecesUtilisees   String?  @db.Text
+  commentaires      String?  @db.Text
+  redacteurId       Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  ordreTravail OrdreTravail @relation(fields: [ordreTravailId], references: [id])
+  redacteur    User         @relation("RapportRedacteur", fields: [redacteurId], references: [id])
+
+  @@index([redacteurId])
+  @@map("rapports_intervention")
+}
+
+// ============================================================
+// MODÈLES GMAO — Maintenance Préventive
+// ============================================================
+
+/// Plan de Maintenance Préventive
+model PlanMaintenance {
+  id                 Int                  @id @default(autoincrement())
+  intitule           String               @db.VarChar(200)
+  description        String?              @db.Text
+  atelierId          Int
+  ligneId            Int
+  posteId            Int
+  frequence          FrequenceMaintenance
+  actif              Boolean              @default(true)
+  dernierExecution   DateTime?
+  prochaineExecution DateTime?            @db.Date
+  creeParId          Int
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  atelier       Atelier        @relation(fields: [atelierId], references: [id])
+  ligne         Ligne          @relation(fields: [ligneId], references: [id])
+  poste         Poste          @relation(fields: [posteId], references: [id])
+  creePar       User           @relation("PlanCreePar", fields: [creeParId], references: [id])
+  ordresTravail OrdreTravail[]
+
+  @@index([atelierId])
+  @@index([ligneId])
+  @@index([posteId])
+  @@index([creeParId])
+  @@index([prochaineExecution])
+  @@map("plans_maintenance")
 }

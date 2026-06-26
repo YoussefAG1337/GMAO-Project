@@ -10,6 +10,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes';
+import userRoutes from './routes/user.routes';
+import equipementRoutes from './routes/equipement.routes';
+import diRoutes from './routes/di.routes';
+import otRoutes from './routes/ot.routes';
+import planRoutes from './routes/plan.routes';
+import dashboardRoutes from './routes/dashboard.routes';
+import { initPreventiveCron } from './cron/preventive.cron';
 import { generalLimiter } from './middleware/rateLimiter.middleware';
 import { errorHandler } from './middleware/errorHandler.middleware';
 
@@ -63,6 +70,14 @@ app.get('/api/health', (_req, res) => {
 /** Routes d'authentification */
 app.use('/api/auth', authRoutes);
 
+/** Routes GMAO */
+app.use('/api/users', userRoutes);
+app.use('/api/equipements', equipementRoutes);
+app.use('/api/dis', diRoutes);
+app.use('/api/ots', otRoutes);
+app.use('/api/plans', planRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+
 // ══════════════════════════════════════════
 // Gestion des erreurs
 // ══════════════════════════════════════════
@@ -80,8 +95,11 @@ app.use((_req, res) => {
 app.use(errorHandler);
 
 // ══════════════════════════════════════════
-// Démarrage du serveur
+// Démarrage du serveur et Tâches planifiées
 // ══════════════════════════════════════════
+
+// Initialisation du cron de maintenance préventive
+initPreventiveCron();
 
 app.listen(PORT, () => {
   console.log('══════════════════════════════════════════');
