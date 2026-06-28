@@ -9,3 +9,5 @@ dist/
 
 # Scratch files
 fix.js
+
+prisma/seed.ts

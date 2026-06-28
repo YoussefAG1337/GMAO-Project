@@ -31,7 +31,7 @@ function setTokenCookies(res: Response, accessToken: string, refreshToken: strin
   res.cookie('access_token', accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'none',
+    sameSite: 'strict',
     maxAge: ACCESS_COOKIE_MAX_AGE,
     path: '/',
   });
@@ -39,7 +39,7 @@ function setTokenCookies(res: Response, accessToken: string, refreshToken: strin
   res.cookie('refresh_token', refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'none',
+    sameSite: 'strict',
     maxAge: REFRESH_COOKIE_MAX_AGE,
     path: '/api/auth',
   });

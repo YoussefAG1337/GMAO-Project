@@ -28,6 +28,7 @@ resource "azurerm_linux_web_app" "backend" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_service_plan.app_plan.location
   service_plan_id     = azurerm_service_plan.app_plan.id
+  https_only          = true
 
   site_config {
     always_on = false # ADD THIS LINE
@@ -64,6 +65,7 @@ resource "azurerm_linux_web_app" "frontend" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_service_plan.app_plan.location
   service_plan_id     = azurerm_service_plan.app_plan.id
+  https_only          = true
 
   site_config {
     always_on = false 
