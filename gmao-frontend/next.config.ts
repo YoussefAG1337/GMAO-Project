@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "https://gmao-backend-supra-ggbmdqgef4beeab3.swedencentral-01.azurewebsites.net/api/:path*",
+        destination: "https://gmao-backend-tf-supra.azurewebsites.net/api/:path*",
       },
     ];
   },

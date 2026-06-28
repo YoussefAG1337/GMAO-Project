@@ -52,7 +52,7 @@ resource "azurerm_linux_web_app" "backend" {
     "REFRESH_TOKEN_EXPIRY"     = "7d"
     # Dynamically generated URLs and Secrets
     "FRONTEND_URL" = "https://${var.project_name}-frontend-${var.environment}-supra.azurewebsites.net"
-    "DATABASE_URL"         = "mysql://${azurerm_mysql_flexible_server.db.administrator_login}:${random_password.db_password.result}@${azurerm_mysql_flexible_server.db.fqdn}:3306/gmao_db"
+    "DATABASE_URL"         = "mysql://${azurerm_mysql_flexible_server.db.administrator_login}:${urlencode(random_password.db_password.result)}@${azurerm_mysql_flexible_server.db.fqdn}:3306/gmao_db?sslaccept=strict"
     "ACCESS_TOKEN_SECRET"  = random_password.access_token_secret.result
     "REFRESH_TOKEN_SECRET" = random_password.refresh_token_secret.result
   }
