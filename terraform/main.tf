@@ -36,7 +36,7 @@ resource "azurerm_subnet" "app_subnet" {
 }
 
 resource "azurerm_subnet" "db_subnet" {
-  name                 = "snet-db"
+  name                 = "snet-db-v2"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.2.0/24"]
@@ -154,15 +154,13 @@ resource "random_password" "refresh_token_secret" {
 
 # 8. Define the MySQL Flexible Server
 resource "azurerm_mysql_flexible_server" "db" {
-  name                   = "${var.project_name}-db-${var.environment}-supra"
+  name                   = "${var.project_name}-db-${var.environment}-supra-v2"
   resource_group_name    = azurerm_resource_group.rg.name
   location               = azurerm_resource_group.rg.location
   administrator_login    = "gmaoadmin"
   administrator_password = random_password.db_password.result
   sku_name               = "B_Standard_B1ms" 
   version                = "8.0.21"
-  zone                   = "1" 
-
   delegated_subnet_id    = azurerm_subnet.db_subnet.id
   private_dns_zone_id    = azurerm_private_dns_zone.db_dns_zone.id
 
@@ -171,11 +169,5 @@ resource "azurerm_mysql_flexible_server" "db" {
   storage {
     iops    = 360
     size_gb = 20
-  }
-  
-  lifecycle {
-    ignore_changes = [
-      zone
-    ]
   }
 }
