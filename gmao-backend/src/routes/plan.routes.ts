@@ -10,6 +10,7 @@ import {
   createPlan,
   updatePlan,
   deletePlan,
+  triggerPlan,
 } from '../controllers/plan.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { rbac } from '../middleware/rbac.middleware';
@@ -31,6 +32,8 @@ router.put(
   validate(updatePlanSchema),
   updatePlan,
 );
+
+router.post('/:id/trigger', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]), triggerPlan);
 
 router.delete('/:id', rbac([Role.ADMIN]), deletePlan);
 

@@ -87,6 +87,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           href: '/dashboard/plans',
           icon: CalendarRange,
         },
+        {
+          name: 'Calendrier',
+          href: '/dashboard/planning',
+          icon: Calendar,
+        },
       ],
     },
     {

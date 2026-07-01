@@ -15,6 +15,7 @@ import equipementRoutes from './routes/equipement.routes';
 import diRoutes from './routes/di.routes';
 import otRoutes from './routes/ot.routes';
 import planRoutes from './routes/plan.routes';
+import calendarRoutes from './routes/calendar.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import { initPreventiveCron } from './cron/preventive.cron';
 import { generalLimiter } from './middleware/rateLimiter.middleware';
@@ -77,6 +78,7 @@ app.use('/api/equipements', equipementRoutes);
 app.use('/api/dis', diRoutes);
 app.use('/api/ots', otRoutes);
 app.use('/api/plans', planRoutes);
+app.use('/api/calendar', calendarRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
 // ══════════════════════════════════════════

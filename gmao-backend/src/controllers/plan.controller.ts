@@ -5,6 +5,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { FrequenceMaintenance } from '@prisma/client';
 import prisma from '../config/prisma';
+import { generateOTFromPlan } from '../services/preventive.service';
 
 export const getPlans = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -174,6 +175,32 @@ export const deletePlan = async (
       message: 'Plan de maintenance supprimé',
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Déclenche manuellement la génération d'un OT préventif à partir d'un plan.
+ * @route POST /api/plans/:id/trigger
+ */
+export const triggerPlan = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const ot = await generateOTFromPlan(parseInt(id as string, 10));
+    res.status(201).json({
+      success: true,
+      message: 'OT préventif généré avec succès',
+      data: ot,
+    });
+  } catch (error: any) {
+    if (error.message === 'Plan de maintenance introuvable') {
+      res.status(404).json({ success: false, message: error.message });
+      return;
+    }
+    if (error.message === 'Ce plan de maintenance est inactif') {
+      res.status(400).json({ success: false, message: error.message });
+      return;
+    }
     next(error);
   }
 };
