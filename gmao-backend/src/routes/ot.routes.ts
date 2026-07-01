@@ -45,9 +45,19 @@ router.get('/stats', getOTStats);
 router.get('/:id', getOTById);
 router.get('/:otId/rapport', getRapportByOT);
 
-router.post('/', rbac([Role.ADMIN, Role.CHEF_TECHNICIEN]), validateRequest(createOTSchema), createOT);
+router.post(
+  '/',
+  rbac([Role.ADMIN, Role.CHEF_TECHNICIEN]),
+  validateRequest(createOTSchema),
+  createOT,
+);
 
-router.put('/:id', rbac([Role.ADMIN, Role.CHEF_TECHNICIEN]), validateRequest(updateOTSchema), updateOT);
+router.put(
+  '/:id',
+  rbac([Role.ADMIN, Role.CHEF_TECHNICIEN]),
+  validateRequest(updateOTSchema),
+  updateOT,
+);
 
 router.patch(
   '/:id/assign',

@@ -52,6 +52,11 @@ router.get('/me', authMiddleware, me);
  * @desc    Changement du mot de passe
  * @access  Privé (nécessite un token d'accès valide)
  */
-router.post('/change-password', authMiddleware, validateRequest(changePasswordSchema), changePassword);
+router.post(
+  '/change-password',
+  authMiddleware,
+  validateRequest(changePasswordSchema),
+  changePassword,
+);
 
 export default router;

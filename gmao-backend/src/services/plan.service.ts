@@ -38,7 +38,8 @@ class PlanService implements IPlanService {
   }
 
   public async createPlan(userId: number, data: CreatePlanDTO) {
-    const { intitule, description, atelierId, ligneId, posteId, frequence, prochaineExecution } = data;
+    const { intitule, description, atelierId, ligneId, posteId, frequence, prochaineExecution } =
+      data;
     const prochaineDate = prochaineExecution ? new Date(prochaineExecution) : new Date();
 
     if (!prochaineExecution) {
@@ -77,7 +78,7 @@ class PlanService implements IPlanService {
 
   public async updatePlan(id: number, data: UpdatePlanDTO) {
     const { prochaineExecution, ...updateData } = data;
-    
+
     const preparedData: any = { ...updateData };
     if (prochaineExecution) {
       preparedData.prochaineExecution = new Date(prochaineExecution);

@@ -117,7 +117,7 @@ export const triggerPlan = async (
   try {
     const { id } = req.params;
     const ot = await planService.triggerPlan(parseInt(id as string, 10));
-    
+
     res.status(201).json({
       success: true,
       message: 'OT préventif généré avec succès',

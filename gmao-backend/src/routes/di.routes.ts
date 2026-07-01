@@ -32,7 +32,12 @@ router.post(
   createDI,
 );
 
-router.put('/:id', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]), validateRequest(updateDISchema), updateDI);
+router.put(
+  '/:id',
+  rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
+  validateRequest(updateDISchema),
+  updateDI,
+);
 
 router.delete('/:id', rbac([Role.ADMIN]), deleteDI);
 

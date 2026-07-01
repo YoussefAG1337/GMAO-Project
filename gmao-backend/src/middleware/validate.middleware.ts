@@ -17,7 +17,8 @@ export const validateRequest = (schema: ZodSchema) => {
           path: e.path.join('.'),
           message: e.message,
         }));
-        const errorMessage = 'Validation failed: ' + errors.map((e: any) => `${e.path} (${e.message})`).join(', ');
+        const errorMessage =
+          'Validation failed: ' + errors.map((e: any) => `${e.path} (${e.message})`).join(', ');
         return next(new BadRequestError(errorMessage));
       }
       next(error);

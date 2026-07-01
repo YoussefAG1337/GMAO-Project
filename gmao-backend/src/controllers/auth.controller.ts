@@ -45,7 +45,7 @@ function clearTokenCookies(res: Response): void {
 
 function getAuditContext(req: Request): AuditContext {
   return {
-    ipAddress: (req.ip || req.socket.remoteAddress || 'unknown'),
+    ipAddress: req.ip || req.socket.remoteAddress || 'unknown',
     userAgent: req.headers['user-agent'] || null,
   };
 }
@@ -73,8 +73,11 @@ export async function signup(req: Request, res: Response, next: NextFunction): P
  */
 export async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { user, accessToken, refreshToken } = await authService.login(req.body, getAuditContext(req));
-    
+    const { user, accessToken, refreshToken } = await authService.login(
+      req.body,
+      getAuditContext(req),
+    );
+
     setTokenCookies(res, accessToken, refreshToken);
 
     res.status(200).json({
@@ -99,7 +102,10 @@ export async function refresh(req: Request, res: Response, next: NextFunction): 
     }
 
     try {
-      const { user, newAccessToken, newRefreshToken } = await authService.refresh(refreshTokenCookie, getAuditContext(req));
+      const { user, newAccessToken, newRefreshToken } = await authService.refresh(
+        refreshTokenCookie,
+        getAuditContext(req),
+      );
       setTokenCookies(res, newAccessToken, newRefreshToken);
 
       res.status(200).json({
@@ -174,7 +180,12 @@ export async function changePassword(
       throw new UnauthorizedError('Utilisateur non authentifié.', 'NOT_AUTHENTICATED');
     }
 
-    await authService.changePassword(req.user.userId, req.user.email, req.body, getAuditContext(req));
+    await authService.changePassword(
+      req.user.userId,
+      req.user.email,
+      req.body,
+      getAuditContext(req),
+    );
     clearTokenCookies(res);
 
     res.status(200).json({

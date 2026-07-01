@@ -1,14 +1,16 @@
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '../config/prisma';
-import {
-  signAccessToken,
-  signRefreshToken,
-  verifyRefreshToken,
-  hashToken,
-} from '../utils/jwt';
+import { signAccessToken, signRefreshToken, verifyRefreshToken, hashToken } from '../utils/jwt';
 import { hashPassword, comparePassword } from '../utils/password';
 import { AuditAction, User } from '@prisma/client';
-import { AppError, ConflictError, ForbiddenError, BadRequestError, UnauthorizedError, NotFoundError } from '../utils/errors';
+import {
+  AppError,
+  ConflictError,
+  ForbiddenError,
+  BadRequestError,
+  UnauthorizedError,
+  NotFoundError,
+} from '../utils/errors';
 import { IAuthService } from '../interfaces/services/IAuthService';
 import { LoginDTO, RegisterDTO, ChangePasswordDTO } from '../dtos/auth.dto';
 
@@ -79,25 +81,49 @@ class AuthService implements IAuthService {
   /**
    * Connexion de l'utilisateur
    */
-  public async login(data: LoginDTO, context: AuditContext): Promise<{ user: Partial<User>, accessToken: string, refreshToken: string }> {
+  public async login(
+    data: LoginDTO,
+    context: AuditContext,
+  ): Promise<{ user: Partial<User>; accessToken: string; refreshToken: string }> {
     const { email, motDePasse } = data;
 
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      await this.logAudit(AuditAction.LOGIN_FAILED, email, context, null, 'Utilisateur introuvable');
+      await this.logAudit(
+        AuditAction.LOGIN_FAILED,
+        email,
+        context,
+        null,
+        'Utilisateur introuvable',
+      );
       throw new UnauthorizedError('Identifiants incorrects.', 'INVALID_CREDENTIALS');
     }
 
     if (!user.actif) {
       await this.logAudit(AuditAction.LOGIN_FAILED, email, context, user.id, 'Compte désactivé');
-      throw new ForbiddenError('Votre compte a été désactivé. Contactez un administrateur.', 'ACCOUNT_DISABLED');
+      throw new ForbiddenError(
+        'Votre compte a été désactivé. Contactez un administrateur.',
+        'ACCOUNT_DISABLED',
+      );
     }
 
     if (user.verrouilleJusqua && user.verrouilleJusqua > new Date()) {
-      const minutesRestantes = Math.ceil((user.verrouilleJusqua.getTime() - Date.now()) / (1000 * 60));
-      await this.logAudit(AuditAction.LOGIN_FAILED, email, context, user.id, `Compte verrouillé (${minutesRestantes} min restantes)`);
-      throw new AppError(`Compte verrouillé suite à trop de tentatives échouées. Réessayez dans ${minutesRestantes} minute(s).`, 423, 'ACCOUNT_LOCKED');
+      const minutesRestantes = Math.ceil(
+        (user.verrouilleJusqua.getTime() - Date.now()) / (1000 * 60),
+      );
+      await this.logAudit(
+        AuditAction.LOGIN_FAILED,
+        email,
+        context,
+        user.id,
+        `Compte verrouillé (${minutesRestantes} min restantes)`,
+      );
+      throw new AppError(
+        `Compte verrouillé suite à trop de tentatives échouées. Réessayez dans ${minutesRestantes} minute(s).`,
+        423,
+        'ACCOUNT_LOCKED',
+      );
     }
 
     const passwordValid = await comparePassword(motDePasse, user.motDePasse);
@@ -114,14 +140,30 @@ class AuthService implements IAuthService {
         updateData.verrouilleJusqua = verrouilleJusqua;
 
         await prisma.user.update({ where: { id: user.id }, data: updateData });
-        await this.logAudit(AuditAction.ACCOUNT_LOCKED, email, context, user.id, `Verrouillé après ${tentatives} tentatives`);
-        
-        throw new AppError(`Compte verrouillé suite à ${tentatives} tentatives échouées. Réessayez dans ${lockoutMinutes} minutes.`, 423, 'ACCOUNT_LOCKED');
+        await this.logAudit(
+          AuditAction.ACCOUNT_LOCKED,
+          email,
+          context,
+          user.id,
+          `Verrouillé après ${tentatives} tentatives`,
+        );
+
+        throw new AppError(
+          `Compte verrouillé suite à ${tentatives} tentatives échouées. Réessayez dans ${lockoutMinutes} minutes.`,
+          423,
+          'ACCOUNT_LOCKED',
+        );
       }
 
       await prisma.user.update({ where: { id: user.id }, data: updateData });
-      await this.logAudit(AuditAction.LOGIN_FAILED, email, context, user.id, `Tentative ${tentatives}/${maxAttempts}`);
-      
+      await this.logAudit(
+        AuditAction.LOGIN_FAILED,
+        email,
+        context,
+        user.id,
+        `Tentative ${tentatives}/${maxAttempts}`,
+      );
+
       throw new UnauthorizedError('Identifiants incorrects.', 'INVALID_CREDENTIALS');
     }
 
@@ -133,7 +175,12 @@ class AuthService implements IAuthService {
 
     const tokenFamily = uuidv4();
     const accessToken = signAccessToken({ userId: user.id, email: user.email, role: user.role });
-    const refreshToken = signRefreshToken({ userId: user.id, email: user.email, role: user.role, tokenFamily });
+    const refreshToken = signRefreshToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      tokenFamily,
+    });
     const refreshTokenHash = hashToken(refreshToken);
 
     await prisma.refreshToken.create({
@@ -154,12 +201,18 @@ class AuthService implements IAuthService {
   /**
    * Rafraîchissement du token d'accès
    */
-  public async refresh(refreshTokenCookie: string, context: AuditContext): Promise<{ user: Partial<User>, newAccessToken: string, newRefreshToken: string }> {
+  public async refresh(
+    refreshTokenCookie: string,
+    context: AuditContext,
+  ): Promise<{ user: Partial<User>; newAccessToken: string; newRefreshToken: string }> {
     let payload;
     try {
       payload = verifyRefreshToken(refreshTokenCookie);
     } catch (error) {
-      throw new UnauthorizedError('Token de rafraîchissement invalide ou expiré.', 'INVALID_REFRESH_TOKEN');
+      throw new UnauthorizedError(
+        'Token de rafraîchissement invalide ou expiré.',
+        'INVALID_REFRESH_TOKEN',
+      );
     }
 
     const tokenHash = hashToken(refreshTokenCookie);
@@ -177,7 +230,10 @@ class AuthService implements IAuthService {
         });
         console.warn(`[SÉCURITÉ] Détection de réutilisation de token pour la famille: ${familyId}`);
       }
-      throw new UnauthorizedError('Token de rafraîchissement invalide. Veuillez vous reconnecter.', 'TOKEN_REUSE_DETECTED');
+      throw new UnauthorizedError(
+        'Token de rafraîchissement invalide. Veuillez vous reconnecter.',
+        'TOKEN_REUSE_DETECTED',
+      );
     }
 
     if (storedToken.expiresAt < new Date()) {
@@ -185,7 +241,10 @@ class AuthService implements IAuthService {
         where: { id: storedToken.id },
         data: { revoque: true, revoqueRaison: 'EXPIRED' },
       });
-      throw new UnauthorizedError('Token de rafraîchissement expiré. Veuillez vous reconnecter.', 'REFRESH_TOKEN_EXPIRED');
+      throw new UnauthorizedError(
+        'Token de rafraîchissement expiré. Veuillez vous reconnecter.',
+        'REFRESH_TOKEN_EXPIRED',
+      );
     }
 
     await prisma.refreshToken.update({
@@ -195,7 +254,12 @@ class AuthService implements IAuthService {
 
     const user = storedToken.user;
     const newAccessToken = signAccessToken({ userId: user.id, email: user.email, role: user.role });
-    const newRefreshToken = signRefreshToken({ userId: user.id, email: user.email, role: user.role, tokenFamily: storedToken.tokenFamily });
+    const newRefreshToken = signRefreshToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      tokenFamily: storedToken.tokenFamily,
+    });
     const newTokenHash = hashToken(newRefreshToken);
 
     await prisma.refreshToken.create({
@@ -216,7 +280,12 @@ class AuthService implements IAuthService {
   /**
    * Déconnexion de l'utilisateur
    */
-  public async logout(refreshTokenCookie: string | undefined, email: string, userId: number | null, context: AuditContext): Promise<void> {
+  public async logout(
+    refreshTokenCookie: string | undefined,
+    email: string,
+    userId: number | null,
+    context: AuditContext,
+  ): Promise<void> {
     if (refreshTokenCookie) {
       const tokenHash = hashToken(refreshTokenCookie);
       const storedToken = await prisma.refreshToken.findFirst({
@@ -240,7 +309,17 @@ class AuthService implements IAuthService {
   public async getProfile(userId: number): Promise<Partial<User>> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, nom: true, prenom: true, email: true, role: true, actif: true, dernierLogin: true, createdAt: true, updatedAt: true },
+      select: {
+        id: true,
+        nom: true,
+        prenom: true,
+        email: true,
+        role: true,
+        actif: true,
+        dernierLogin: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     if (!user) {
@@ -253,7 +332,12 @@ class AuthService implements IAuthService {
   /**
    * Changement de mot de passe
    */
-  public async changePassword(userId: number, email: string, data: any, context: AuditContext): Promise<void> {
+  public async changePassword(
+    userId: number,
+    email: string,
+    data: any,
+    context: AuditContext,
+  ): Promise<void> {
     const { ancienMotDePasse, nouveauMotDePasse } = data;
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -268,7 +352,10 @@ class AuthService implements IAuthService {
 
     const isSamePassword = await comparePassword(nouveauMotDePasse, user.motDePasse);
     if (isSamePassword) {
-      throw new BadRequestError("Le nouveau mot de passe doit être différent de l'ancien.", 'SAME_PASSWORD');
+      throw new BadRequestError(
+        "Le nouveau mot de passe doit être différent de l'ancien.",
+        'SAME_PASSWORD',
+      );
     }
 
     const hashedPassword = await hashPassword(nouveauMotDePasse);

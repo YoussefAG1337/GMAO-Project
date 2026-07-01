@@ -1,7 +1,10 @@
-import { 
-  CreateAtelierDTO, UpdateAtelierDTO, 
-  CreateLigneDTO, UpdateLigneDTO, 
-  CreatePosteDTO, UpdatePosteDTO 
+import {
+  CreateAtelierDTO,
+  UpdateAtelierDTO,
+  CreateLigneDTO,
+  UpdateLigneDTO,
+  CreatePosteDTO,
+  UpdatePosteDTO,
 } from '../../dtos/equipement.dto';
 import { Atelier, Ligne, Poste } from '@prisma/client';
 

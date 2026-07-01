@@ -24,7 +24,12 @@ router.use(authMiddleware);
 router.get('/', getPlans);
 router.get('/:id', getPlanById);
 
-router.post('/', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]), validateRequest(createPlanSchema), createPlan);
+router.post(
+  '/',
+  rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
+  validateRequest(createPlanSchema),
+  createPlan,
+);
 
 router.put(
   '/:id',

@@ -4,7 +4,7 @@ import { NotFoundError } from '../utils/errors';
 import { IRapportService } from '../interfaces/services/IRapportService';
 
 class RapportService implements IRapportService {
-  public async getRapports(currentUser: { userId: number, role: Role }) {
+  public async getRapports(currentUser: { userId: number; role: Role }) {
     const where: any = {};
     if (currentUser.role === Role.TECHNICIEN) {
       where.redacteurId = currentUser.userId;

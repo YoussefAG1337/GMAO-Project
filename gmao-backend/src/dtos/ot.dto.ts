@@ -43,10 +43,12 @@ export const submitRapportSchema = z.object({
   }),
   body: z.object({
     diagnostic: z.string().min(5, 'Le diagnostic doit contenir au moins 5 caractères'),
-    actionsRealisees: z.string().min(5, 'Les actions réalisées doivent contenir au moins 5 caractères'),
+    actionsRealisees: z
+      .string()
+      .min(5, 'Les actions réalisées doivent contenir au moins 5 caractères'),
     description: z.string().optional(),
-    tempsIntervention: z.number().int().nonnegative('Le temps d\'intervention doit être positif'),
-    tempsArret: z.number().int().nonnegative('Le temps d\'arrêt doit être positif').optional(),
+    tempsIntervention: z.number().int().nonnegative("Le temps d'intervention doit être positif"),
+    tempsArret: z.number().int().nonnegative("Le temps d'arrêt doit être positif").optional(),
     piecesChangees: z.string().optional(),
   }),
 });

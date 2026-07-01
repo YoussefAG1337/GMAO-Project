@@ -1,10 +1,13 @@
 import prisma from '../config/prisma';
 import { NotFoundError, BadRequestError } from '../utils/errors';
 import { IEquipementService } from '../interfaces/services/IEquipementService';
-import { 
-  CreateAtelierDTO, UpdateAtelierDTO, 
-  CreateLigneDTO, UpdateLigneDTO, 
-  CreatePosteDTO, UpdatePosteDTO 
+import {
+  CreateAtelierDTO,
+  UpdateAtelierDTO,
+  CreateLigneDTO,
+  UpdateLigneDTO,
+  CreatePosteDTO,
+  UpdatePosteDTO,
 } from '../dtos/equipement.dto';
 
 class EquipementService implements IEquipementService {

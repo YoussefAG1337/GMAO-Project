@@ -5,7 +5,12 @@ import { IOtService } from '../interfaces/services/IOtService';
 import { CreateOTDTO, UpdateOTDTO, SubmitRapportDTO } from '../dtos/ot.dto';
 
 class OtService implements IOtService {
-  public async getOTs(filters: any, pageNum: number, limitNum: number, currentUser: { userId: number, role: Role }) {
+  public async getOTs(
+    filters: any,
+    pageNum: number,
+    limitNum: number,
+    currentUser: { userId: number; role: Role },
+  ) {
     const skip = (pageNum - 1) * limitNum;
 
     if (currentUser.role === Role.TECHNICIEN) {
@@ -59,7 +64,17 @@ class OtService implements IOtService {
   }
 
   public async createOT(data: CreateOTDTO) {
-    const { demandeInterventionId, technicienId, atelierId, ligneId, posteId, datePrevue, priorite, typeMaintenance, description } = data;
+    const {
+      demandeInterventionId,
+      technicienId,
+      atelierId,
+      ligneId,
+      posteId,
+      datePrevue,
+      priorite,
+      typeMaintenance,
+      description,
+    } = data;
 
     let finalAtelierId = atelierId;
     let finalLigneId = ligneId;
@@ -109,7 +124,7 @@ class OtService implements IOtService {
 
   public async updateOT(id: number, data: UpdateOTDTO) {
     const { datePrevue, ...updateData } = data;
-    
+
     const preparedData: any = { ...updateData };
     if (datePrevue) {
       preparedData.datePrevue = new Date(datePrevue);
@@ -128,9 +143,9 @@ class OtService implements IOtService {
     });
   }
 
-  public async startOT(id: number, currentUser: { userId: number, role: Role }) {
+  public async startOT(id: number, currentUser: { userId: number; role: Role }) {
     const ot = await prisma.ordreTravail.findUnique({ where: { id } });
-    
+
     if (!ot) {
       throw new NotFoundError('OT introuvable');
     }
@@ -145,12 +160,16 @@ class OtService implements IOtService {
     });
   }
 
-  public async submitRapport(id: number, data: SubmitRapportDTO, currentUser: { userId: number, role: Role }) {
+  public async submitRapport(
+    id: number,
+    data: SubmitRapportDTO,
+    currentUser: { userId: number; role: Role },
+  ) {
     const ot = await prisma.ordreTravail.findUnique({
       where: { id },
       include: { rapportIntervention: true },
     });
-    
+
     if (!ot) {
       throw new NotFoundError('OT introuvable');
     }
@@ -211,7 +230,7 @@ class OtService implements IOtService {
 
   public async deleteOT(id: number) {
     const ot = await prisma.ordreTravail.findUnique({ where: { id } });
-    
+
     if (!ot) {
       throw new NotFoundError('OT introuvable');
     }

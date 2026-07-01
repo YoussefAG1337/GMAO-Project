@@ -53,7 +53,16 @@ class DiService implements IDiService {
   }
 
   public async createDI(userId: number, data: CreateDIDTO) {
-    const { atelierId, ligneId, posteId, produit, referenceProduit, familleProduit, description, priorite } = data;
+    const {
+      atelierId,
+      ligneId,
+      posteId,
+      produit,
+      referenceProduit,
+      familleProduit,
+      description,
+      priorite,
+    } = data;
 
     // Validate hierarchy consistency
     const poste = await prisma.poste.findUnique({ where: { id: posteId } });
@@ -101,7 +110,7 @@ class DiService implements IDiService {
     const di = await prisma.demandeIntervention.findUnique({
       where: { id },
     });
-    
+
     if (!di) {
       throw new NotFoundError('DI introuvable');
     }

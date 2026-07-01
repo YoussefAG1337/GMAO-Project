@@ -3,7 +3,7 @@ import { FrequenceMaintenance } from '@prisma/client';
 
 export const createPlanSchema = z.object({
   body: z.object({
-    intitule: z.string().min(5, 'L\'intitulé doit contenir au moins 5 caractères'),
+    intitule: z.string().min(5, "L'intitulé doit contenir au moins 5 caractères"),
     description: z.string().optional(),
     atelierId: z.number().int().positive(),
     ligneId: z.number().int().positive(),

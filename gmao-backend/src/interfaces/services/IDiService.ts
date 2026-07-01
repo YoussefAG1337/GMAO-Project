@@ -2,7 +2,11 @@ import { CreateDIDTO, UpdateDIDTO } from '../../dtos/di.dto';
 import { DemandeIntervention } from '@prisma/client';
 
 export interface IDiService {
-  getDIs(filters: any, pageNum: number, limitNum: number): Promise<{
+  getDIs(
+    filters: any,
+    pageNum: number,
+    limitNum: number,
+  ): Promise<{
     total: number;
     page: number;
     limit: number;

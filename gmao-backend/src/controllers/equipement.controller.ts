@@ -18,7 +18,7 @@ export const getAteliers = async (
   try {
     const { actif } = req.query;
     const isActif = actif !== undefined ? actif === 'true' : undefined;
-    
+
     const ateliers = await equipementService.getAteliers(isActif);
 
     res.status(200).json({
@@ -113,7 +113,7 @@ export const deleteAtelier = async (
 export const getLignes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { actif, atelierId } = req.query;
-    
+
     const isActif = actif !== undefined ? actif === 'true' : undefined;
     const pAtelierId = atelierId ? parseInt(atelierId as string, 10) : undefined;
 
@@ -211,7 +211,7 @@ export const deleteLigne = async (
 export const getPostes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { actif, ligneId } = req.query;
-    
+
     const isActif = actif !== undefined ? actif === 'true' : undefined;
     const pLigneId = ligneId ? parseInt(ligneId as string, 10) : undefined;
 

@@ -87,7 +87,7 @@ export const deleteUser = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    
+
     if (!req.user) {
       throw new UnauthorizedError('Utilisateur non authentifié');
     }

@@ -16,7 +16,7 @@ export const getOTs = async (req: Request, res: Response, next: NextFunction): P
       page = '1',
       limit = '20',
     } = req.query;
-    
+
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
 
@@ -90,7 +90,7 @@ export const assignOT = async (req: Request, res: Response, next: NextFunction):
   try {
     const { id } = req.params;
     const { technicienId } = req.body;
-    
+
     const ot = await otService.assignOT(parseInt(id as string, 10), technicienId);
 
     res.status(200).json({
@@ -106,7 +106,7 @@ export const assignOT = async (req: Request, res: Response, next: NextFunction):
 export const startOT = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    
+
     if (!req.user) {
       throw new UnauthorizedError('Utilisateur non authentifié');
     }
@@ -130,7 +130,7 @@ export const submitRapport = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    
+
     if (!req.user) {
       throw new UnauthorizedError('Utilisateur non authentifié');
     }
@@ -154,7 +154,7 @@ export const validateOT = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    
+
     if (!req.user) {
       throw new UnauthorizedError('Utilisateur non authentifié');
     }
