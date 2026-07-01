@@ -24,7 +24,7 @@ import {
 } from '../controllers/equipement.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { rbac } from '../middleware/rbac.middleware';
-import { validate } from '../middleware/validation.middleware';
+import { validateRequest } from '../middleware/validate.middleware';
 import {
   createAtelierSchema,
   updateAtelierSchema,
@@ -32,7 +32,7 @@ import {
   updateLigneSchema,
   createPosteSchema,
   updatePosteSchema,
-} from '../validators/equipement.schema';
+} from '../dtos/equipement.dto';
 
 const router = Router();
 
@@ -49,14 +49,14 @@ router.get('/ateliers/:id', getAtelierById);
 router.post(
   '/ateliers',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
-  validate(createAtelierSchema),
+  validateRequest(createAtelierSchema),
   createAtelier,
 );
 
 router.put(
   '/ateliers/:id',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
-  validate(updateAtelierSchema),
+  validateRequest(updateAtelierSchema),
   updateAtelier,
 );
 
@@ -72,14 +72,14 @@ router.get('/lignes/:id', getLigneById);
 router.post(
   '/lignes',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
-  validate(createLigneSchema),
+  validateRequest(createLigneSchema),
   createLigne,
 );
 
 router.put(
   '/lignes/:id',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
-  validate(updateLigneSchema),
+  validateRequest(updateLigneSchema),
   updateLigne,
 );
 
@@ -95,14 +95,14 @@ router.get('/postes/:id', getPosteById);
 router.post(
   '/postes',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
-  validate(createPosteSchema),
+  validateRequest(createPosteSchema),
   createPoste,
 );
 
 router.put(
   '/postes/:id',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
-  validate(updatePosteSchema),
+  validateRequest(updatePosteSchema),
   updatePoste,
 );
 

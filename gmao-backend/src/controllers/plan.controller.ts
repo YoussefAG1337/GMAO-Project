@@ -3,29 +3,19 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { FrequenceMaintenance } from '@prisma/client';
-import prisma from '../config/prisma';
-import { generateOTFromPlan } from '../services/preventive.service';
+import { planService } from '../services/plan.service';
+import { UnauthorizedError } from '../utils/errors';
 
 export const getPlans = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { actif, atelierId, frequence } = req.query;
 
-    const where: any = {};
-    if (actif !== undefined) where.actif = actif === 'true';
-    if (atelierId) where.atelierId = parseInt(atelierId as string, 10);
-    if (frequence) where.frequence = frequence;
+    const filters: any = {};
+    if (actif !== undefined) filters.actif = actif === 'true';
+    if (atelierId) filters.atelierId = parseInt(atelierId as string, 10);
+    if (frequence) filters.frequence = frequence;
 
-    const plans = await prisma.planMaintenance.findMany({
-      where,
-      include: {
-        atelier: { select: { nom: true } },
-        ligne: { select: { nom: true } },
-        poste: { select: { nom: true } },
-        creePar: { select: { nom: true, prenom: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const plans = await planService.getPlans(filters);
 
     res.status(200).json({
       success: true,
@@ -44,25 +34,7 @@ export const getPlanById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    const plan = await prisma.planMaintenance.findUnique({
-      where: { id: parseInt(id as string, 10) },
-      include: {
-        atelier: true,
-        ligne: true,
-        poste: true,
-        creePar: { select: { id: true, nom: true, prenom: true } },
-        ordresTravail: {
-          orderBy: { datePrevue: 'desc' },
-          take: 10,
-        },
-      },
-    });
-
-    if (!plan) {
-      res.status(404).json({ success: false, message: 'Plan introuvable' });
-      return;
-    }
+    const plan = await planService.getPlanById(parseInt(id as string, 10));
 
     res.status(200).json({
       success: true,
@@ -80,45 +52,11 @@ export const createPlan = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const userId = req.user!.userId;
-    const { intitule, description, atelierId, ligneId, posteId, frequence, prochaineExecution } =
-      req.body;
-
-    const prochaineDate = prochaineExecution ? new Date(prochaineExecution) : new Date();
-
-    if (!prochaineExecution) {
-      // Calcul basique depuis aujourd'hui si non fourni
-      switch (frequence) {
-        case FrequenceMaintenance.HEBDOMADAIRE:
-          prochaineDate.setDate(prochaineDate.getDate() + 7);
-          break;
-        case FrequenceMaintenance.MENSUELLE:
-          prochaineDate.setMonth(prochaineDate.getMonth() + 1);
-          break;
-        case FrequenceMaintenance.TRIMESTRIELLE:
-          prochaineDate.setMonth(prochaineDate.getMonth() + 3);
-          break;
-        case FrequenceMaintenance.SEMESTRIELLE:
-          prochaineDate.setMonth(prochaineDate.getMonth() + 6);
-          break;
-        case FrequenceMaintenance.ANNUELLE:
-          prochaineDate.setFullYear(prochaineDate.getFullYear() + 1);
-          break;
-      }
+    if (!req.user) {
+      throw new UnauthorizedError('Utilisateur non authentifié');
     }
 
-    const plan = await prisma.planMaintenance.create({
-      data: {
-        intitule,
-        description,
-        atelierId,
-        ligneId,
-        posteId,
-        frequence,
-        prochaineExecution: prochaineDate,
-        creeParId: userId,
-      },
-    });
+    const plan = await planService.createPlan(req.user.userId, req.body);
 
     res.status(201).json({
       success: true,
@@ -137,16 +75,7 @@ export const updatePlan = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { prochaineExecution, ...updateData } = req.body;
-
-    if (prochaineExecution) {
-      updateData.prochaineExecution = new Date(prochaineExecution);
-    }
-
-    const plan = await prisma.planMaintenance.update({
-      where: { id: parseInt(id as string, 10) },
-      data: updateData,
-    });
+    const plan = await planService.updatePlan(parseInt(id as string, 10), req.body);
 
     res.status(200).json({
       success: true,
@@ -165,10 +94,7 @@ export const deletePlan = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    await prisma.planMaintenance.delete({
-      where: { id: parseInt(id as string, 10) },
-    });
+    await planService.deletePlan(parseInt(id as string, 10));
 
     res.status(200).json({
       success: true,
@@ -190,21 +116,14 @@ export const triggerPlan = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const ot = await generateOTFromPlan(parseInt(id as string, 10));
+    const ot = await planService.triggerPlan(parseInt(id as string, 10));
+    
     res.status(201).json({
       success: true,
       message: 'OT préventif généré avec succès',
       data: ot,
     });
-  } catch (error: any) {
-    if (error.message === 'Plan de maintenance introuvable') {
-      res.status(404).json({ success: false, message: error.message });
-      return;
-    }
-    if (error.message === 'Ce plan de maintenance est inactif') {
-      res.status(400).json({ success: false, message: error.message });
-      return;
-    }
+  } catch (error) {
     next(error);
   }
 };

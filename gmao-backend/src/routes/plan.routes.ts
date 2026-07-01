@@ -14,8 +14,8 @@ import {
 } from '../controllers/plan.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { rbac } from '../middleware/rbac.middleware';
-import { validate } from '../middleware/validation.middleware';
-import { createPlanSchema, updatePlanSchema } from '../validators/plan.schema';
+import { validateRequest } from '../middleware/validate.middleware';
+import { createPlanSchema, updatePlanSchema } from '../dtos/plan.dto';
 
 const router = Router();
 
@@ -24,12 +24,12 @@ router.use(authMiddleware);
 router.get('/', getPlans);
 router.get('/:id', getPlanById);
 
-router.post('/', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]), validate(createPlanSchema), createPlan);
+router.post('/', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]), validateRequest(createPlanSchema), createPlan);
 
 router.put(
   '/:id',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
-  validate(updatePlanSchema),
+  validateRequest(updatePlanSchema),
   updatePlan,
 );
 

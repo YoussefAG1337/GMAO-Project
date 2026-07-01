@@ -7,8 +7,8 @@ import { Router } from 'express';
 import { login, refresh, logout, me, changePassword, signup } from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { authLimiter, refreshLimiter } from '../middleware/rateLimiter.middleware';
-import { validate } from '../middleware/validation.middleware';
-import { loginSchema, changePasswordSchema, signupSchema } from '../validators/auth.schema';
+import { validateRequest } from '../middleware/validate.middleware';
+import { loginSchema, changePasswordSchema, registerSchema } from '../dtos/auth.dto';
 
 const router = Router();
 
@@ -17,14 +17,14 @@ const router = Router();
  * @desc    Inscription d'un utilisateur (compte inactif par défaut)
  * @access  Public (limité par authLimiter)
  */
-router.post('/signup', authLimiter, validate(signupSchema), signup);
+router.post('/signup', authLimiter, validateRequest(registerSchema), signup);
 
 /**
  * @route   POST /api/auth/login
  * @desc    Connexion de l'utilisateur
  * @access  Public (limité par authLimiter)
  */
-router.post('/login', authLimiter, validate(loginSchema), login);
+router.post('/login', authLimiter, validateRequest(loginSchema), login);
 
 /**
  * @route   POST /api/auth/refresh
@@ -52,6 +52,6 @@ router.get('/me', authMiddleware, me);
  * @desc    Changement du mot de passe
  * @access  Privé (nécessite un token d'accès valide)
  */
-router.post('/change-password', authMiddleware, validate(changePasswordSchema), changePassword);
+router.post('/change-password', authMiddleware, validateRequest(changePasswordSchema), changePassword);
 
 export default router;

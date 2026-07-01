@@ -3,8 +3,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { Role } from '@prisma/client';
-import prisma from '../config/prisma';
+import { rapportService } from '../services/rapport.service';
+import { UnauthorizedError } from '../utils/errors';
 
 export const getRapports = async (
   req: Request,
@@ -12,25 +12,11 @@ export const getRapports = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const where: any = {};
-    if (req.user!.role === Role.TECHNICIEN) {
-      where.redacteurId = req.user!.userId;
+    if (!req.user) {
+      throw new UnauthorizedError('Utilisateur non authentifié');
     }
 
-    const rapports = await prisma.rapportIntervention.findMany({
-      where,
-      include: {
-        ordreTravail: {
-          include: {
-            atelier: { select: { nom: true } },
-            ligne: { select: { nom: true } },
-            poste: { select: { nom: true } },
-          },
-        },
-        redacteur: { select: { nom: true, prenom: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const rapports = await rapportService.getRapports(req.user);
 
     res.status(200).json({
       success: true,
@@ -49,19 +35,7 @@ export const getRapportById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    const rapport = await prisma.rapportIntervention.findUnique({
-      where: { id: parseInt(id as string, 10) },
-      include: {
-        ordreTravail: true,
-        redacteur: { select: { nom: true, prenom: true } },
-      },
-    });
-
-    if (!rapport) {
-      res.status(404).json({ success: false, message: 'Rapport introuvable' });
-      return;
-    }
+    const rapport = await rapportService.getRapportById(parseInt(id as string, 10));
 
     res.status(200).json({
       success: true,
@@ -80,15 +54,7 @@ export const getRapportByOT = async (
 ): Promise<void> => {
   try {
     const { otId } = req.params;
-
-    const rapport = await prisma.rapportIntervention.findUnique({
-      where: { ordreTravailId: parseInt(otId as string, 10) },
-    });
-
-    if (!rapport) {
-      res.status(404).json({ success: false, message: 'Rapport introuvable pour cet OT' });
-      return;
-    }
+    const rapport = await rapportService.getRapportByOT(parseInt(otId as string, 10));
 
     res.status(200).json({
       success: true,

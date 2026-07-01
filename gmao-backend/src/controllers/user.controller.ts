@@ -4,32 +4,15 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { Role } from '@prisma/client';
-import prisma from '../config/prisma';
-import { hashPassword } from '../utils/password';
+import { userService } from '../services/user.service';
+import { UnauthorizedError } from '../utils/errors';
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { role, actif } = req.query;
+    const { role } = req.query;
+    const pRole = role ? (role as Role) : undefined;
 
-    const where: any = {};
-    if (role) where.role = role;
-    if (actif !== undefined) where.actif = actif === 'true';
-
-    const users = await prisma.user.findMany({
-      where,
-      select: {
-        id: true,
-        nom: true,
-        prenom: true,
-        email: true,
-        role: true,
-        actif: true,
-        dernierLogin: true,
-        createdAt: true,
-        _count: { select: { ordresTravailTechnicien: true } },
-      },
-      orderBy: { nom: 'asc' },
-    });
+    const users = await userService.getUsers(pRole);
 
     res.status(200).json({
       success: true,
@@ -48,26 +31,7 @@ export const getUserById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    const user = await prisma.user.findUnique({
-      where: { id: parseInt(id as string, 10) },
-      select: {
-        id: true,
-        nom: true,
-        prenom: true,
-        email: true,
-        role: true,
-        actif: true,
-        dernierLogin: true,
-        createdAt: true,
-        loginAudits: { orderBy: { createdAt: 'desc' }, take: 5 },
-      },
-    });
-
-    if (!user) {
-      res.status(404).json({ success: false, message: 'Utilisateur introuvable' });
-      return;
-    }
+    const user = await userService.getUserById(parseInt(id as string, 10));
 
     res.status(200).json({
       success: true,
@@ -85,26 +49,7 @@ export const createUser = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { nom, prenom, email, motDePasse, role } = req.body;
-
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      res.status(400).json({ success: false, message: 'Cet email est déjà utilisé' });
-      return;
-    }
-
-    const hashedPassword = await hashPassword(motDePasse);
-
-    const user = await prisma.user.create({
-      data: {
-        nom,
-        prenom,
-        email,
-        motDePasse: hashedPassword,
-        role,
-      },
-      select: { id: true, nom: true, prenom: true, email: true, role: true, actif: true },
-    });
+    const user = await userService.createUser(req.body);
 
     res.status(201).json({
       success: true,
@@ -123,22 +68,7 @@ export const updateUser = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { email, ...updateData } = req.body;
-
-    if (email) {
-      const existingUser = await prisma.user.findUnique({ where: { email } });
-      if (existingUser && existingUser.id !== parseInt(id as string, 10)) {
-        res.status(400).json({ success: false, message: 'Cet email est déjà utilisé' });
-        return;
-      }
-      updateData.email = email;
-    }
-
-    const user = await prisma.user.update({
-      where: { id: parseInt(id as string, 10) },
-      data: updateData,
-      select: { id: true, nom: true, prenom: true, email: true, role: true, actif: true },
-    });
+    const user = await userService.updateUser(parseInt(id as string, 10), req.body);
 
     res.status(200).json({
       success: true,
@@ -157,18 +87,12 @@ export const deleteUser = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    if (parseInt(id as string, 10) === req.user!.userId) {
-      res
-        .status(400)
-        .json({ success: false, message: 'Vous ne pouvez pas vous supprimer vous-même' });
-      return;
+    
+    if (!req.user) {
+      throw new UnauthorizedError('Utilisateur non authentifié');
     }
 
-    await prisma.user.update({
-      where: { id: parseInt(id as string, 10) },
-      data: { actif: false },
-    });
+    await userService.deleteUser(parseInt(id as string, 10), req.user.userId);
 
     res.status(200).json({
       success: true,
@@ -185,11 +109,7 @@ export const getTechniciens = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const techniciens = await prisma.user.findMany({
-      where: { role: Role.TECHNICIEN, actif: true },
-      select: { id: true, nom: true, prenom: true },
-      orderBy: { nom: 'asc' },
-    });
+    const techniciens = await userService.getTechniciens();
 
     res.status(200).json({
       success: true,
