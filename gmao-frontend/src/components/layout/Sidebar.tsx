@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -86,6 +85,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           name: 'Plans préventifs',
           href: '/dashboard/plans',
           icon: CalendarRange,
+        },
+        {
+          name: 'Calendrier',
+          href: '/dashboard/planning',
+          icon: Calendar,
         },
       ],
     },

@@ -14,8 +14,8 @@ import {
 } from '../controllers/user.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { rbac } from '../middleware/rbac.middleware';
-import { validate } from '../middleware/validation.middleware';
-import { createUserSchema, updateUserSchema } from '../validators/user.schema';
+import { validateRequest } from '../middleware/validate.middleware';
+import { createUserSchema, updateUserSchema } from '../dtos/user.dto';
 
 const router = Router();
 
@@ -30,9 +30,9 @@ router.get(
 router.get('/', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE, Role.CHEF_TECHNICIEN]), getUsers);
 router.get('/:id', rbac([Role.ADMIN]), getUserById);
 
-router.post('/', rbac([Role.ADMIN]), validate(createUserSchema), createUser);
+router.post('/', rbac([Role.ADMIN]), validateRequest(createUserSchema), createUser);
 
-router.put('/:id', rbac([Role.ADMIN]), validate(updateUserSchema), updateUser);
+router.put('/:id', rbac([Role.ADMIN]), validateRequest(updateUserSchema), updateUser);
 
 router.delete('/:id', rbac([Role.ADMIN]), deleteUser);
 

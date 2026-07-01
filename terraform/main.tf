@@ -68,8 +68,8 @@ resource "azurerm_service_plan" "app_plan" {
   name                = "plan-${var.project_name}-${var.environment}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  os_type             = "Linux" 
-  sku_name            = "B1"    # VNet Integration requires at least B1
+  os_type             = "Linux"
+  sku_name            = "B1" # VNet Integration requires at least B1
 }
 
 # 5. Define the Backend App Service
@@ -87,7 +87,7 @@ resource "azurerm_linux_web_app" "backend" {
   }
 
   site_config {
-    always_on = false 
+    always_on = false
     application_stack {
       node_version = "20-lts"
     }
@@ -98,10 +98,10 @@ resource "azurerm_linux_web_app" "backend" {
     }
   }
 
-   app_settings = {
-    "NODE_ENV"                           = "production"
-    "PORT"                               = "8080"
-    
+  app_settings = {
+    "NODE_ENV" = "production"
+    "PORT"     = "8080"
+
     # Security Configurations
     "BCRYPT_SALT_ROUNDS"       = "12"
     "MAX_LOGIN_ATTEMPTS"       = "5"
@@ -124,14 +124,14 @@ resource "azurerm_linux_web_app" "frontend" {
   https_only          = true
 
   site_config {
-    always_on = false 
+    always_on = false
     application_stack {
-      node_version = "20-lts" 
+      node_version = "20-lts"
     }
-    app_command_line = "node server.js" 
+    app_command_line = "node server.js"
   }
 
-   app_settings = {
+  app_settings = {
     "PORT"                = "8080"
     "NEXT_PUBLIC_API_URL" = "https://${var.project_name}-backend-${var.environment}-supra.azurewebsites.net/api"
   }
@@ -159,7 +159,7 @@ resource "azurerm_mysql_flexible_server" "db" {
   location               = azurerm_resource_group.rg.location
   administrator_login    = "gmaoadmin"
   administrator_password = random_password.db_password.result
-  sku_name               = "B_Standard_B1ms" 
+  sku_name               = "B_Standard_B1ms"
   version                = "8.0.21"
   delegated_subnet_id    = azurerm_subnet.db_subnet.id
   private_dns_zone_id    = azurerm_private_dns_zone.db_dns_zone.id
@@ -170,4 +170,28 @@ resource "azurerm_mysql_flexible_server" "db" {
     iops    = 360
     size_gb = 20
   }
+}
+
+# 9. GitHub Actions OIDC Configuration
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_user_assigned_identity" "github_actions" {
+  name                = "id-${var.project_name}-github-actions"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+}
+
+resource "azurerm_role_assignment" "github_actions_contributor" {
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_user_assigned_identity.github_actions.principal_id
+}
+
+resource "azurerm_federated_identity_credential" "github_actions" {
+  name                = "fic-${var.project_name}-github-actions"
+  resource_group_name = azurerm_resource_group.rg.name
+  audience            = ["api://AzureADTokenExchange"]
+  issuer              = "https://token.actions.githubusercontent.com"
+  parent_id  = azurerm_user_assigned_identity.github_actions.id
+  subject             = "repo:${var.github_organization}/${var.github_repository}:ref:refs/heads/main"
 }

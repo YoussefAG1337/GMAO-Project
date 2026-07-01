@@ -16,7 +16,6 @@ import {
   EyeOff,
   Loader2,
   AlertCircle,
-  Shield,
   User as UserIcon,
   CheckCircle2,
 } from 'lucide-react';

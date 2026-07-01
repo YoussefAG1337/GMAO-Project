@@ -1,12 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Routes that require authentication
-const protectedRoutes = ['/dashboard'];
-
-// Routes that are only accessible when NOT authenticated
-const authRoutes = ['/login'];
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get('access_token')?.value;

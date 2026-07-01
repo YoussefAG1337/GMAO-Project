@@ -17,3 +17,15 @@ variable "location" {
   description = "The Azure region to deploy all resources"
   default     = "swedencentral" # Matching your current setup
 }
+
+variable "github_organization" {
+  type        = string
+  description = "The GitHub organization or username for OIDC"
+  default     = "YoussefAG1337"
+}
+
+variable "github_repository" {
+  type        = string
+  description = "The GitHub repository name for OIDC"
+  default     = "GMAO-Project"
+}

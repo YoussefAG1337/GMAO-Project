@@ -19,14 +19,13 @@ import {
 import { getRapports, getRapportById, getRapportByOT } from '../controllers/rapport.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { rbac } from '../middleware/rbac.middleware';
-import { validate } from '../middleware/validation.middleware';
+import { validateRequest } from '../middleware/validate.middleware';
 import {
   createOTSchema,
   updateOTSchema,
   assignOTSchema,
-  validateOTSchema,
-} from '../validators/ot.schema';
-import { createRapportSchema } from '../validators/rapport.schema';
+  submitRapportSchema,
+} from '../dtos/ot.dto';
 
 const router = Router();
 
@@ -46,14 +45,24 @@ router.get('/stats', getOTStats);
 router.get('/:id', getOTById);
 router.get('/:otId/rapport', getRapportByOT);
 
-router.post('/', rbac([Role.ADMIN, Role.CHEF_TECHNICIEN]), validate(createOTSchema), createOT);
+router.post(
+  '/',
+  rbac([Role.ADMIN, Role.CHEF_TECHNICIEN]),
+  validateRequest(createOTSchema),
+  createOT,
+);
 
-router.put('/:id', rbac([Role.ADMIN, Role.CHEF_TECHNICIEN]), validate(updateOTSchema), updateOT);
+router.put(
+  '/:id',
+  rbac([Role.ADMIN, Role.CHEF_TECHNICIEN]),
+  validateRequest(updateOTSchema),
+  updateOT,
+);
 
 router.patch(
   '/:id/assign',
   rbac([Role.ADMIN, Role.CHEF_TECHNICIEN]),
-  validate(assignOTSchema),
+  validateRequest(assignOTSchema),
   assignOT,
 );
 
@@ -62,7 +71,7 @@ router.patch('/:id/start', rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICI
 router.post(
   '/:id/rapport',
   rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
-  validate(createRapportSchema),
+  validateRequest(submitRapportSchema),
   submitRapport,
 );
 

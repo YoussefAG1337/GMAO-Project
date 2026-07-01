@@ -4,7 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import prisma from '../config/prisma';
+import { equipementService } from '../services/equipement.service';
 
 // ==========================================
 // ATELIERS
@@ -17,18 +17,9 @@ export const getAteliers = async (
 ): Promise<void> => {
   try {
     const { actif } = req.query;
+    const isActif = actif !== undefined ? actif === 'true' : undefined;
 
-    const where = actif !== undefined ? { actif: actif === 'true' } : {};
-
-    const ateliers = await prisma.atelier.findMany({
-      where,
-      include: {
-        _count: {
-          select: { lignes: true },
-        },
-      },
-      orderBy: { nom: 'asc' },
-    });
+    const ateliers = await equipementService.getAteliers(isActif);
 
     res.status(200).json({
       success: true,
@@ -47,28 +38,7 @@ export const getAtelierById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    const atelier = await prisma.atelier.findUnique({
-      where: { id: parseInt(id as string, 10) },
-      include: {
-        lignes: {
-          include: {
-            _count: {
-              select: { postes: true },
-            },
-          },
-        },
-      },
-    });
-
-    if (!atelier) {
-      res.status(404).json({
-        success: false,
-        message: 'Atelier introuvable',
-        code: 'NOT_FOUND',
-      });
-      return;
-    }
+    const atelier = await equipementService.getAtelierById(parseInt(id as string, 10));
 
     res.status(200).json({
       success: true,
@@ -86,11 +56,7 @@ export const createAtelier = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { nom, description } = req.body;
-
-    const atelier = await prisma.atelier.create({
-      data: { nom, description },
-    });
+    const atelier = await equipementService.createAtelier(req.body);
 
     res.status(201).json({
       success: true,
@@ -109,12 +75,7 @@ export const updateAtelier = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { nom, description, actif } = req.body;
-
-    const atelier = await prisma.atelier.update({
-      where: { id: parseInt(id as string, 10) },
-      data: { nom, description, actif },
-    });
+    const atelier = await equipementService.updateAtelier(parseInt(id as string, 10), req.body);
 
     res.status(200).json({
       success: true,
@@ -133,11 +94,7 @@ export const deleteAtelier = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    const atelier = await prisma.atelier.update({
-      where: { id: parseInt(id as string, 10) },
-      data: { actif: false },
-    });
+    const atelier = await equipementService.deleteAtelier(parseInt(id as string, 10));
 
     res.status(200).json({
       success: true,
@@ -157,18 +114,10 @@ export const getLignes = async (req: Request, res: Response, next: NextFunction)
   try {
     const { actif, atelierId } = req.query;
 
-    const where: any = {};
-    if (actif !== undefined) where.actif = actif === 'true';
-    if (atelierId) where.atelierId = parseInt(atelierId as string, 10);
+    const isActif = actif !== undefined ? actif === 'true' : undefined;
+    const pAtelierId = atelierId ? parseInt(atelierId as string, 10) : undefined;
 
-    const lignes = await prisma.ligne.findMany({
-      where,
-      include: {
-        atelier: { select: { nom: true } },
-        _count: { select: { postes: true } },
-      },
-      orderBy: { nom: 'asc' },
-    });
+    const lignes = await equipementService.getLignes(pAtelierId, isActif);
 
     res.status(200).json({
       success: true,
@@ -187,23 +136,7 @@ export const getLigneById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    const ligne = await prisma.ligne.findUnique({
-      where: { id: parseInt(id as string, 10) },
-      include: {
-        atelier: true,
-        postes: true,
-      },
-    });
-
-    if (!ligne) {
-      res.status(404).json({
-        success: false,
-        message: 'Ligne introuvable',
-        code: 'NOT_FOUND',
-      });
-      return;
-    }
+    const ligne = await equipementService.getLigneById(parseInt(id as string, 10));
 
     res.status(200).json({
       success: true,
@@ -221,22 +154,7 @@ export const createLigne = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { nom, description, atelierId } = req.body;
-
-    // Verify atelier exists
-    const atelierExists = await prisma.atelier.findUnique({ where: { id: atelierId } });
-    if (!atelierExists) {
-      res.status(400).json({
-        success: false,
-        message: "L'atelier spécifié n'existe pas",
-        code: 'BAD_REQUEST',
-      });
-      return;
-    }
-
-    const ligne = await prisma.ligne.create({
-      data: { nom, description, atelierId },
-    });
+    const ligne = await equipementService.createLigne(req.body);
 
     res.status(201).json({
       success: true,
@@ -255,24 +173,7 @@ export const updateLigne = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { nom, description, atelierId, actif } = req.body;
-
-    if (atelierId) {
-      const atelierExists = await prisma.atelier.findUnique({ where: { id: atelierId } });
-      if (!atelierExists) {
-        res.status(400).json({
-          success: false,
-          message: "L'atelier spécifié n'existe pas",
-          code: 'BAD_REQUEST',
-        });
-        return;
-      }
-    }
-
-    const ligne = await prisma.ligne.update({
-      where: { id: parseInt(id as string, 10) },
-      data: { nom, description, atelierId, actif },
-    });
+    const ligne = await equipementService.updateLigne(parseInt(id as string, 10), req.body);
 
     res.status(200).json({
       success: true,
@@ -291,11 +192,7 @@ export const deleteLigne = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    const ligne = await prisma.ligne.update({
-      where: { id: parseInt(id as string, 10) },
-      data: { actif: false },
-    });
+    const ligne = await equipementService.deleteLigne(parseInt(id as string, 10));
 
     res.status(200).json({
       success: true,
@@ -315,22 +212,10 @@ export const getPostes = async (req: Request, res: Response, next: NextFunction)
   try {
     const { actif, ligneId } = req.query;
 
-    const where: any = {};
-    if (actif !== undefined) where.actif = actif === 'true';
-    if (ligneId) where.ligneId = parseInt(ligneId as string, 10);
+    const isActif = actif !== undefined ? actif === 'true' : undefined;
+    const pLigneId = ligneId ? parseInt(ligneId as string, 10) : undefined;
 
-    const postes = await prisma.poste.findMany({
-      where,
-      include: {
-        ligne: {
-          select: {
-            nom: true,
-            atelier: { select: { nom: true } },
-          },
-        },
-      },
-      orderBy: { nom: 'asc' },
-    });
+    const postes = await equipementService.getPostes(pLigneId, isActif);
 
     res.status(200).json({
       success: true,
@@ -349,24 +234,7 @@ export const getPosteById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    const poste = await prisma.poste.findUnique({
-      where: { id: parseInt(id as string, 10) },
-      include: {
-        ligne: {
-          include: { atelier: true },
-        },
-      },
-    });
-
-    if (!poste) {
-      res.status(404).json({
-        success: false,
-        message: 'Poste introuvable',
-        code: 'NOT_FOUND',
-      });
-      return;
-    }
+    const poste = await equipementService.getPosteById(parseInt(id as string, 10));
 
     res.status(200).json({
       success: true,
@@ -384,21 +252,7 @@ export const createPoste = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { nom, description, ligneId } = req.body;
-
-    const ligneExists = await prisma.ligne.findUnique({ where: { id: ligneId } });
-    if (!ligneExists) {
-      res.status(400).json({
-        success: false,
-        message: "La ligne spécifiée n'existe pas",
-        code: 'BAD_REQUEST',
-      });
-      return;
-    }
-
-    const poste = await prisma.poste.create({
-      data: { nom, description, ligneId },
-    });
+    const poste = await equipementService.createPoste(req.body);
 
     res.status(201).json({
       success: true,
@@ -417,24 +271,7 @@ export const updatePoste = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { nom, description, ligneId, actif } = req.body;
-
-    if (ligneId) {
-      const ligneExists = await prisma.ligne.findUnique({ where: { id: ligneId } });
-      if (!ligneExists) {
-        res.status(400).json({
-          success: false,
-          message: "La ligne spécifiée n'existe pas",
-          code: 'BAD_REQUEST',
-        });
-        return;
-      }
-    }
-
-    const poste = await prisma.poste.update({
-      where: { id: parseInt(id as string, 10) },
-      data: { nom, description, ligneId, actif },
-    });
+    const poste = await equipementService.updatePoste(parseInt(id as string, 10), req.body);
 
     res.status(200).json({
       success: true,
@@ -453,11 +290,7 @@ export const deletePoste = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-
-    const poste = await prisma.poste.update({
-      where: { id: parseInt(id as string, 10) },
-      data: { actif: false },
-    });
+    const poste = await equipementService.deletePoste(parseInt(id as string, 10));
 
     res.status(200).json({
       success: true,

@@ -4,13 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-
-/** Interface pour les erreurs applicatives enrichies */
-interface AppError extends Error {
-  statusCode?: number;
-  code?: string;
-  isOperational?: boolean;
-}
+import { AppError } from '../utils/errors';
 
 /**
  * Middleware de gestion globale des erreurs Express
@@ -18,13 +12,25 @@ interface AppError extends Error {
  * En développement, inclut la stack trace pour le débogage.
  */
 export function errorHandler(
-  err: AppError,
+  err: Error | AppError,
   req: Request,
   res: Response,
   _next: NextFunction,
 ): void {
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Une erreur interne est survenue.';
+  let statusCode = 500;
+  let message = 'Une erreur interne est survenue.';
+  let code = 'INTERNAL_ERROR';
+
+  if (err instanceof AppError) {
+    statusCode = err.statusCode;
+    message = err.message;
+    code = err.code;
+  } else if ('statusCode' in err) {
+    // Cas où une erreur est lancée avec un statusCode mais n'est pas un AppError (ex: multer)
+    statusCode = (err as any).statusCode;
+    message = err.message;
+    code = (err as any).code || 'UNKNOWN_ERROR';
+  }
 
   // Log détaillé en développement
   if (process.env.NODE_ENV === 'development') {
@@ -44,8 +50,8 @@ export function errorHandler(
 
   res.status(statusCode).json({
     success: false,
-    message: statusCode === 500 ? 'Une erreur interne est survenue.' : message,
-    code: err.code || 'INTERNAL_ERROR',
+    message,
+    code,
     ...(process.env.NODE_ENV === 'development' && {
       stack: err.stack,
       details: message,
