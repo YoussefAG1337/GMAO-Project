@@ -6,7 +6,17 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CalendarRange, Plus, Clock, Power, RefreshCw, Trash2, Zap, Eye, CalendarDays } from 'lucide-react';
+import {
+  CalendarRange,
+  Plus,
+  Clock,
+  Power,
+  RefreshCw,
+  Trash2,
+  Zap,
+  Eye,
+  CalendarDays,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Modal } from '@/components/ui/modal';
@@ -85,7 +95,9 @@ export default function PlansMaintenancePage() {
       ligneId: plan.ligneId.toString(),
       posteId: plan.posteId.toString(),
       frequence: plan.frequence,
-      prochaineExecution: plan.prochaineExecution ? new Date(plan.prochaineExecution).toISOString().split('T')[0] : '',
+      prochaineExecution: plan.prochaineExecution
+        ? new Date(plan.prochaineExecution).toISOString().split('T')[0]
+        : '',
     });
     setIsModalOpen(true);
   };
@@ -198,11 +210,11 @@ export default function PlansMaintenancePage() {
                     {plan.actif ? 'Actif' : 'Inactif'}
                   </span>
                   {isAdminOrChef && plan.actif && (
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="icon-xs"
-                      onClick={() => handleTrigger(plan.id)} 
-                      className="bg-violet-500/10 text-violet-400 hover:bg-violet-500/20" 
+                      onClick={() => handleTrigger(plan.id)}
+                      className="bg-violet-500/10 text-violet-400 hover:bg-violet-500/20"
                       title="Générer OT maintenant"
                     >
                       <Zap className="w-3.5 h-3.5" />
@@ -211,7 +223,7 @@ export default function PlansMaintenancePage() {
                 </div>
               </div>
 
-              <h3 
+              <h3
                 className="text-lg font-bold text-white leading-tight cursor-pointer hover:text-emerald-400 transition-colors flex items-center gap-2"
                 onClick={() => setDetailPlanId(plan.id)}
               >
@@ -285,7 +297,8 @@ export default function PlansMaintenancePage() {
           </div>
           <h3 className="text-lg font-bold text-white mb-2">Aucun plan préventif</h3>
           <p className="text-muted-foreground max-w-md mb-6">
-            Vous n&apos;avez pas encore configuré de maintenance préventive. Créez un plan pour automatiser la génération de vos ordres de travail.
+            Vous n&apos;avez pas encore configuré de maintenance préventive. Créez un plan pour
+            automatiser la génération de vos ordres de travail.
           </p>
           {isAdminOrChef && (
             <Button onClick={handleOpenCreate} className="bg-emerald-500 hover:bg-emerald-600">
@@ -341,7 +354,9 @@ export default function PlansMaintenancePage() {
               >
                 <option value="">Sélectionner</option>
                 {lignes
-                  ?.filter((l: any) => !formData.atelierId || l.atelierId === Number(formData.atelierId))
+                  ?.filter(
+                    (l: any) => !formData.atelierId || l.atelierId === Number(formData.atelierId),
+                  )
                   .map((l: any) => (
                     <option key={l.id} value={l.id}>
                       {l.nom}
@@ -429,46 +444,70 @@ export default function PlansMaintenancePage() {
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-bold text-white">{detailPlanData.intitule}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{detailPlanData.description || 'Aucune description'}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {detailPlanData.description || 'Aucune description'}
+              </p>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 p-4 bg-white/[0.02] border border-white/[0.05] rounded-xl">
               <div>
                 <div className="text-xs text-muted-foreground">Fréquence</div>
-                <div className="font-semibold text-emerald-400 text-sm mt-1">{freqLabels[detailPlanData.frequence]}</div>
+                <div className="font-semibold text-emerald-400 text-sm mt-1">
+                  {freqLabels[detailPlanData.frequence]}
+                </div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Statut</div>
-                <div className="font-semibold text-white text-sm mt-1">{detailPlanData.actif ? 'Actif' : 'Inactif'}</div>
+                <div className="font-semibold text-white text-sm mt-1">
+                  {detailPlanData.actif ? 'Actif' : 'Inactif'}
+                </div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Dernière exécution</div>
                 <div className="font-semibold text-white text-sm mt-1">
-                  {detailPlanData.dernierExecution ? format(new Date(detailPlanData.dernierExecution), 'dd MMM yyyy', { locale: fr }) : '-'}
+                  {detailPlanData.dernierExecution
+                    ? format(new Date(detailPlanData.dernierExecution), 'dd MMM yyyy', {
+                        locale: fr,
+                      })
+                    : '-'}
                 </div>
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Prochaine exécution</div>
                 <div className="font-semibold text-emerald-400 text-sm mt-1">
-                  {detailPlanData.prochaineExecution ? format(new Date(detailPlanData.prochaineExecution), 'dd MMM yyyy', { locale: fr }) : '-'}
+                  {detailPlanData.prochaineExecution
+                    ? format(new Date(detailPlanData.prochaineExecution), 'dd MMM yyyy', {
+                        locale: fr,
+                      })
+                    : '-'}
                 </div>
               </div>
             </div>
 
             <div className="space-y-3">
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">Historique des OTs (Générés)</h4>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+                Historique des OTs (Générés)
+              </h4>
               {detailPlanData.ordresTravail?.length > 0 ? (
                 <div className="space-y-2">
                   {detailPlanData.ordresTravail.map((ot: any) => (
-                    <div key={ot.id} className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-xl flex flex-col gap-2">
+                    <div
+                      key={ot.id}
+                      className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-xl flex flex-col gap-2"
+                    >
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-white text-sm">{ot.numeroOT}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${statusColors[ot.statut]}`}>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${statusColors[ot.statut]}`}
+                        >
                           {ot.statut.replace(/_/g, ' ')}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-xs text-muted-foreground">
-                        <span>Prévu le: {ot.datePrevue ? format(new Date(ot.datePrevue), 'dd/MM/yyyy') : '-'}</span>
+                        <span>
+                          Prévu le:{' '}
+                          {ot.datePrevue ? format(new Date(ot.datePrevue), 'dd/MM/yyyy') : '-'}
+                        </span>
                       </div>
                     </div>
                   ))}
