@@ -183,7 +183,11 @@ export const deletePlan = async (
  * Déclenche manuellement la génération d'un OT préventif à partir d'un plan.
  * @route POST /api/plans/:id/trigger
  */
-export const triggerPlan = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const triggerPlan = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { id } = req.params;
     const ot = await generateOTFromPlan(parseInt(id as string, 10));

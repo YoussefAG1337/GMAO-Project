@@ -171,23 +171,6 @@ export default function DemandesInterventionPage() {
     }
   };
 
-  const handleCreateOTFromDI = async (di: any) => {
-    try {
-      await api.post('/ots', {
-        demandeInterventionId: di.id,
-        atelierId: di.atelierId,
-        ligneId: di.ligneId,
-        posteId: di.posteId,
-        description: `Suite à DI: ${di.description}`,
-        priorite: di.priorite,
-      });
-      toast.success(`Ordre de travail généré depuis ${di.numeroDI}`);
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || "Erreur lors de la création de l'OT");
-    }
-  };
-
   if (isLoading) {
     return <div className="p-8 text-center text-muted-foreground">Chargement des demandes...</div>;
   }

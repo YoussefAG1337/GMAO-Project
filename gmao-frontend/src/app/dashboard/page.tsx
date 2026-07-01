@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import useSWR from 'swr';
 import { api } from '@/lib/api';
@@ -16,12 +16,12 @@ import {
   CalendarDays,
   Wrench,
   AlertTriangle,
-  Cpu,
+
   Activity,
   Sparkles,
   PieChart as PieChartIcon,
   BarChart3,
-  CheckCircle2,
+
   FileText,
 } from 'lucide-react';
 import {

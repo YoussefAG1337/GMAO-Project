@@ -34,10 +34,7 @@ export const initPreventiveCron = () => {
         generatedCount++;
         console.log(`[CRON] ✅ OT généré pour le plan "${plan.intitule}"`);
       } catch (error) {
-        console.error(
-          `[CRON] ❌ Échec de génération pour le plan "${plan.intitule}":`,
-          error,
-        );
+        console.error(`[CRON] ❌ Échec de génération pour le plan "${plan.intitule}":`, error);
       }
     }
 

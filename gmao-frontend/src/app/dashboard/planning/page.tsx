@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import { Card, CardContent } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { Calendar, ChevronLeft, ChevronRight, Play } from 'lucide-react';
@@ -12,7 +12,6 @@ import { toast } from 'sonner';
 import {
   format,
   startOfMonth,
-  endOfMonth,
   eachDayOfInterval,
   addMonths,
   subMonths,
@@ -35,7 +34,7 @@ export default function PlanningPage() {
   const month = currentDate.getMonth() + 1;
   const year = currentDate.getFullYear();
 
-  const { data: calendarData, mutate, isLoading } = useSWR(
+  const { data: calendarData, mutate } = useSWR(
     `/calendar?month=${month}&year=${year}`,
     fetcher
   );
@@ -46,7 +45,7 @@ export default function PlanningPage() {
   // Generate calendar grid days (42 cells: 6 rows x 7 cols)
   const daysInMonth = useMemo(() => {
     const start = startOfMonth(currentDate);
-    const end = endOfMonth(currentDate);
+
     // getDay returns 0 for Sunday, 1 for Monday. We want Monday=0, Sunday=6
     const startDay = (getDay(start) + 6) % 7; 
     
@@ -110,7 +109,7 @@ export default function PlanningPage() {
               <ChevronRight className="w-5 h-5" />
             </Button>
             <Button variant="secondary" onClick={handleToday} className="ml-2 bg-violet-500/20 text-violet-300 hover:bg-violet-500/30">
-              Aujourd'hui
+              Aujourd&apos;hui
             </Button>
           </div>
         </div>

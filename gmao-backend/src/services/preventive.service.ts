@@ -121,10 +121,7 @@ export async function generateOTFromPlan(planId: number) {
   // stays anchored. Example: if a monthly plan was due July 1st
   // but the cron ran July 2nd, the next date should be August 1st,
   // not August 2nd. This prevents schedule drift.
-  const nextDate = calculateNextExecution(
-    plan.prochaineExecution || today,
-    plan.frequence,
-  );
+  const nextDate = calculateNextExecution(plan.prochaineExecution || today, plan.frequence);
 
   await prisma.planMaintenance.update({
     where: { id: plan.id },

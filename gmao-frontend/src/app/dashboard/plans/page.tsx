@@ -122,7 +122,7 @@ export default function PlansMaintenancePage() {
       await api.put(`/plans/${id}`, { actif: !actif });
       toast.success(actif ? 'Plan désactivé' : 'Plan activé');
       mutate();
-    } catch (err: any) {
+    } catch {
       toast.error('Erreur lors du changement de statut');
     }
   };
@@ -285,7 +285,7 @@ export default function PlansMaintenancePage() {
           </div>
           <h3 className="text-lg font-bold text-white mb-2">Aucun plan préventif</h3>
           <p className="text-muted-foreground max-w-md mb-6">
-            Vous n'avez pas encore configuré de maintenance préventive. Créez un plan pour automatiser la génération de vos ordres de travail.
+            Vous n&apos;avez pas encore configuré de maintenance préventive. Créez un plan pour automatiser la génération de vos ordres de travail.
           </p>
           {isAdminOrChef && (
             <Button onClick={handleOpenCreate} className="bg-emerald-500 hover:bg-emerald-600">
@@ -475,7 +475,7 @@ export default function PlansMaintenancePage() {
                 </div>
               ) : (
                 <div className="text-sm text-muted-foreground p-4 bg-white/[0.01] rounded-xl border border-white/[0.02] text-center">
-                  Aucun OT n'a encore été généré par ce plan.
+                  Aucun OT n&apos;a encore été généré par ce plan.
                 </div>
               )}
             </div>

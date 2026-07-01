@@ -5,9 +5,9 @@ import useSWR from 'swr';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Wrench, Plus, Filter, Play, CheckCircle, FileText } from 'lucide-react';
+import { Wrench, Plus, Play, CheckCircle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+
 import { Modal } from '@/components/ui/modal';
 import { toast } from 'sonner';
 

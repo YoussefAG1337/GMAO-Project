@@ -13,9 +13,13 @@ import prisma from '../config/prisma';
  * actifs dont la prochaineExecution tombe dans le mois (pas encore générés).
  * @route GET /api/calendar?month=7&year=2026
  */
-export const getCalendarData = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getCalendarData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
-    const month = parseInt(req.query.month as string, 10) || (new Date().getMonth() + 1);
+    const month = parseInt(req.query.month as string, 10) || new Date().getMonth() + 1;
     const year = parseInt(req.query.year as string, 10) || new Date().getFullYear();
 
     // Calculer le premier et le dernier jour du mois

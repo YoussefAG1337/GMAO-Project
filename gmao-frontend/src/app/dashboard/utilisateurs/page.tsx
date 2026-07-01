@@ -4,7 +4,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import { Users, Search, CheckCircle2, XCircle, ShieldAlert, Edit2 } from 'lucide-react';
+import { Users, Search, CheckCircle2, ShieldAlert, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Modal } from '@/components/ui/modal';
