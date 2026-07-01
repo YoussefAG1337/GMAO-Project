@@ -133,7 +133,7 @@ resource "azurerm_linux_web_app" "frontend" {
 
   app_settings = {
     "PORT"                = "8080"
-    "NEXT_PUBLIC_API_URL" = "https://${var.project_name}-backend-${var.environment}-supra.azurewebsites.net/api"
+    "SERVER_API_URL"      = "https://${var.project_name}-backend-${var.environment}-supra.azurewebsites.net/api"
   }
 }
 
@@ -169,6 +169,10 @@ resource "azurerm_mysql_flexible_server" "db" {
   storage {
     iops    = 360
     size_gb = 20
+  }
+
+  lifecycle {
+    ignore_changes = [zone]
   }
 }
 
