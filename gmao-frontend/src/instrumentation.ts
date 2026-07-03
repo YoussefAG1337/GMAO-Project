@@ -4,7 +4,8 @@ export async function register() {
   // We must use a dynamic import inside a check for the 'nodejs' runtime.
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     if (process.env.NEXT_PUBLIC_APPINSIGHTS_CONNECTION_STRING) {
-      const { useAzureMonitor: initializeAzureMonitor } = await import('@azure/monitor-opentelemetry');
+      const { useAzureMonitor: initializeAzureMonitor } =
+        await import('@azure/monitor-opentelemetry');
       initializeAzureMonitor({
         azureMonitorExporterOptions: {
           connectionString: process.env.NEXT_PUBLIC_APPINSIGHTS_CONNECTION_STRING,
