@@ -5,10 +5,14 @@
  */
 
 import 'dotenv/config';
-import * as appInsights from 'applicationinsights';
+import { useAzureMonitor } from '@azure/monitor-opentelemetry';
 
 if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
-  appInsights.setup().start();
+  useAzureMonitor({
+    azureMonitorExporterOptions: {
+      connectionString: process.env.APPLICATIONINSIGHTS_CONNECTION_STRING,
+    },
+  });
 }
 
 import express from 'express';
