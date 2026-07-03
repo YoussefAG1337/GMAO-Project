@@ -5,6 +5,12 @@
  */
 
 import 'dotenv/config';
+import * as appInsights from 'applicationinsights';
+
+if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
+  appInsights.setup().start();
+}
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
