@@ -15,7 +15,7 @@ variable "environment" {
 variable "location" {
   type        = string
   description = "The Azure region to deploy all resources"
-  default     = "swedencentral" # Matching your current setup
+  default     = "swedencentral"
 }
 
 variable "github_organization" {
@@ -28,4 +28,10 @@ variable "github_repository" {
   type        = string
   description = "The GitHub repository name for OIDC"
   default     = "GMAO-Project"
+}
+
+variable "alert_email" {
+  type        = string
+  description = "Email address for monitoring alert notifications"
+  default     = "Youssef.Agrebaoui@esprit.tn"
 }
