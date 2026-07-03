@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Geist_Mono } from 'next/font/google';
 import { AuthProvider } from '@/context/AuthContext';
+import { AppInsightsProvider } from '@/components/AppInsightsProvider';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
@@ -34,7 +35,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <AuthProvider>{children}</AuthProvider>
+        <AppInsightsProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </AppInsightsProvider>
         <Toaster position="top-right" richColors closeButton theme="dark" />
       </body>
     </html>
