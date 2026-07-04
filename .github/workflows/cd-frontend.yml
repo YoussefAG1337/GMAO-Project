@@ -35,14 +35,14 @@ jobs:
 
       # 2. Log into the Azure Container Registry (ACR)
       - name: Login to Azure Container Registry
-        run: az acr login --name crgmaoprojecttf
+        run: az acr login --name crgmaotf
 
       # 3. Build the Docker image and tag it
       - name: Build and push Docker image
         run: |
           cd gmao-frontend
-          docker build -t crgmaoprojecttf.azurecr.io/gmao-frontend:${{ github.sha }} .
-          docker push crgmaoprojecttf.azurecr.io/gmao-frontend:${{ github.sha }}
+          docker build -t crgmaotf.azurecr.io/gmao-frontend:${{ github.sha }} .
+          docker push crgmaotf.azurecr.io/gmao-frontend:${{ github.sha }}
 
       # 4. Tell Azure Container Apps to use the new image
       - name: Deploy to Azure Container Apps
@@ -50,4 +50,4 @@ jobs:
         with:
           resourceGroup: rg-gmao-tf
           containerAppName: ca-frontend-gmao-tf
-          imageToDeploy: crgmaoprojecttf.azurecr.io/gmao-frontend:${{ github.sha }}
+          imageToDeploy: crgmaotf.azurecr.io/gmao-frontend:${{ github.sha }}
