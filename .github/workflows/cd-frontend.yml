@@ -41,8 +41,9 @@ jobs:
       - name: Build and push Docker image
         run: |
           cd gmao-frontend
-          docker build -t crgmaotf.azurecr.io/gmao-frontend:${{ github.sha }} .
+          docker build -t crgmaotf.azurecr.io/gmao-frontend:${{ github.sha }} -t crgmaotf.azurecr.io/gmao-frontend:latest .
           docker push crgmaotf.azurecr.io/gmao-frontend:${{ github.sha }}
+          docker push crgmaotf.azurecr.io/gmao-frontend:latest
 
       # 4. Tell Azure Container Apps to use the new image
       - name: Deploy to Azure Container Apps
