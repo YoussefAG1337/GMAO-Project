@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   output : "standalone",
   async rewrites() {
     // We use the stable default FQDN of the backend (without revision suffix)
-    const backendUrl = "https://ca-backend-gmao-tf.greentree-b001a329.swedencentral.azurecontainerapps.io/api";
+    const backendUrl = "https://ca-backend-gmao-tf.livelyocean-c3c19832.swedencentral.azurecontainerapps.io/api";
     return [
       {
         source: "/api/:path*",
