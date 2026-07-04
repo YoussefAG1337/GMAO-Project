@@ -10,11 +10,6 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-/**
- * Instance singleton du client Prisma
- * En développement, l'instance est stockée sur `globalThis` pour survivre au rechargement à chaud.
- * En production, une nouvelle instance est créée normalement.
- */
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({

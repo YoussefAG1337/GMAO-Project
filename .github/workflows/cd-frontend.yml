@@ -17,49 +17,37 @@ permissions:
   id-token: write # Required for requesting the JWT for OIDC
 
 jobs:
-  build_and_deploy:
-    name: Build & Deploy Frontend
+  deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
+    if: github.ref == 'refs/heads/main' # Only deploy on the main branch
+    
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: gmao-frontend/package-lock.json
-
-      - name: Install dependencies
-        working-directory: gmao-frontend
-        run: npm ci
-
-      - name: Build frontend (Standalone Mode)
-        working-directory: gmao-frontend
-        run: npm run build
-        env:
-          NEXT_PUBLIC_API_URL: "/api"
-          NEXT_TELEMETRY_DISABLED: 1
-
-      # Next.js standalone build outputs to .next/standalone.
-      # We copy the public assets and static files directly into the standalone 
-      - name: Copy assets to standalone folder
-        run: |
-          cp -r gmao-frontend/public gmao-frontend/.next/standalone/public
-          cp -r gmao-frontend/.next/static gmao-frontend/.next/standalone/.next/static
-
-      - name: Log in to Azure via OIDC
+      # 1. Log into Azure
+      - name: Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy to Azure App Service
-        uses: azure/webapps-deploy@v2
+      # 2. Log into the Azure Container Registry (ACR)
+      - name: Login to Azure Container Registry
+        run: az acr login --name crgmaotf
+
+      # 3. Build the Docker image and tag it
+      - name: Build and push Docker image
+        run: |
+          cd gmao-frontend
+          docker build -t crgmaotf.azurecr.io/gmao-frontend:${{ github.sha }} .
+          docker push crgmaotf.azurecr.io/gmao-frontend:${{ github.sha }}
+
+      # 4. Tell Azure Container Apps to use the new image
+      - name: Deploy to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v1
         with:
-          app-name: gmao-frontend-tf-supra
-          package: gmao-frontend/.next/standalone
+          resourceGroup: rg-gmao-tf
+          containerAppName: ca-frontend-gmao-tf
+          imageToDeploy: crgmaotf.azurecr.io/gmao-frontend:${{ github.sha }}
