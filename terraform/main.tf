@@ -90,6 +90,7 @@ module "container_apps" {
   registry_login_server          = module.registry.login_server
   registry_username              = module.registry.admin_username
   registry_password              = module.registry.admin_password
+  app_subnet_id                  = module.networking.app_subnet_id
 }
 
 # Compute — App Service Plan, Backend,Frontend
