@@ -14,3 +14,4 @@ variable "registry_password" { type = string }
 # Environment variables our apps need to run
 variable "database_url" { type = string }
 variable "app_insights_connection_string" { type = string }
+variable "app_subnet_id" { type = string }

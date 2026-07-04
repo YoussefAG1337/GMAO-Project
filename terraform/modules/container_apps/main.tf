@@ -4,6 +4,7 @@ resource "azurerm_container_app_environment" "main" {
   location                   = var.location
   resource_group_name        = var.resource_group_name
   log_analytics_workspace_id = var.log_analytics_workspace_id
+  infrastructure_subnet_id   = var.app_subnet_id
 }
 
 # 2. Generate a secure secret for JWTs dynamically
@@ -68,11 +69,17 @@ resource "azurerm_container_app" "backend" {
   # Ingress allows network traffic to hit the container
   ingress {
     external_enabled = true
-    target_port      = 8080
+    target_port      = 5000
     traffic_weight {
       percentage      = 100
       latest_revision = true
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].container[0].image
+    ]
   }
 }
 
@@ -119,5 +126,11 @@ resource "azurerm_container_app" "frontend" {
       percentage      = 100
       latest_revision = true
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].container[0].image
+    ]
   }
 }
