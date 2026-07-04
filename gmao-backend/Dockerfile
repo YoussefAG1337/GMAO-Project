@@ -37,6 +37,7 @@ COPY --from=builder /app/dist ./dist
 
 # Expose the port the Express app runs on
 EXPOSE 8080
+ENV PORT=8080
 
 # Command to run the application
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/index.js"]
