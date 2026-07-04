@@ -7,11 +7,20 @@
 import 'dotenv/config';
 import { useAzureMonitor } from '@azure/monitor-opentelemetry';
 
+import { PrismaInstrumentation } from '@prisma/instrumentation';
+import { registerInstrumentations } from '@opentelemetry/instrumentation';
+
 if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
+  // 1. Initialize the standard Azure Monitor exporting
   useAzureMonitor({
     azureMonitorExporterOptions: {
       connectionString: process.env.APPLICATIONINSIGHTS_CONNECTION_STRING,
     },
+  });
+
+  // 2. Manually register the custom Prisma instrumentation
+  registerInstrumentations({
+    instrumentations: [new PrismaInstrumentation()],
   });
 }
 
