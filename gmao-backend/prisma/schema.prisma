@@ -1,9 +1,7 @@
-// Schéma Prisma pour le système GMAO
-// Base de données: MySQL via XAMPP
+
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["tracing"]
 }
 
 datasource db {

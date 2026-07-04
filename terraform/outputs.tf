@@ -32,3 +32,13 @@ output "app_insights_connection_string" {
   value       = module.monitoring.app_insights_connection_string
   sensitive   = true
 }
+
+output "backend_url" {
+  value       = "https://${module.container_apps.backend_fqdn}"
+  description = "The URL of the backend application"
+}
+
+output "frontend_url" {
+  value       = "https://${module.container_apps.frontend_fqdn}"
+  description = "The URL of the frontend application"
+}

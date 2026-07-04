@@ -32,7 +32,7 @@ resource "azurerm_application_insights" "main" {
 # 3. Diagnostic Settings — Stream platform logs and metrics to Log Analytics
 
 
-resource "azurerm_monitor_diagnostic_setting" "backend" {
+/*resource "azurerm_monitor_diagnostic_setting" "backend" {
   name                       = "diag-backend"
   target_resource_id         = var.backend_app_id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
@@ -78,7 +78,7 @@ resource "azurerm_monitor_diagnostic_setting" "frontend" {
     category = "AllMetrics"
     enabled  = true
   }
-}
+}*/
 
 resource "azurerm_monitor_diagnostic_setting" "mysql" {
   name                       = "diag-mysql"
@@ -101,7 +101,7 @@ resource "azurerm_monitor_diagnostic_setting" "mysql" {
 
 # 4. Availability Tests — Multi-region
 
-resource "azurerm_application_insights_standard_web_test" "backend_health" {
+/*resource "azurerm_application_insights_standard_web_test" "backend_health" {
   name                    = "webtest-backend-health-${var.project_name}"
   resource_group_name     = var.resource_group_name
   location                = var.location
@@ -287,3 +287,4 @@ resource "azurerm_monitor_metric_alert" "mysql_storage" {
     action_group_id = azurerm_monitor_action_group.critical.id
   }
 }
+*/
