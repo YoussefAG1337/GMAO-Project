@@ -15,6 +15,7 @@ resource "azurerm_log_analytics_workspace" "main" {
   resource_group_name = var.resource_group_name
   sku                 = "PerGB2018"
   retention_in_days   = 30
+  daily_quota_gb      = 0.05 # Cap daily ingestion at 50MB (minimum allowed by Azure is 0.023)
 }
 
 
@@ -26,6 +27,8 @@ resource "azurerm_application_insights" "main" {
   resource_group_name = var.resource_group_name
   workspace_id        = azurerm_log_analytics_workspace.main.id
   application_type    = "Node.JS"
+  daily_data_cap_in_gb = 0.05 # Cap daily data at 50MB to match workspace
+  sampling_percentage  = 50   # Drop 50% of telemetry traces to reduce volume
 }
 
 
@@ -80,7 +83,8 @@ resource "azurerm_monitor_diagnostic_setting" "frontend" {
   }
 }*/
 
-resource "azurerm_monitor_diagnostic_setting" "mysql" {
+# Disabled to prevent high ingestion costs from database query logs
+/*resource "azurerm_monitor_diagnostic_setting" "mysql" {
   name                       = "diag-mysql"
   target_resource_id         = var.mysql_server_id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
@@ -96,7 +100,7 @@ resource "azurerm_monitor_diagnostic_setting" "mysql" {
     category = "AllMetrics"
     enabled  = true
   }
-}
+}*/
 
 
 # 4. Availability Tests — Multi-region

@@ -49,7 +49,14 @@ export const submitRapportSchema = z.object({
     description: z.string().optional(),
     tempsIntervention: z.number().int().nonnegative("Le temps d'intervention doit être positif"),
     tempsArret: z.number().int().nonnegative("Le temps d'arrêt doit être positif").optional(),
-    piecesChangees: z.string().optional(),
+    piecesUtilisees: z
+      .array(
+        z.object({
+          pieceId: z.number().int().positive(),
+          quantite: z.number().int().positive(),
+        }),
+      )
+      .optional(),
   }),
 });
 

@@ -8,23 +8,30 @@ import { statutColors, prioriteColors } from '../lib/constants';
 
 interface DiCardProps {
   di: any;
+  isAdmin: boolean;
   isAdminOrChef: boolean;
-  isAdminOrChefTech: boolean;
-  onOpenCreateOT: (di: any) => void;
+  isTechnician: boolean;
+  currentUserId?: number;
   onEdit: (di: any) => void;
   onDelete: (id: number) => void;
   onOpenDetails: (di: any) => void;
+  onStartWork: (id: number) => void;
 }
 
 export function DiCard({
   di,
+  isAdmin,
   isAdminOrChef,
-  isAdminOrChefTech,
-  onOpenCreateOT,
+  isTechnician,
+  currentUserId,
   onEdit,
   onDelete,
   onOpenDetails,
+  onStartWork,
 }: DiCardProps) {
+  const canStartWork =
+    isTechnician && di.statut === 'NOUVELLE' && di.technicienId === currentUserId;
+
   return (
     <div className="p-4 md:p-6 hover:bg-white/[0.02] transition-colors flex flex-col md:flex-row gap-4 md:items-center justify-between group">
       <div className="flex items-start gap-4 flex-1">
@@ -34,7 +41,7 @@ export function DiCard({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h4 className="font-bold text-white text-base md:text-lg">
-              {di.produit || 'Équipement en panne'}
+              {di.produit?.nom || 'Équipement en panne'}
             </h4>
             <span
               className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${statutColors[di.statut]}`}
@@ -47,7 +54,9 @@ export function DiCard({
               • {di.priorite}
             </span>
           </div>
-          <p className="text-sm text-muted-foreground line-clamp-1">{di.description}</p>
+          <p className="text-sm text-muted-foreground line-clamp-1">
+            {di.panne?.nom ? `Panne signalée : ${di.panne.nom}` : 'Aucune description détaillée'}
+          </p>
           <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground/70">
             <span>
               📍 {di.atelier?.nom} &rsaquo; {di.ligne?.nom} &rsaquo; {di.poste?.nom}
@@ -62,13 +71,13 @@ export function DiCard({
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0 md:opacity-0 group-hover:opacity-100 transition-opacity">
-        {isAdminOrChefTech && di.statut === 'NOUVELLE' && (
+        {canStartWork && (
           <Button
-            onClick={() => onOpenCreateOT(di)}
+            onClick={() => onStartWork(di.id)}
             size="sm"
-            className="bg-[#651FAA] hover:bg-purple-600 text-white"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
-            Créer OT
+            Commencer le travail
           </Button>
         )}
         {isAdminOrChef && (
@@ -81,7 +90,7 @@ export function DiCard({
             Modifier
           </Button>
         )}
-        {isAdminOrChef && di.statut === 'NOUVELLE' && (
+        {isAdmin && (
           <Button
             onClick={() => onDelete(di.id)}
             size="sm"

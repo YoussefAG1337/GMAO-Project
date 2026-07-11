@@ -6,22 +6,26 @@ import { Filter } from 'lucide-react';
 
 interface DiListProps {
   dis: any[];
+  isAdmin: boolean;
   isAdminOrChef: boolean;
-  isAdminOrChefTech: boolean;
-  onOpenCreateOT: (di: any) => void;
+  isTechnician: boolean;
+  currentUserId?: number;
   onEdit: (di: any) => void;
   onDelete: (id: number) => void;
   onOpenDetails: (di: any) => void;
+  onStartWork: (id: number) => void;
 }
 
 export function DiList({
   dis,
+  isAdmin,
   isAdminOrChef,
-  isAdminOrChefTech,
-  onOpenCreateOT,
+  isTechnician,
+  currentUserId,
   onEdit,
   onDelete,
   onOpenDetails,
+  onStartWork,
 }: DiListProps) {
   return (
     <div className="bg-zinc-950/40 border border-white/[0.06] rounded-2xl overflow-hidden backdrop-blur-xl">
@@ -37,12 +41,14 @@ export function DiList({
           <DiCard
             key={di.id}
             di={di}
+            isAdmin={isAdmin}
             isAdminOrChef={isAdminOrChef}
-            isAdminOrChefTech={isAdminOrChefTech}
-            onOpenCreateOT={onOpenCreateOT}
+            isTechnician={isTechnician}
+            currentUserId={currentUserId}
             onEdit={onEdit}
             onDelete={onDelete}
             onOpenDetails={onOpenDetails}
+            onStartWork={onStartWork}
           />
         ))}
         {dis.length === 0 && (

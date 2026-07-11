@@ -10,6 +10,7 @@ import { KpiGrid } from '@/features/dashboard/components/KpiGrid';
 import { TechnicianView } from '@/features/dashboard/components/TechnicianView';
 import { DashboardCharts } from '@/features/dashboard/components/DashboardCharts';
 import { UserDetailsGrid } from '@/features/dashboard/components/UserDetailsGrid';
+import { AnalyticsView } from '@/features/dashboard/components/AnalyticsView';
 
 const fetcher = (url: string) => api.get<any>(url).then((res) => res.data);
 
@@ -52,7 +53,10 @@ export default function DashboardPage() {
 
       {/* Charts Section */}
       {(user.role === 'ADMIN' || user.role === 'CHEF_MAINTENANCE') && (
-        <DashboardCharts stats={stats} loading={statsLoading} />
+        <>
+          <AnalyticsView />
+          <DashboardCharts stats={stats} loading={statsLoading} />
+        </>
       )}
 
       {/* General Stats and User Info Grid */}

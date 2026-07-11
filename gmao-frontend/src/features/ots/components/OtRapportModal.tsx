@@ -9,6 +9,7 @@ interface OtRapportModalProps {
   onSubmit: (e: React.FormEvent) => Promise<void>;
   rapportData: any;
   setRapportData: (data: any) => void;
+  magasinPieces?: any[];
 }
 
 export function OtRapportModal({
@@ -17,7 +18,24 @@ export function OtRapportModal({
   onSubmit,
   rapportData,
   setRapportData,
+  magasinPieces = [],
 }: OtRapportModalProps) {
+  const handleAddPiece = () => {
+    const pieces = rapportData.piecesUtilisees || [];
+    setRapportData({ ...rapportData, piecesUtilisees: [...pieces, { pieceId: 0, quantite: 1 }] });
+  };
+
+  const handleUpdatePiece = (index: number, field: string, value: number) => {
+    const pieces = [...(rapportData.piecesUtilisees || [])];
+    pieces[index] = { ...pieces[index], [field]: value };
+    setRapportData({ ...rapportData, piecesUtilisees: pieces });
+  };
+
+  const handleRemovePiece = (index: number) => {
+    const pieces = [...(rapportData.piecesUtilisees || [])];
+    pieces.splice(index, 1);
+    setRapportData({ ...rapportData, piecesUtilisees: pieces });
+  };
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Soumettre un rapport d'intervention">
       <form onSubmit={onSubmit} className="space-y-4">
@@ -32,12 +50,12 @@ export function OtRapportModal({
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium text-white">Cause de la panne (optionnel)</label>
+          <label className="text-sm font-medium text-white">Description (optionnel)</label>
           <input
             type="text"
             className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
-            value={rapportData.causePanne}
-            onChange={(e) => setRapportData({ ...rapportData, causePanne: e.target.value })}
+            value={rapportData.description || ''}
+            onChange={(e) => setRapportData({ ...rapportData, description: e.target.value })}
           />
         </div>
         <div className="space-y-2">
@@ -80,14 +98,54 @@ export function OtRapportModal({
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium text-white">Pièces utilisées (optionnel)</label>
-          <input
-            type="text"
-            className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
-            placeholder="Ex: Filtre à huile, 2 vis M8"
-            value={rapportData.piecesUtilisees}
-            onChange={(e) => setRapportData({ ...rapportData, piecesUtilisees: e.target.value })}
-          />
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-white">Pièces utilisées (Magasin)</label>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={handleAddPiece}
+              className="text-emerald-400 hover:text-emerald-300"
+            >
+              + Ajouter
+            </Button>
+          </div>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {(rapportData.piecesUtilisees || []).map((p: any, idx: number) => (
+              <div key={idx} className="flex items-center gap-2">
+                <select
+                  required
+                  className="flex-1 bg-zinc-900 border border-white/10 rounded-lg p-2 text-white"
+                  value={p.pieceId}
+                  onChange={(e) => handleUpdatePiece(idx, 'pieceId', Number(e.target.value))}
+                >
+                  <option value={0} disabled>
+                    Sélectionner une pièce
+                  </option>
+                  {magasinPieces.map((mp) => (
+                    <option key={mp.id} value={mp.id}>
+                      {mp.nom} ({mp.code})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  className="w-20 bg-zinc-900 border border-white/10 rounded-lg p-2 text-white"
+                  value={p.quantite}
+                  onChange={(e) => handleUpdatePiece(idx, 'quantite', Number(e.target.value))}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemovePiece(idx)}
+                  className="text-rose-400 p-2 hover:bg-rose-400/10 rounded"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.05]">

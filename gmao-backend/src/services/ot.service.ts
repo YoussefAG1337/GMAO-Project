@@ -1,4 +1,4 @@
-import { StatutOT, StatutDI, Role } from '@prisma/client';
+import { StatutOT, StatutDI, Role, TypeMouvement } from '@prisma/client';
 import prisma from '../config/prisma';
 import { NotFoundError, BadRequestError, UnauthorizedError } from '../utils/errors';
 import { IOtService } from '../interfaces/services/IOtService';
@@ -160,6 +160,54 @@ class OtService implements IOtService {
     });
   }
 
+  public async startFromDi(diId: number, userId: number) {
+    const di = await prisma.demandeIntervention.findUnique({
+      where: { id: diId },
+    });
+
+    if (!di) {
+      throw new NotFoundError('DI introuvable');
+    }
+
+    if (di.technicienId !== userId && di.declareParId !== userId) {
+      throw new UnauthorizedError("Vous n'êtes pas assigné à cette DI");
+    }
+
+    if (di.statut === StatutDI.RESOLUE || di.statut === StatutDI.CLOTUREE) {
+      throw new BadRequestError('Cette DI est déjà résolue ou clôturée');
+    }
+
+    // Create the OT
+    const ot = await prisma.ordreTravail.create({
+      data: {
+        numeroOT: 'TEMP-' + Date.now(),
+        demandeInterventionId: di.id,
+        technicienId: userId,
+        atelierId: di.atelierId,
+        ligneId: di.ligneId,
+        posteId: di.posteId,
+        datePrevue: new Date(),
+        dateDebut: new Date(),
+        statut: StatutOT.EN_COURS,
+        description: `OT créé automatiquement à partir de la DI ${di.numeroDI}`,
+      },
+    });
+
+    const formattedNumero = 'OT-' + ot.id.toString().padStart(6, '0');
+    const updatedOT = await prisma.ordreTravail.update({
+      where: { id: ot.id },
+      data: { numeroOT: formattedNumero },
+    });
+
+    // Update DI status
+    await prisma.demandeIntervention.update({
+      where: { id: di.id },
+      data: { statut: StatutDI.EN_COURS },
+    });
+
+    return updatedOT;
+  }
+
   public async submitRapport(
     id: number,
     data: SubmitRapportDTO,
@@ -182,27 +230,67 @@ class OtService implements IOtService {
       throw new BadRequestError('Un rapport existe déjà pour cet OT');
     }
 
-    const rapport = await prisma.rapportIntervention.create({
-      data: {
-        ...data,
-        ordreTravailId: ot.id,
-        redacteurId: currentUser.userId,
-      },
-    });
+    const { piecesUtilisees, ...rapportData } = data;
 
-    await prisma.ordreTravail.update({
-      where: { id: ot.id },
-      data: { statut: StatutOT.EN_ATTENTE_VALIDATION, dateFin: new Date() },
-    });
-
-    if (ot.demandeInterventionId) {
-      await prisma.demandeIntervention.update({
-        where: { id: ot.demandeInterventionId },
-        data: { statut: StatutDI.RESOLUE },
+    return prisma.$transaction(async (tx) => {
+      const rapport = await tx.rapportIntervention.create({
+        data: {
+          ...rapportData,
+          ordreTravailId: ot.id,
+          redacteurId: currentUser.userId,
+        },
       });
-    }
 
-    return rapport;
+      // Handle piecesUtilisees
+      if (piecesUtilisees && piecesUtilisees.length > 0) {
+        await tx.pieceUtilisee.createMany({
+          data: piecesUtilisees.map((p) => ({
+            rapportInterventionId: rapport.id,
+            pieceId: p.pieceId,
+            quantite: p.quantite,
+          })),
+        });
+
+        for (const pu of piecesUtilisees) {
+          // Verify stock
+          const piece = await tx.pieceRechange.findUnique({ where: { id: pu.pieceId } });
+          if (!piece || piece.quantiteStock < pu.quantite) {
+            throw new BadRequestError(`Stock insuffisant pour la pièce ID: ${pu.pieceId}`);
+          }
+
+          // Create MouvementStock (Sortie)
+          await tx.mouvementStock.create({
+            data: {
+              pieceId: pu.pieceId,
+              type: TypeMouvement.SORTIE,
+              quantite: pu.quantite,
+              referenceOT: ot.numeroOT,
+              userId: currentUser.userId,
+            },
+          });
+
+          // Update stock quantity
+          await tx.pieceRechange.update({
+            where: { id: pu.pieceId },
+            data: { quantiteStock: { decrement: pu.quantite } },
+          });
+        }
+      }
+
+      await tx.ordreTravail.update({
+        where: { id: ot.id },
+        data: { statut: StatutOT.EN_ATTENTE_VALIDATION, dateFin: new Date() },
+      });
+
+      if (ot.demandeInterventionId) {
+        await tx.demandeIntervention.update({
+          where: { id: ot.demandeInterventionId },
+          data: { statut: StatutDI.RESOLUE },
+        });
+      }
+
+      return rapport;
+    });
   }
 
   public async validateOT(id: number, userId: number) {
@@ -235,11 +323,24 @@ class OtService implements IOtService {
       throw new NotFoundError('OT introuvable');
     }
 
-    if (ot.statut !== StatutOT.CREE) {
-      throw new BadRequestError("Seul un OT à l'état CREE peut être supprimé");
-    }
+    // Restriction removed: ADMINs can delete OT in any state
 
-    await prisma.ordreTravail.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      const rapport = await tx.rapportIntervention.findUnique({
+        where: { ordreTravailId: id },
+      });
+
+      if (rapport) {
+        await tx.pieceUtilisee.deleteMany({
+          where: { rapportInterventionId: rapport.id },
+        });
+        await tx.rapportIntervention.delete({
+          where: { id: rapport.id },
+        });
+      }
+
+      await tx.ordreTravail.delete({ where: { id } });
+    });
   }
 
   public async getOTStats() {

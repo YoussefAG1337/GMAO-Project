@@ -57,6 +57,30 @@ class EquipementService implements IEquipementService {
   }
 
   public async updateAtelier(id: number, data: UpdateAtelierDTO) {
+    if (data.actif === false) {
+      // Cascading deactivation
+      const updatedAtelier = await prisma.atelier.update({
+        where: { id },
+        data,
+      });
+      await prisma.ligne.updateMany({
+        where: { atelierId: id },
+        data: { actif: false },
+      });
+      const lignes = await prisma.ligne.findMany({
+        where: { atelierId: id },
+        select: { id: true },
+      });
+      const ligneIds = lignes.map((l) => l.id);
+      if (ligneIds.length > 0) {
+        await prisma.poste.updateMany({
+          where: { ligneId: { in: ligneIds } },
+          data: { actif: false },
+        });
+      }
+      return updatedAtelier;
+    }
+
     return prisma.atelier.update({
       where: { id },
       data,
@@ -64,9 +88,8 @@ class EquipementService implements IEquipementService {
   }
 
   public async deleteAtelier(id: number) {
-    return prisma.atelier.update({
+    return prisma.atelier.delete({
       where: { id },
-      data: { actif: false },
     });
   }
 
@@ -84,6 +107,7 @@ class EquipementService implements IEquipementService {
       include: {
         atelier: { select: { nom: true } },
         _count: { select: { postes: true } },
+        techniciens: { select: { id: true, nom: true, prenom: true } },
       },
       orderBy: { nom: 'asc' },
     });
@@ -111,8 +135,16 @@ class EquipementService implements IEquipementService {
       throw new BadRequestError("L'atelier spécifié n'existe pas");
     }
 
+    const { technicienIds, ...ligneData } = data;
+
     return prisma.ligne.create({
-      data,
+      data: {
+        ...ligneData,
+        techniciens:
+          technicienIds && technicienIds.length > 0
+            ? { connect: technicienIds.map((id) => ({ id })) }
+            : undefined,
+      },
     });
   }
 
@@ -124,16 +156,30 @@ class EquipementService implements IEquipementService {
       }
     }
 
+    const { technicienIds, ...ligneData } = data;
+
+    if (data.actif === false) {
+      await prisma.poste.updateMany({
+        where: { ligneId: id },
+        data: { actif: false },
+      });
+    }
+
     return prisma.ligne.update({
       where: { id },
-      data,
+      data: {
+        ...ligneData,
+        techniciens:
+          technicienIds !== undefined
+            ? { set: technicienIds.map((tId) => ({ id: tId })) }
+            : undefined,
+      },
     });
   }
 
   public async deleteLigne(id: number) {
-    return prisma.ligne.update({
+    return prisma.ligne.delete({
       where: { id },
-      data: { actif: false },
     });
   }
 
@@ -203,9 +249,8 @@ class EquipementService implements IEquipementService {
   }
 
   public async deletePoste(id: number) {
-    return prisma.poste.update({
+    return prisma.poste.delete({
       where: { id },
-      data: { actif: false },
     });
   }
 }

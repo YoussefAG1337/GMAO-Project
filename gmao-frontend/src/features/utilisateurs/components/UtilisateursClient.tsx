@@ -22,7 +22,11 @@ export function UtilisateursClient({ initialUsers }: UtilisateursClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ role: '', actif: false });
+  const [editForm, setEditForm] = useState<{ role: string; actif: boolean; lignes?: number[] }>({
+    role: '',
+    actif: false,
+    lignes: [],
+  });
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Seuls les admins peuvent accéder à la gestion complète
@@ -57,7 +61,11 @@ export function UtilisateursClient({ initialUsers }: UtilisateursClientProps) {
 
   const handleOpenEdit = (u: any) => {
     setSelectedUser(u);
-    setEditForm({ role: u.role, actif: u.actif });
+    setEditForm({
+      role: u.role,
+      actif: u.actif,
+      lignes: u.lignes?.map((tl: any) => tl.ligneId) || [],
+    });
     setIsEditModalOpen(true);
   };
 

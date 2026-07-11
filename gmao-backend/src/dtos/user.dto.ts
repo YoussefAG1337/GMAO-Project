@@ -21,6 +21,7 @@ export const updateUserSchema = z.object({
     prenom: z.string().min(2).optional(),
     role: z.nativeEnum(Role).optional(),
     actif: z.boolean().optional(),
+    lignes: z.array(z.number().int().positive()).optional(),
   }),
 });
 

@@ -112,7 +112,7 @@ export function OtCard({
             Modifier
           </Button>
         )}
-        {isAdminOrChefTech && ot.statut === 'CREE' && (
+        {user?.role === 'ADMIN' && (
           <Button
             size="sm"
             onClick={() => onDelete(ot.id)}

@@ -15,6 +15,7 @@ import {
   validateOT,
   deleteOT,
   getOTStats,
+  startFromDi,
 } from '../controllers/ot.controller';
 import { getRapports, getRapportById, getRapportByOT } from '../controllers/rapport.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
@@ -67,6 +68,12 @@ router.patch(
 );
 
 router.patch('/:id/start', rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]), startOT);
+
+router.post(
+  '/start-from-di/:diId',
+  rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
+  startFromDi,
+);
 
 router.post(
   '/:id/rapport',

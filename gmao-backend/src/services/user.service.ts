@@ -16,10 +16,10 @@ class UserService implements IUserService {
         prenom: true,
         email: true,
         role: true,
-        actif: true,
         dernierLogin: true,
         createdAt: true,
         updatedAt: true,
+        lignes: true,
       },
     });
   }
@@ -33,9 +33,9 @@ class UserService implements IUserService {
         prenom: true,
         email: true,
         role: true,
-        actif: true,
         dernierLogin: true,
         createdAt: true,
+        lignes: true,
         loginAudits: { orderBy: { createdAt: 'desc' }, take: 5 },
       },
     });
@@ -70,7 +70,7 @@ class UserService implements IUserService {
   }
 
   public async updateUser(id: number, data: UpdateUserDTO) {
-    const { email, ...restData } = data;
+    const { email, lignes, ...restData } = data;
     const updateData: any = { ...restData };
 
     if (email) {
@@ -81,10 +81,24 @@ class UserService implements IUserService {
       updateData.email = email;
     }
 
+    if (lignes !== undefined) {
+      updateData.lignes = {
+        set: lignes.map((ligneId) => ({ id: ligneId })),
+      };
+    }
+
     return prisma.user.update({
       where: { id },
       data: updateData,
-      select: { id: true, nom: true, prenom: true, email: true, role: true, actif: true },
+      select: {
+        id: true,
+        nom: true,
+        prenom: true,
+        email: true,
+        role: true,
+        actif: true,
+        lignes: true,
+      },
     });
   }
 

@@ -3,13 +3,12 @@ import { Priorite } from '@prisma/client';
 
 export const createDISchema = z.object({
   body: z.object({
-    description: z.string().min(5, 'La description doit contenir au moins 5 caractères'),
-    atelierId: z.number().int().positive(),
-    ligneId: z.number().int().positive(),
-    posteId: z.number().int().positive(),
-    produit: z.string().optional(),
-    referenceProduit: z.string().optional(),
-    familleProduit: z.string().optional(),
+    atelierId: z.coerce.number().int().positive(),
+    ligneId: z.coerce.number().int().positive(),
+    posteId: z.coerce.number().int().positive(),
+    produitId: z.coerce.number().int().positive().optional(),
+    panneId: z.coerce.number().int().positive().optional(),
+    nouvellePanneNom: z.string().optional(),
     priorite: z.nativeEnum(Priorite).optional(),
   }),
 });
@@ -19,13 +18,12 @@ export const updateDISchema = z.object({
     id: z.string().regex(/^\d+$/, "L'ID doit être un nombre"),
   }),
   body: z.object({
-    description: z.string().min(5).optional(),
-    atelierId: z.number().int().positive().optional(),
-    ligneId: z.number().int().positive().optional(),
-    posteId: z.number().int().positive().optional(),
-    produit: z.string().optional(),
-    referenceProduit: z.string().optional(),
-    familleProduit: z.string().optional(),
+    atelierId: z.coerce.number().int().positive().optional(),
+    ligneId: z.coerce.number().int().positive().optional(),
+    posteId: z.coerce.number().int().positive().optional(),
+    produitId: z.coerce.number().int().positive().optional(),
+    panneId: z.coerce.number().int().positive().optional(),
+    nouvellePanneNom: z.string().optional(),
     priorite: z.nativeEnum(Priorite).optional(),
   }),
 });

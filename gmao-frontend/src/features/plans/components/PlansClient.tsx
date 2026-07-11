@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
+import { useReferenceData } from '@/hooks/useReferenceData';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
@@ -10,8 +11,6 @@ import { PlansHeader } from '@/features/plans/components/PlansHeader';
 import { PlanList } from '@/features/plans/components/PlanList';
 import { PlanFormModal } from '@/features/plans/components/PlanFormModal';
 import { PlanDetailModal } from '@/features/plans/components/PlanDetailModal';
-
-const fetcher = (url: string) => api.get<any>(url).then((res) => res.data);
 
 interface PlansClientProps {
   initialPlans: any[];
@@ -30,21 +29,17 @@ export function PlansClient({
   const isAdmin = user?.role === 'ADMIN';
   const isAdminOrChef = isAdmin || user?.role === 'CHEF_MAINTENANCE';
 
-  const { data: plansResponse, mutate } = useSWR('/plans', fetcher, {
+  const { data: plansResponse, mutate } = useSWR('/plans', {
     fallbackData: initialPlans,
   });
   // Si initialPlans vient en tant que array brut ou object {plans: []}, à vérifier
   // En se basant sur le code original: const plans = plansResponse || []
   const plans = plansResponse || [];
 
-  const { data: ateliers } = useSWR('/equipements/ateliers', fetcher, {
-    fallbackData: initialAteliers,
-  });
-  const { data: lignes } = useSWR('/equipements/lignes', fetcher, {
-    fallbackData: initialLignes,
-  });
-  const { data: postes } = useSWR('/equipements/postes', fetcher, {
-    fallbackData: initialPostes,
+  const { ateliers, lignes, postes } = useReferenceData({
+    initialAteliers,
+    initialLignes,
+    initialPostes,
   });
 
   // States
@@ -52,7 +47,7 @@ export function PlansClient({
   const [editingPlan, setEditingPlan] = useState<any>(null);
   const [detailPlanId, setDetailPlanId] = useState<number | null>(null);
 
-  const { data: detailPlanData } = useSWR(detailPlanId ? `/plans/${detailPlanId}` : null, fetcher);
+  const { data: detailPlanData } = useSWR(detailPlanId ? `/plans/${detailPlanId}` : null);
 
   const [formData, setFormData] = useState({
     intitule: '',

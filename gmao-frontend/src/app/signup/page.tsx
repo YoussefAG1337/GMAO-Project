@@ -110,8 +110,12 @@ function SignupForm() {
             <div className="flex justify-center">
               <div className="relative group/logo">
                 <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#651FAA] to-[#7c3aed] blur-sm opacity-50 transition duration-500" />
-                <div className="relative w-14 h-14 rounded-2xl bg-[#651FAA] flex items-center justify-center shadow-lg shadow-[#651FAA]/20">
-                  <Factory className="w-6 h-6 text-white" />
+                <div className="relative w-24 h-24 rounded-3xl bg-zinc-950/50 border border-white/10 flex items-center justify-center shadow-lg shadow-black/20 transform group-hover/logo:scale-105 transition duration-300 overflow-hidden">
+                  <img
+                    src="/logo.png"
+                    alt="GMAO Logo"
+                    className="w-full h-full object-contain p-1"
+                  />
                 </div>
               </div>
             </div>

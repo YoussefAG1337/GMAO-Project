@@ -11,16 +11,11 @@ import {
   UnauthorizedError,
   NotFoundError,
 } from '../utils/errors';
-import { IAuthService } from '../interfaces/services/IAuthService';
+import { IAuthService, AuditContext } from '../interfaces/services/IAuthService';
 import { LoginDTO, RegisterDTO, ChangePasswordDTO } from '../dtos/auth.dto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_for_dev';
 const JWT_EXPIRES_IN = '24h';
-
-export interface AuditContext {
-  ipAddress: string;
-  userAgent: string | null;
-}
 
 const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 

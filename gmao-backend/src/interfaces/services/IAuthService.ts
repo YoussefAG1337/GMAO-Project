@@ -1,5 +1,9 @@
 import { User, AuditAction } from '@prisma/client';
-import { AuditContext } from '../../services/auth.service';
+
+export interface AuditContext {
+  ipAddress: string;
+  userAgent: string | null;
+}
 
 export interface IAuthService {
   logAudit(

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
+import { useReferenceData } from '@/hooks/useReferenceData';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
@@ -13,8 +14,6 @@ import { OtFormModal } from '@/features/ots/components/OtFormModal';
 import { OtRapportModal } from '@/features/ots/components/OtRapportModal';
 import { OtDetailModal } from '@/features/ots/components/OtDetailModal';
 import { OtEditModal } from '@/features/ots/components/OtEditModal';
-
-const fetcher = (url: string) => api.get<any>(url).then((res) => res.data);
 
 interface OtsClientProps {
   initialOts: any;
@@ -34,24 +33,19 @@ export function OtsClient({
   const { user } = useAuth();
   const isAdminOrChefTech = user?.role === 'ADMIN' || user?.role === 'CHEF_TECHNICIEN';
 
-  const { data: otsResponse, mutate } = useSWR('/ots', fetcher, {
+  const { data: otsResponse, mutate } = useSWR('/ots', {
     fallbackData: initialOts,
   });
   const ots = otsResponse?.ots || [];
 
-  const { data: ateliers } = useSWR('/equipements/ateliers', fetcher, {
-    fallbackData: initialAteliers,
+  const { ateliers, lignes, postes, techniciens } = useReferenceData({
+    initialAteliers,
+    initialLignes,
+    initialPostes,
+    initialTechniciens,
   });
-  const { data: lignes } = useSWR('/equipements/lignes', fetcher, {
-    fallbackData: initialLignes,
-  });
-  const { data: postes } = useSWR('/equipements/postes', fetcher, {
-    fallbackData: initialPostes,
-  });
-  const { data: techniciensList } = useSWR('/users/techniciens', fetcher, {
-    fallbackData: initialTechniciens,
-  });
-  const techniciens = techniciensList || [];
+
+  const { data: magasinPieces } = useSWR('/magasin/pieces');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -73,7 +67,7 @@ export function OtsClient({
     actionsRealisees: '',
     tempsIntervention: '',
     tempsArret: '',
-    piecesUtilisees: '',
+    piecesUtilisees: [] as { pieceId: number; quantite: number }[],
     commentaires: '',
   });
 
@@ -180,7 +174,7 @@ export function OtsClient({
       actionsRealisees: '',
       tempsIntervention: '',
       tempsArret: '',
-      piecesUtilisees: '',
+      piecesUtilisees: [],
       commentaires: '',
     });
     setIsRapportModalOpen(true);
@@ -194,6 +188,8 @@ export function OtsClient({
         ...rapportData,
         tempsIntervention: Number(rapportData.tempsIntervention),
         tempsArret: rapportData.tempsArret ? Number(rapportData.tempsArret) : undefined,
+        piecesUtilisees:
+          rapportData.piecesUtilisees.length > 0 ? rapportData.piecesUtilisees : undefined,
       });
       toast.success('Rapport soumis avec succès');
       setIsRapportModalOpen(false);
@@ -241,6 +237,7 @@ export function OtsClient({
         onSubmit={handleSubmitRapport}
         rapportData={rapportData}
         setRapportData={setRapportData}
+        magasinPieces={magasinPieces || []}
       />
 
       <OtDetailModal

@@ -44,50 +44,7 @@ export function DashboardCharts({ stats, loading }: DashboardChartsProps) {
     : [];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <Card className="border-white/[0.06] bg-zinc-950/40 backdrop-blur-xl shadow-lg shadow-black/20 overflow-hidden">
-        <CardHeader className="border-b border-white/[0.06] py-4">
-          <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-2">
-            <PieChartIcon className="w-4 h-4 text-purple-400" />
-            Correctif vs Préventif
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 h-[300px] flex items-center justify-center">
-          {loading ? (
-            <div className="text-muted-foreground">Chargement...</div>
-          ) : stats?.repartitionCorrectivePreventive.corrective === 0 &&
-            stats?.repartitionCorrectivePreventive.preventive === 0 ? (
-            <div className="text-muted-foreground">Aucune donnée</div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={repartitionData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {repartitionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#09090b',
-                    borderColor: '#27272a',
-                    borderRadius: '8px',
-                  }}
-                  itemStyle={{ color: '#fff' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
-
+    <div className="grid grid-cols-1 gap-6">
       <Card className="border-white/[0.06] bg-zinc-950/40 backdrop-blur-xl shadow-lg shadow-black/20 overflow-hidden">
         <CardHeader className="border-b border-white/[0.06] py-4">
           <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-2">

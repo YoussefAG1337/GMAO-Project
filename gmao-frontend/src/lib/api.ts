@@ -57,13 +57,17 @@ class ApiClient {
     const startTime = Date.now();
     const url = `${API_URL}${endpoint}`;
 
+    const isFormData = options?.body instanceof FormData;
+    const headers = { ...options?.headers } as Record<string, string>;
+
+    if (!isFormData && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     const response = await fetch(url, {
       ...options,
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers,
     });
 
     // If 401 with TOKEN_EXPIRED, attempt silent refresh
@@ -76,10 +80,7 @@ class ApiClient {
           const retryResponse = await fetch(url, {
             ...options,
             credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-              ...options?.headers,
-            },
+            headers,
           });
           if (!retryResponse.ok) {
             const errorData = await retryResponse
@@ -112,10 +113,7 @@ class ApiClient {
             const retryResponsePromise = fetch(url, {
               ...options,
               credentials: 'include',
-              headers: {
-                'Content-Type': 'application/json',
-                ...options?.headers,
-              },
+              headers,
             }).then(async (retryResponse) => {
               if (!retryResponse.ok) {
                 const errorData = await retryResponse
@@ -162,24 +160,30 @@ class ApiClient {
     return this.request<T>(endpoint, { method: 'GET' });
   }
 
-  post<T>(endpoint: string, body?: unknown): Promise<T> {
+  post<T>(endpoint: string, body?: unknown, customHeaders?: HeadersInit): Promise<T> {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
     return this.request<T>(endpoint, {
       method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
+      body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
+      headers: customHeaders,
     });
   }
 
-  put<T>(endpoint: string, body?: unknown): Promise<T> {
+  put<T>(endpoint: string, body?: unknown, customHeaders?: HeadersInit): Promise<T> {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
     return this.request<T>(endpoint, {
       method: 'PUT',
-      body: body ? JSON.stringify(body) : undefined,
+      body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
+      headers: customHeaders,
     });
   }
 
-  patch<T>(endpoint: string, body?: unknown): Promise<T> {
+  patch<T>(endpoint: string, body?: unknown, customHeaders?: HeadersInit): Promise<T> {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
     return this.request<T>(endpoint, {
       method: 'PATCH',
-      body: body ? JSON.stringify(body) : undefined,
+      body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
+      headers: customHeaders,
     });
   }
 

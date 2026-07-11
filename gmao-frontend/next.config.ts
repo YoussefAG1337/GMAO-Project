@@ -4,8 +4,8 @@ const nextConfig: NextConfig = {
   /* config options here */
   output : "standalone",
   async rewrites() {
-    // We use the stable default FQDN of the backend (without revision suffix)
-    const backendUrl = "https://ca-backend-gmao-tf.livelyocean-c3c19832.swedencentral.azurecontainerapps.io/api";
+    // Use local backend by default for dev, or the remote URL if explicitly provided
+    const backendUrl = process.env.BACKEND_URL || "http://localhost:5000/api";
     return [
       {
         source: "/api/:path*",

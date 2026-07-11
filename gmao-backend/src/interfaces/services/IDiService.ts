@@ -1,5 +1,5 @@
 import { CreateDIDTO, UpdateDIDTO } from '../../dtos/di.dto';
-import { DemandeIntervention } from '@prisma/client';
+import { DemandeIntervention, OutboxEvent } from '@prisma/client';
 
 export interface IDiService {
   getDIs(
@@ -14,7 +14,14 @@ export interface IDiService {
     dis: DemandeIntervention[];
   }>;
   getDIById(id: number): Promise<DemandeIntervention>;
-  createDI(userId: number, data: CreateDIDTO): Promise<DemandeIntervention>;
+  createDI(
+    userId: number,
+    data: CreateDIDTO,
+    documentUtileUrl?: string,
+  ): Promise<{
+    updatedDi: DemandeIntervention;
+    outboxEvent: OutboxEvent | null;
+  }>;
   updateDI(id: number, data: UpdateDIDTO): Promise<DemandeIntervention>;
   deleteDI(id: number): Promise<any>;
   getDIStats(): Promise<any>;

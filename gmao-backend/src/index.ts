@@ -1,9 +1,3 @@
-/**
- * @fileoverview Point d'entrée principal de l'application GMAO Backend
- * @description Configure Express avec les middlewares de sécurité,
- *              monte les routes et démarre le serveur.
- */
-
 import 'dotenv/config';
 import { useAzureMonitor } from '@azure/monitor-opentelemetry';
 
@@ -36,18 +30,19 @@ import otRoutes from './routes/ot.routes';
 import planRoutes from './routes/plan.routes';
 import calendarRoutes from './routes/calendar.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import produitRoutes from './routes/produit.routes';
+import magasinRoutes from './routes/magasin.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import panneRoutes from './routes/panne.routes';
 import { initPreventiveCron } from './cron/preventive.cron';
 import { generalLimiter } from './middleware/rateLimiter.middleware';
 import { errorHandler } from './middleware/errorHandler.middleware';
-
+import './jobs/email.queue';
+import './cron/outbox.cron';
 const app = express();
 app.set('trust proxy', 1);
 const PORT = parseInt(process.env.PORT || '5000', 10);
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-
-// ══════════════════════════════════════════
-// Middlewares de sécurité
-// ══════════════════════════════════════════
 
 /** En-têtes de sécurité HTTP */
 app.use(helmet());
@@ -71,12 +66,11 @@ app.use(express.json({ limit: '10mb' }));
 /** Parsing des formulaires URL-encoded */
 app.use(express.urlencoded({ extended: true }));
 
+/** Serve static uploads directory for documents */
+app.use('/uploads', express.static('uploads'));
+
 /** Limiteur de débit général */
 app.use(generalLimiter);
-
-// ══════════════════════════════════════════
-// Routes
-// ══════════════════════════════════════════
 
 /** Route de santé pour les vérifications de disponibilité */
 app.get('/api/health', (_req, res) => {
@@ -99,10 +93,10 @@ app.use('/api/ots', otRoutes);
 app.use('/api/plans', planRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-
-// ══════════════════════════════════════════
-// Gestion des erreurs
-// ══════════════════════════════════════════
+app.use('/api/produits', produitRoutes);
+app.use('/api/magasin', magasinRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/pannes', panneRoutes);
 
 /** Route 404 pour les endpoints non trouvés */
 app.use((_req, res) => {
@@ -116,20 +110,14 @@ app.use((_req, res) => {
 /** Gestionnaire d'erreurs global */
 app.use(errorHandler);
 
-// ══════════════════════════════════════════
-// Démarrage du serveur et Tâches planifiées
-// ══════════════════════════════════════════
-
 // Initialisation du cron de maintenance préventive
 initPreventiveCron();
 
 app.listen(PORT, () => {
-  console.log('══════════════════════════════════════════');
-  console.log(`🚀 Serveur GMAO démarré sur le port ${PORT}`);
-  console.log(`📍 URL: http://localhost:${PORT}`);
-  console.log(`🌍 Environnement: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Frontend: ${FRONTEND_URL}`);
-  console.log('══════════════════════════════════════════');
+  console.log(`Serveur GMAO démarré sur le port ${PORT}`);
+  console.log(`URL: http://localhost:${PORT}`);
+  console.log(`Environnement: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Frontend: ${FRONTEND_URL}`);
 });
 
 export default app;

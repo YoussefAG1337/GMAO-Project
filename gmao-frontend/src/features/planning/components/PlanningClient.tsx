@@ -12,7 +12,8 @@ import { PlanningLegend } from '@/features/planning/components/PlanningLegend';
 import { PlanningCalendarGrid } from '@/features/planning/components/PlanningCalendarGrid';
 import { PlanningDayModal } from '@/features/planning/components/PlanningDayModal';
 
-const fetcher = (url: string) => api.get<any>(url).then((res) => res.data);
+const fetcher = (url: string) =>
+  api.get<any>(url).then((res) => (res.data !== undefined ? res.data : res));
 
 interface PlanningClientProps {
   initialCalendarData: any;

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { Geist_Mono } from 'next/font/google';
 import { AuthProvider } from '@/context/AuthContext';
 import { AppInsightsProvider } from '@/components/AppInsightsProvider';
+import { SWRProvider } from '@/components/SWRProvider';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
@@ -36,7 +37,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <AppInsightsProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <SWRProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </SWRProvider>
         </AppInsightsProvider>
         <Toaster position="top-right" richColors closeButton theme="dark" />
       </body>

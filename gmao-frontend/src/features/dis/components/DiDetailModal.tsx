@@ -24,20 +24,26 @@ export function DiDetailModal({ isOpen, onClose, selectedItem }: DiDetailModalPr
                 {selectedItem.statut}
               </div>
               <div>
-                <span className="text-muted-foreground block text-xs">Titre</span>{' '}
-                {selectedItem.produit || 'N/A'}
+                <span className="text-muted-foreground block text-xs">Produit Concerné</span>{' '}
+                {selectedItem.produit?.nom || 'Aucun'}
               </div>
               <div>
-                <span className="text-muted-foreground block text-xs">Priorité</span>{' '}
-                {selectedItem.priorite}
+                <span className="text-muted-foreground block text-xs">Panne</span>{' '}
+                {selectedItem.panne?.nom || 'Non spécifiée'}
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">Technicien</span>{' '}
+                {selectedItem.technicien
+                  ? `${selectedItem.technicien.prenom} ${selectedItem.technicien.nom}`
+                  : 'Non assigné'}
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">Déclaré par</span>{' '}
+                {selectedItem.declarePar
+                  ? `${selectedItem.declarePar.prenom} ${selectedItem.declarePar.nom}`
+                  : 'Inconnu'}
               </div>
             </div>
-          </div>
-          <div>
-            <span className="text-muted-foreground block text-xs mb-1">Description</span>
-            <p className="bg-zinc-900 p-3 rounded-lg border border-white/5">
-              {selectedItem.description}
-            </p>
           </div>
           <div className="bg-white/5 p-4 rounded-xl border border-white/10">
             <span className="text-muted-foreground block text-xs mb-2">Localisation</span>
@@ -46,6 +52,20 @@ export function DiDetailModal({ isOpen, onClose, selectedItem }: DiDetailModalPr
               {selectedItem.poste?.nom}
             </p>
           </div>
+
+          {selectedItem.documentUtileUrl && (
+            <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+              <span className="text-muted-foreground block text-xs mb-2">Fichier joint</span>
+              <a
+                href={selectedItem.documentUtileUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-amber-400 hover:underline flex items-center gap-2"
+              >
+                📄 Voir le document
+              </a>
+            </div>
+          )}
         </div>
       )}
     </Modal>

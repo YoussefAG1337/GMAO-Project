@@ -23,6 +23,7 @@ export const createLigneSchema = z.object({
     nom: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
     description: z.string().optional(),
     atelierId: z.number().int().positive(),
+    technicienIds: z.array(z.number().int().positive()).optional(),
   }),
 });
 
@@ -35,6 +36,7 @@ export const updateLigneSchema = z.object({
     description: z.string().optional(),
     atelierId: z.number().int().positive().optional(),
     actif: z.boolean().optional(),
+    technicienIds: z.array(z.number().int().positive()).optional(),
   }),
 });
 

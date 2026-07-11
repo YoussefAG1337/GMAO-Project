@@ -10,8 +10,6 @@ import {
   CalendarRange,
   Calendar,
   Package,
-  ArrowUpDown,
-  AlertTriangle,
   Activity,
   BarChart3,
   Gauge,
@@ -97,20 +95,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       title: 'Logistique',
       items: [
         {
-          name: 'Pièces de rechange',
-          href: '/dashboard/stock',
+          name: 'Magasin PDR',
+          href: '/dashboard/magasin',
           icon: Package,
         },
         {
-          name: 'Mouvements stock',
-          href: '/dashboard/stock/mouvements',
-          icon: ArrowUpDown,
-        },
-        {
-          name: 'Alertes',
-          href: '/dashboard/stock/alertes',
-          icon: AlertTriangle,
-          badge: { text: '3', type: 'danger' },
+          name: 'Produits',
+          href: '/dashboard/produits',
+          icon: Package,
         },
       ],
     },
@@ -166,8 +158,8 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       {/* Sidebar Header */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-white/[0.06]">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#651FAA] flex items-center justify-center shadow-md shadow-[#651FAA]/20 border border-[#651FAA]/30">
-            <Factory className="w-5 h-5 text-white" />
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shadow-md shadow-black/20 border border-white/10 overflow-hidden">
+            <img src="/logo.png" alt="GMAO Logo" className="w-full h-full object-contain p-0.5" />
           </div>
           {!isCollapsed && (
             <span className="font-extrabold text-md bg-gradient-to-r from-purple-200 to-violet-200 bg-clip-text text-transparent tracking-tight whitespace-nowrap">
@@ -199,7 +191,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             <ul className="space-y-1">
               {section.items.map((item, itemIdx) => {
                 const isActive =
-                  item.href === '/dashboard' || item.href === '/dashboard/stock'
+                  item.href === '/dashboard'
                     ? pathname === item.href
                     : pathname === item.href || pathname.startsWith(item.href + '/');
                 const Icon = item.icon;

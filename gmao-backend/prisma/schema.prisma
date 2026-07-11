@@ -1,7 +1,5 @@
-
-
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -70,28 +68,31 @@ enum FrequenceMaintenance {
 
 /// Utilisateur du système GMAO
 model User {
-  id                  Int       @id @default(autoincrement())
-  nom                 String    @db.VarChar(100)
-  prenom              String    @db.VarChar(100)
-  email               String    @unique @db.VarChar(255)
-  motDePasse          String    @db.VarChar(255)
-  role                Role      @default(TECHNICIEN)
-  actif               Boolean   @default(true)
-  tentativesEchouees  Int       @default(0)
-  verrouilleJusqua    DateTime? @db.Timestamp(6)
-  dernierLogin        DateTime? @db.Timestamp(6)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                 Int       @id @default(autoincrement())
+  nom                String    @db.VarChar(100)
+  prenom             String    @db.VarChar(100)
+  email              String    @unique @db.VarChar(255)
+  motDePasse         String    @db.VarChar(255)
+  role               Role      @default(TECHNICIEN)
+  actif              Boolean   @default(true)
+  tentativesEchouees Int       @default(0)
+  verrouilleJusqua   DateTime? @db.Timestamp(6)
+  dernierLogin       DateTime? @db.Timestamp(6)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   refreshTokens RefreshToken[]
   loginAudits   LoginAudit[]
 
   // Relations GMAO
-  demandesIntervention    DemandeIntervention[] @relation("DIDeclarePar")
-  ordresTravailTechnicien OrdreTravail[]        @relation("OTTechnicien")
-  ordresTravailValides    OrdreTravail[]        @relation("OTValidePar")
-  rapportsIntervention    RapportIntervention[] @relation("RapportRedacteur")
-  plansMaintenance        PlanMaintenance[]     @relation("PlanCreePar")
+  demandesIntervention        DemandeIntervention[] @relation("DIDeclarePar")
+  demandesInterventionAssigne DemandeIntervention[] @relation("DIAssigneA")
+  ordresTravailTechnicien     OrdreTravail[]        @relation("OTTechnicien")
+  ordresTravailValides        OrdreTravail[]        @relation("OTValidePar")
+  rapportsIntervention        RapportIntervention[] @relation("RapportRedacteur")
+  plansMaintenance            PlanMaintenance[]     @relation("PlanCreePar")
+  lignes                      Ligne[]               @relation("TechnicienLignes")
+  mouvementsStock             MouvementStock[]
 
   @@index([email])
   @@index([role])
@@ -100,14 +101,14 @@ model User {
 
 /// Token de rafraîchissement pour la rotation sécurisée
 model RefreshToken {
-  id           Int       @id @default(autoincrement())
-  tokenHash    String    @db.VarChar(255)
-  userId       Int
-  tokenFamily  String    @db.VarChar(36)
-  expiresAt    DateTime  @db.Timestamp(6)
-  revoque      Boolean   @default(false)
+  id            Int      @id @default(autoincrement())
+  tokenHash     String   @db.VarChar(255)
+  userId        Int
+  tokenFamily   String   @db.VarChar(36)
+  expiresAt     DateTime @db.Timestamp(6)
+  revoque       Boolean  @default(false)
   revoqueRaison String?  @db.VarChar(100)
-  createdAt    DateTime  @default(now())
+  createdAt     DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -173,6 +174,8 @@ model Ligne {
   demandesIntervention DemandeIntervention[]
   ordresTravail        OrdreTravail[]
   plansMaintenance     PlanMaintenance[]
+  techniciens          User[]                @relation("TechnicienLignes")
+  pannes               Panne[]
 
   @@index([atelierId])
   @@map("lignes")
@@ -192,9 +195,116 @@ model Poste {
   demandesIntervention DemandeIntervention[]
   ordresTravail        OrdreTravail[]
   plansMaintenance     PlanMaintenance[]
+  pannes               Panne[]
 
   @@index([ligneId])
   @@map("postes")
+}
+
+/// Type de panne associée à une ligne ou un poste
+model Panne {
+  id          Int      @id @default(autoincrement())
+  nom         String   @db.VarChar(200)
+  description String?  @db.Text
+  ligneId     Int?
+  posteId     Int?
+  createdAt   DateTime @default(now())
+
+  ligne    Ligne?                @relation(fields: [ligneId], references: [id], onDelete: Cascade)
+  poste    Poste?                @relation(fields: [posteId], references: [id], onDelete: Cascade)
+  demandes DemandeIntervention[]
+
+  @@index([ligneId])
+  @@index([posteId])
+  @@map("pannes")
+}
+
+// ============================================================
+// MODÈLES GMAO — Produits & Magasin PDR
+// ============================================================
+
+/// Famille de produits
+model FamilleProduit {
+  id        Int      @id @default(autoincrement())
+  nom       String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  produits Produit[]
+
+  @@map("familles_produits")
+}
+
+/// Produit / Équipement spécifique
+model Produit {
+  id               Int      @id @default(autoincrement())
+  nom              String   @db.VarChar(200)
+  familleProduitId Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  familleProduit FamilleProduit        @relation(fields: [familleProduitId], references: [id])
+  demandes       DemandeIntervention[]
+
+  @@index([familleProduitId])
+  @@map("produits")
+}
+
+/// Pièce de Rechange (Magasin PDR)
+model PieceRechange {
+  id            Int      @id @default(autoincrement())
+  code          String   @unique @db.VarChar(50)
+  nom           String   @db.VarChar(200)
+  description   String?  @db.Text
+  quantiteStock Int      @default(0)
+  seuilAlerte   Int      @default(5)
+  prixUnitaire  Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  mouvements   MouvementStock[]
+  utilisations PieceUtilisee[]
+
+  @@map("pieces_rechange")
+}
+
+enum TypeMouvement {
+  ENTREE
+  SORTIE
+}
+
+/// Historique des mouvements de stock
+model MouvementStock {
+  id          Int           @id @default(autoincrement())
+  pieceId     Int
+  type        TypeMouvement
+  quantite    Int
+  referenceOT String?       @db.VarChar(50)
+  userId      Int
+  createdAt   DateTime      @default(now())
+
+  piece       PieceRechange @relation(fields: [pieceId], references: [id])
+  utilisateur User          @relation(fields: [userId], references: [id])
+
+  @@index([pieceId])
+  @@index([userId])
+  @@map("mouvements_stock")
+}
+
+/// Consommation de pièces dans un Rapport d'Intervention
+model PieceUtilisee {
+  id                    Int      @id @default(autoincrement())
+  rapportInterventionId Int
+  pieceId               Int
+  quantite              Int
+  createdAt             DateTime @default(now())
+
+  rapport RapportIntervention @relation(fields: [rapportInterventionId], references: [id], onDelete: Cascade)
+  piece   PieceRechange       @relation(fields: [pieceId], references: [id])
+
+  @@index([rapportInterventionId])
+  @@index([pieceId])
+  @@map("pieces_utilisees")
 }
 
 // ============================================================
@@ -203,32 +313,38 @@ model Poste {
 
 /// Demande d'Intervention (DI) — ticket initial d'un incident
 model DemandeIntervention {
-  id                Int       @id @default(autoincrement())
-  numeroDI          String    @unique @db.VarChar(20)
-  atelierId         Int
-  ligneId           Int
-  posteId           Int
-  produit           String?   @db.VarChar(200)
-  referenceProduit  String?   @db.VarChar(100)
-  familleProduit    String?   @db.VarChar(100)
-  description       String    @db.Text
-  priorite          Priorite  @default(MOYENNE)
-  statut            StatutDI  @default(NOUVELLE)
-  declareParId      Int
-  dateDeclaration   DateTime  @default(now())
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id               Int      @id @default(autoincrement())
+  numeroDI         String   @unique @db.VarChar(20)
+  atelierId        Int
+  ligneId          Int
+  posteId          Int
+  produitId        Int?
+  panneId          Int?
+  documentUtileUrl String?  @db.VarChar(500)
+  priorite         Priorite @default(MOYENNE)
+  statut           StatutDI @default(NOUVELLE)
+  declareParId     Int
+  technicienId     Int?
+  dateDeclaration  DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  atelier       Atelier   @relation(fields: [atelierId], references: [id])
-  ligne         Ligne     @relation(fields: [ligneId], references: [id])
-  poste         Poste     @relation(fields: [posteId], references: [id])
-  declarePar    User      @relation("DIDeclarePar", fields: [declareParId], references: [id])
+  atelier       Atelier        @relation(fields: [atelierId], references: [id])
+  ligne         Ligne          @relation(fields: [ligneId], references: [id])
+  poste         Poste          @relation(fields: [posteId], references: [id])
+  declarePar    User           @relation("DIDeclarePar", fields: [declareParId], references: [id])
+  technicien    User?          @relation("DIAssigneA", fields: [technicienId], references: [id])
+  produit       Produit?       @relation(fields: [produitId], references: [id])
+  panne         Panne?         @relation(fields: [panneId], references: [id])
   ordresTravail OrdreTravail[]
 
   @@index([atelierId])
   @@index([ligneId])
   @@index([posteId])
+  @@index([produitId])
   @@index([declareParId])
+  @@index([technicienId])
+  @@index([panneId])
   @@index([statut])
   @@index([priorite])
   @@index([dateDeclaration])
@@ -237,25 +353,25 @@ model DemandeIntervention {
 
 /// Ordre de Travail (OT) — tâche de maintenance assignée
 model OrdreTravail {
-  id                    Int              @id @default(autoincrement())
-  numeroOT              String           @unique @db.VarChar(20)
+  id                    Int             @id @default(autoincrement())
+  numeroOT              String          @unique @db.VarChar(20)
   demandeInterventionId Int?
   technicienId          Int?
   atelierId             Int
   ligneId               Int
   posteId               Int
-  datePrevue            DateTime?        @db.Date
-  priorite              Priorite         @default(MOYENNE)
-  statut                StatutOT         @default(CREE)
-  typeMaintenance       TypeMaintenance  @default(CORRECTIVE)
-  description           String?          @db.Text
+  datePrevue            DateTime?       @db.Date
+  priorite              Priorite        @default(MOYENNE)
+  statut                StatutOT        @default(CREE)
+  typeMaintenance       TypeMaintenance @default(CORRECTIVE)
+  description           String?         @db.Text
   planMaintenanceId     Int?
   valideParId           Int?
   dateValidation        DateTime?
   dateDebut             DateTime?
   dateFin               DateTime?
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 
   demandeIntervention DemandeIntervention? @relation(fields: [demandeInterventionId], references: [id])
   technicien          User?                @relation("OTTechnicien", fields: [technicienId], references: [id])
@@ -285,16 +401,16 @@ model RapportIntervention {
   diagnostic        String   @db.Text
   causePanne        String?  @db.Text
   actionsRealisees  String   @db.Text
-  tempsIntervention Int      /// durée en minutes
-  tempsArret        Int?     /// durée d'arrêt machine en minutes
-  piecesUtilisees   String?  @db.Text
+  tempsIntervention Int /// durée en minutes
+  tempsArret        Int? /// durée d'arrêt machine en minutes
   commentaires      String?  @db.Text
   redacteurId       Int
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  ordreTravail OrdreTravail @relation(fields: [ordreTravailId], references: [id])
-  redacteur    User         @relation("RapportRedacteur", fields: [redacteurId], references: [id])
+  ordreTravail    OrdreTravail    @relation(fields: [ordreTravailId], references: [id])
+  redacteur       User            @relation("RapportRedacteur", fields: [redacteurId], references: [id])
+  piecesUtilisees PieceUtilisee[]
 
   @@index([redacteurId])
   @@map("rapports_intervention")
@@ -332,4 +448,26 @@ model PlanMaintenance {
   @@index([creeParId])
   @@index([prochaineExecution])
   @@map("plans_maintenance")
+}
+
+/// Status of an Outbox Event
+enum OutboxStatus {
+  PENDING   
+  QUEUED    
+  PROCESSED 
+  FAILED   
+}
+
+/// Transactional Outbox table
+model OutboxEvent {
+  id        Int          @id @default(autoincrement())
+  type      String       @db.VarChar(100)
+  payload   Json         /// Stores the data needed (DI ID, technician email)
+  status    OutboxStatus @default(PENDING)
+  error     String?      @db.Text 
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([status]) /// Crucial: we will frequently query for "PENDING"
+  @@map("outbox_events")
 }

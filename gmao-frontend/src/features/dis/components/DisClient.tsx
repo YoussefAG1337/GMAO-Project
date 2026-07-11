@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
+import { useReferenceData } from '@/hooks/useReferenceData';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
@@ -11,16 +12,12 @@ import { DiList } from '@/features/dis/components/DiList';
 import { DiFormModal } from '@/features/dis/components/DiFormModal';
 import { DiDetailModal } from '@/features/dis/components/DiDetailModal';
 import { DiEditModal } from '@/features/dis/components/DiEditModal';
-import { DiCreateOtModal } from '@/features/dis/components/DiCreateOtModal';
-
-const fetcher = (url: string) => api.get<any>(url).then((res) => res.data);
 
 interface DisClientProps {
   initialDis: any;
   initialAteliers: any[];
   initialLignes: any[];
   initialPostes: any[];
-  initialTechniciens: any[];
 }
 
 export function DisClient({
@@ -28,70 +25,65 @@ export function DisClient({
   initialAteliers,
   initialLignes,
   initialPostes,
-  initialTechniciens,
 }: DisClientProps) {
   const { user } = useAuth();
-  const isAdminOrChef = user?.role === 'ADMIN' || user?.role === 'CHEF_MAINTENANCE';
-  const isAdminOrChefTech = user?.role === 'ADMIN' || user?.role === 'CHEF_TECHNICIEN';
+  const isAdmin = user?.role === 'ADMIN';
+  const isAdminOrChef = isAdmin || user?.role === 'CHEF_MAINTENANCE';
 
-  const { data: disResponse, mutate } = useSWR('/dis', fetcher, {
+  const { data: disResponse, mutate } = useSWR('/dis', {
     fallbackData: initialDis,
   });
   const dis = disResponse?.dis || [];
 
-  const { data: ateliers } = useSWR('/equipements/ateliers', fetcher, {
-    fallbackData: initialAteliers,
+  const { ateliers, lignes, postes } = useReferenceData({
+    initialAteliers,
+    initialLignes,
+    initialPostes,
   });
-  const { data: lignes } = useSWR('/equipements/lignes', fetcher, {
-    fallbackData: initialLignes,
-  });
-  const { data: postes } = useSWR('/equipements/postes', fetcher, {
-    fallbackData: initialPostes,
-  });
-  const { data: techniciensList } = useSWR('/users/techniciens', fetcher, {
-    fallbackData: initialTechniciens,
-  });
-  const techniciens = techniciensList || [];
+
+  const { data: familles } = useSWR('/produits/familles');
+  const { data: produits } = useSWR('/produits');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     atelierId: '',
     ligneId: '',
     posteId: '',
-    produit: '',
-    description: '',
+    familleId: '',
+    produitId: '',
+    panneId: '',
+    nouvellePanneNom: '',
     priorite: 'MOYENNE',
-  });
-
-  const [isCreateOTModalOpen, setIsCreateOTModalOpen] = useState(false);
-  const [otFormData, setOtFormData] = useState({
-    demandeInterventionId: null as number | null,
-    atelierId: '',
-    ligneId: '',
-    posteId: '',
-    description: '',
-    priorite: 'MOYENNE',
-    typeMaintenance: 'CORRECTIVE',
-    datePrevue: '',
-    technicienId: '',
+    document: null as File | null,
   });
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDiId, setSelectedDiId] = useState<number | null>(null);
   const [editFormData, setEditFormData] = useState({
-    produit: '',
-    description: '',
+    atelierId: '',
+    ligneId: '',
+    posteId: '',
+    familleId: '',
+    produitId: '',
+    panneId: '',
+    nouvellePanneNom: '',
     priorite: 'MOYENNE',
   });
 
   const handleOpenEdit = (di: any) => {
     setSelectedDiId(di.id);
     setEditFormData({
-      produit: di.produit || '',
-      description: di.description || '',
+      atelierId: di.atelierId?.toString() || '',
+      ligneId: di.ligneId?.toString() || '',
+      posteId: di.posteId?.toString() || '',
+      familleId: di.produit?.familleProduitId?.toString() || '',
+      produitId: di.produitId?.toString() || '',
+      panneId: di.panneId?.toString() || '',
+      nouvellePanneNom: '',
       priorite: di.priorite || 'MOYENNE',
     });
     setIsEditModalOpen(true);
@@ -100,6 +92,8 @@ export function DisClient({
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDiId) return;
+
+    setIsSubmitting(true);
     try {
       await api.put(`/dis/${selectedDiId}`, editFormData);
       toast.success("Demande d'intervention modifiée avec succès");
@@ -107,6 +101,8 @@ export function DisClient({
       mutate();
     } catch (err: any) {
       toast.error(err.message || 'Erreur lors de la modification');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -121,65 +117,42 @@ export function DisClient({
     }
   };
 
-  const handleOpenCreateOT = (di: any) => {
-    setOtFormData({
-      demandeInterventionId: di.id,
-      atelierId: di.atelierId,
-      ligneId: di.ligneId,
-      posteId: di.posteId,
-      description: `Suite à DI: ${di.description}`,
-      priorite: di.priorite || 'MOYENNE',
-      typeMaintenance: 'CORRECTIVE',
-      datePrevue: '',
-      technicienId: '',
-    });
-    setIsCreateOTModalOpen(true);
-  };
-
-  const handleSubmitOT = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleStartWork = async (diId: number) => {
     try {
-      const response = await api.post('/ots', {
-        demandeInterventionId: otFormData.demandeInterventionId,
-        atelierId: Number(otFormData.atelierId),
-        ligneId: Number(otFormData.ligneId),
-        posteId: Number(otFormData.posteId),
-        description: otFormData.description,
-        priorite: otFormData.priorite,
-        typeMaintenance: otFormData.typeMaintenance,
-        datePrevue: otFormData.datePrevue
-          ? new Date(otFormData.datePrevue).toISOString()
-          : undefined,
-      });
-
-      if (otFormData.technicienId) {
-        await api.patch(`/ots/${(response as any).data.id}/assign`, {
-          technicienId: Number(otFormData.technicienId),
-        });
-      }
-
-      toast.success('Ordre de travail généré avec succès');
-      setIsCreateOTModalOpen(false);
+      await api.post(`/ots/start-from-di/${diId}`);
+      toast.success('Travail commencé, OT généré !');
       mutate();
     } catch (err: any) {
-      toast.error(err.message || "Erreur lors de la création de l'OT");
+      toast.error(err.message || 'Erreur lors du démarrage du travail');
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
-      await api.post('/dis', {
-        ...formData,
-        atelierId: Number(formData.atelierId),
-        ligneId: Number(formData.ligneId),
-        posteId: Number(formData.posteId),
-      });
+      const data = new FormData();
+      data.append('atelierId', formData.atelierId);
+      data.append('ligneId', formData.ligneId);
+      data.append('posteId', formData.posteId);
+      if (formData.produitId) data.append('produitId', formData.produitId);
+      if (formData.panneId) data.append('panneId', formData.panneId);
+      if (formData.nouvellePanneNom) data.append('nouvellePanneNom', formData.nouvellePanneNom);
+      data.append('priorite', formData.priorite);
+
+      if (formData.document) {
+        data.append('document', formData.document);
+      }
+
+      await api.post('/dis', data);
+
       toast.success("Demande d'intervention créée avec succès");
       setIsModalOpen(false);
       mutate();
     } catch (err: any) {
       toast.error(err.message || 'Erreur lors de la création');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -194,12 +167,14 @@ export function DisClient({
 
       <DiList
         dis={dis}
+        isAdmin={isAdmin}
         isAdminOrChef={isAdminOrChef}
-        isAdminOrChefTech={isAdminOrChefTech}
-        onOpenCreateOT={handleOpenCreateOT}
+        isTechnician={user?.role === 'TECHNICIEN' || user?.role === 'CHEF_TECHNICIEN'}
+        currentUserId={user?.id}
         onEdit={handleOpenEdit}
         onDelete={handleDeleteDI}
         onOpenDetails={handleOpenDetails}
+        onStartWork={handleStartWork}
       />
 
       <DiFormModal
@@ -211,6 +186,9 @@ export function DisClient({
         ateliers={ateliers || []}
         lignes={lignes || []}
         postes={postes || []}
+        familles={familles || []}
+        produits={produits || []}
+        isSubmitting={isSubmitting}
       />
 
       <DiDetailModal
@@ -225,15 +203,12 @@ export function DisClient({
         onSubmit={handleEditSubmit}
         editFormData={editFormData}
         setEditFormData={setEditFormData}
-      />
-
-      <DiCreateOtModal
-        isOpen={isCreateOTModalOpen}
-        onClose={() => setIsCreateOTModalOpen(false)}
-        onSubmit={handleSubmitOT}
-        otFormData={otFormData}
-        setOtFormData={setOtFormData}
-        techniciens={techniciens}
+        ateliers={ateliers || []}
+        lignes={lignes || []}
+        postes={postes || []}
+        familles={familles || []}
+        produits={produits || []}
+        isSubmitting={isSubmitting}
       />
     </div>
   );

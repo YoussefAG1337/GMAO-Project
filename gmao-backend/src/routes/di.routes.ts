@@ -1,7 +1,3 @@
-/**
- * @fileoverview Routes des Demandes d'Intervention (DI)
- */
-
 import { Router } from 'express';
 import { Role } from '@prisma/client';
 import {
@@ -16,6 +12,7 @@ import { authMiddleware } from '../middleware/auth.middleware';
 import { rbac } from '../middleware/rbac.middleware';
 import { validateRequest } from '../middleware/validate.middleware';
 import { createDISchema, updateDISchema } from '../dtos/di.dto';
+import { upload } from '../config/multer';
 
 const router = Router();
 
@@ -28,6 +25,7 @@ router.get('/:id', getDIById);
 router.post(
   '/',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
+  upload.single('document'),
   validateRequest(createDISchema),
   createDI,
 );

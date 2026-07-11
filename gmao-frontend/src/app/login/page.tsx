@@ -101,8 +101,12 @@ function LoginForm() {
             <div className="flex justify-center">
               <div className="relative group/logo">
                 <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#651FAA] to-[#7c3aed] blur-sm opacity-50 group-hover/logo:opacity-100 transition duration-500" />
-                <div className="relative w-16 h-16 rounded-2xl bg-[#651FAA] flex items-center justify-center shadow-lg shadow-[#651FAA]/20 transform group-hover/logo:scale-105 transition duration-300">
-                  <Factory className="w-8 h-8 text-white animate-pulse-glow" />
+                <div className="relative w-24 h-24 rounded-3xl bg-zinc-950/50 border border-white/10 flex items-center justify-center shadow-lg shadow-black/20 transform group-hover/logo:scale-105 transition duration-300 overflow-hidden">
+                  <img
+                    src="/logo.png"
+                    alt="GMAO Logo"
+                    className="w-full h-full object-contain p-1"
+                  />
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#161b26] flex items-center justify-center shadow-md">
                   <Shield className="w-3 h-3 text-white" />
