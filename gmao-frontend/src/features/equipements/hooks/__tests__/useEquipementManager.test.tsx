@@ -20,28 +20,29 @@ describe('useEquipementManager hook', () => {
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-      {children}
-    </SWRConfig>
+    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>{children}</SWRConfig>
   );
 
   it('should call createAtelier and trigger mutate', async () => {
     vi.mocked(equipementService.ateliers.create).mockResolvedValue({ id: 1 } as any);
-    
+
     const { result } = renderHook(() => useEquipementManager(), { wrapper });
-    
+
     await act(async () => {
       await result.current.createAtelier({ nom: 'Atelier A', description: 'Test' });
     });
 
-    expect(equipementService.ateliers.create).toHaveBeenCalledWith({ nom: 'Atelier A', description: 'Test' });
+    expect(equipementService.ateliers.create).toHaveBeenCalledWith({
+      nom: 'Atelier A',
+      description: 'Test',
+    });
   });
 
   it('should call deleteLigne and trigger mutate', async () => {
     vi.mocked(equipementService.lignes.delete).mockResolvedValue(undefined as any);
-    
+
     const { result } = renderHook(() => useEquipementManager(), { wrapper });
-    
+
     await act(async () => {
       await result.current.deleteLigne(5);
     });

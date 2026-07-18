@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react';
 import { useProduits } from '@/features/produits/hooks/useProduits';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { familleSchema, produitSchema, type FamilleFormData, type ProduitFormData } from '@/lib/validations/produit';
+import {
+  familleSchema,
+  produitSchema,
+  type FamilleFormData,
+  type ProduitFormData,
+} from '@/lib/validations/produit';
 import { useAuth } from '@/context/AuthContext';
 import { ShieldAlert, Package, Layers } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,10 +20,8 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-
 import { FamilleProduit, Produit } from '@/types/produit.types';
 import { getErrorMessage } from '@/lib/error';
-
 
 interface ProduitsClientProps {
   initialData: { familles: FamilleProduit[]; produits: Produit[] };
@@ -215,7 +218,9 @@ export function ProduitsClient({ initialData }: ProduitsClientProps) {
               placeholder="Ex: Câblages"
               className={familleErrors.nom ? 'border-red-500' : ''}
             />
-            {familleErrors.nom && <p className="text-[10px] text-red-400">{familleErrors.nom.message}</p>}
+            {familleErrors.nom && (
+              <p className="text-[10px] text-red-400">{familleErrors.nom.message}</p>
+            )}
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
             <Button type="button" variant="ghost" onClick={() => setIsFamilleModalOpen(false)}>
@@ -242,7 +247,9 @@ export function ProduitsClient({ initialData }: ProduitsClientProps) {
               placeholder="Ex: Faisceau A320"
               className={produitErrors.nom ? 'border-red-500' : ''}
             />
-            {produitErrors.nom && <p className="text-[10px] text-red-400">{produitErrors.nom.message}</p>}
+            {produitErrors.nom && (
+              <p className="text-[10px] text-red-400">{produitErrors.nom.message}</p>
+            )}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Famille</label>
@@ -259,7 +266,9 @@ export function ProduitsClient({ initialData }: ProduitsClientProps) {
                 </option>
               ))}
             </select>
-            {produitErrors.familleProduitId && <p className="text-[10px] text-red-400">{produitErrors.familleProduitId.message}</p>}
+            {produitErrors.familleProduitId && (
+              <p className="text-[10px] text-red-400">{produitErrors.familleProduitId.message}</p>
+            )}
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
             <Button type="button" variant="ghost" onClick={() => setIsProduitModalOpen(false)}>

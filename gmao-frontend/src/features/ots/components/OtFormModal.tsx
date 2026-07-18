@@ -4,7 +4,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { EquipmentSelect } from '@/components/EquipmentSelect';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Atelier, Ligne, Poste } from '@/types/equipement.types';
@@ -31,7 +31,7 @@ export function OtFormModal({
     register,
     handleSubmit: handleRHFSubmit,
     reset,
-    watch,
+    control,
     formState: { errors, isSubmitting, isValid },
   } = useForm<CreateOtFormData>({
     resolver: zodResolver(createOtSchema),
@@ -42,8 +42,8 @@ export function OtFormModal({
     },
   });
 
-  const watchAtelierId = watch('atelierId');
-  const watchLigneId = watch('ligneId');
+  const watchAtelierId = useWatch({ control, name: 'atelierId' });
+  const watchLigneId = useWatch({ control, name: 'ligneId' });
 
   useEffect(() => {
     if (isOpen) {
@@ -83,7 +83,9 @@ export function OtFormModal({
             placeholder="Détaillez le travail à effectuer..."
             className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground ${errors.description ? 'border-red-500' : ''}`}
           />
-          {errors.description && <p className="text-[10px] text-red-400">{errors.description.message}</p>}
+          {errors.description && (
+            <p className="text-[10px] text-red-400">{errors.description.message}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -98,7 +100,9 @@ export function OtFormModal({
               <option value="HAUTE">Haute</option>
               <option value="CRITIQUE">Critique</option>
             </select>
-            {errors.priorite && <p className="text-[10px] text-red-400">{errors.priorite.message}</p>}
+            {errors.priorite && (
+              <p className="text-[10px] text-red-400">{errors.priorite.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -112,7 +116,9 @@ export function OtFormModal({
               <option value="CORRECTIVE">Corrective</option>
               <option value="AMELIORATIVE">Améliorative</option>
             </select>
-            {errors.typeMaintenance && <p className="text-[10px] text-red-400">{errors.typeMaintenance.message}</p>}
+            {errors.typeMaintenance && (
+              <p className="text-[10px] text-red-400">{errors.typeMaintenance.message}</p>
+            )}
           </div>
         </div>
 
@@ -123,14 +129,20 @@ export function OtFormModal({
             {...register('datePrevue')}
             className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground ${errors.datePrevue ? 'border-red-500' : ''}`}
           />
-          {errors.datePrevue && <p className="text-[10px] text-red-400">{errors.datePrevue.message}</p>}
+          {errors.datePrevue && (
+            <p className="text-[10px] text-red-400">{errors.datePrevue.message}</p>
+          )}
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.05]">
           <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
             Annuler
           </Button>
-          <Button type="submit" disabled={isSubmitting || !isValid} className="bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50">
+          <Button
+            type="submit"
+            disabled={isSubmitting || !isValid}
+            className="bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50"
+          >
             {isSubmitting ? 'Création...' : 'Créer'}
           </Button>
         </div>

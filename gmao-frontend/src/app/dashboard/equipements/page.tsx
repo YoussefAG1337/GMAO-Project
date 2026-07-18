@@ -20,6 +20,10 @@ export default async function EquipementsPage() {
   ]);
 
   return (
-    <EquipementsClient initialAteliers={ateliers || []} initialLignes={lignes || []} initialPostes={postes || []} />
+    <EquipementsClient
+      initialAteliers={ateliers || []}
+      initialLignes={lignes || []}
+      initialPostes={postes || []}
+    />
   );
 }

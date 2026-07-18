@@ -15,24 +15,24 @@ export function useReferenceData(options: ReferenceDataOptions = {}) {
   const { data: ateliers, mutate: mutateAteliers } = useSWR(
     equipementService.keys.ateliers,
     equipementService.ateliers.getAll,
-    { fallbackData: options.initialAteliers }
+    { fallbackData: options.initialAteliers },
   );
 
   const { data: lignes, mutate: mutateLignes } = useSWR(
     equipementService.keys.lignes,
     equipementService.lignes.getAll,
-    { fallbackData: options.initialLignes }
+    { fallbackData: options.initialLignes },
   );
 
   const { data: postes, mutate: mutatePostes } = useSWR(
     equipementService.keys.postes,
     equipementService.postes.getAll,
-    { fallbackData: options.initialPostes }
+    { fallbackData: options.initialPostes },
   );
 
   const { data: techniciensList, mutate: mutateTechniciens } = useSWR<User[]>(
     options.fetchTechniciens ? '/users/techniciens' : null,
-    { fallbackData: options.initialTechniciens }
+    { fallbackData: options.initialTechniciens },
   );
 
   return {

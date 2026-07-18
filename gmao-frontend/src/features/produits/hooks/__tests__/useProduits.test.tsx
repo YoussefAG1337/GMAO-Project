@@ -19,7 +19,7 @@ vi.mock('@/services/produit.service', () => ({
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
-    }
+    },
   },
 }));
 
@@ -29,17 +29,15 @@ describe('useProduits hook', () => {
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-      {children}
-    </SWRConfig>
+    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>{children}</SWRConfig>
   );
 
   it('should call createFamille and mutateFamilles', async () => {
     vi.mocked(produitService.familles.getAll).mockResolvedValue([]);
     vi.mocked(produitService.familles.create).mockResolvedValue({ id: 1 } as any);
-    
+
     const { result } = renderHook(() => useProduits(), { wrapper });
-    
+
     await waitFor(() => {
       expect(produitService.familles.getAll).toHaveBeenCalledTimes(1);
     });
@@ -55,9 +53,9 @@ describe('useProduits hook', () => {
   it('should call deleteProduit and mutateProduits', async () => {
     vi.mocked(produitService.produits.getAll).mockResolvedValue([]);
     vi.mocked(produitService.produits.delete).mockResolvedValue(undefined as any);
-    
+
     const { result } = renderHook(() => useProduits(), { wrapper });
-    
+
     await waitFor(() => {
       expect(produitService.produits.getAll).toHaveBeenCalledTimes(1);
     });

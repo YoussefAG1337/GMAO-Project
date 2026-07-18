@@ -9,10 +9,12 @@ export const analyticsService = {
   },
 
   getPerformance: (startDate: string, endDate: string) =>
-    api.get<ApiResponse<AnalyticsData>>(`/analytics?startDate=${startDate}&endDate=${endDate}`).then((res) => {
-      // Handle the case where response might be wrapped or raw
-      return (res.data as any).data ? (res.data as any).data : res.data;
-    }),
+    api
+      .get<ApiResponse<AnalyticsData>>(`/analytics?startDate=${startDate}&endDate=${endDate}`)
+      .then((res) => {
+        // Handle the case where response might be wrapped or raw
+        return (res.data as any).data ? (res.data as any).data : res.data;
+      }),
 
   getWorkrates: (date: string): Promise<WorkrateData> =>
     api

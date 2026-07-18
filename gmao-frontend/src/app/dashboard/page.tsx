@@ -20,7 +20,10 @@ export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
 
-  const { data: stats, isLoading: statsLoading } = useSWR<DashboardStats>('/dashboard/stats', fetcher as any);
+  const { data: stats, isLoading: statsLoading } = useSWR<DashboardStats>(
+    '/dashboard/stats',
+    fetcher as any,
+  );
   const { data: kpis, isLoading: kpisLoading } = useSWR<DashboardKpis | null>(
     user?.role === 'ADMIN' || user?.role === 'CHEF_MAINTENANCE' ? '/dashboard/kpis' : null,
     fetcher as any,

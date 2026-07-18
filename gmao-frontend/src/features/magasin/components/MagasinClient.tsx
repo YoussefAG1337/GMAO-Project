@@ -3,9 +3,14 @@
 import { useState } from 'react';
 import { useMagasin } from '@/features/magasin/hooks/useMagasin';
 import { useAuth } from '@/context/AuthContext';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { pieceSchema, mouvementSchema, type PieceFormData, type MouvementFormData } from '@/lib/validations/magasin';
+import {
+  pieceSchema,
+  mouvementSchema,
+  type PieceFormData,
+  type MouvementFormData,
+} from '@/lib/validations/magasin';
 
 import { toast } from 'sonner';
 
@@ -16,7 +21,6 @@ import { Input } from '@/components/ui/input';
 
 import { Piece } from '@/types/magasin.types';
 import { getErrorMessage } from '@/lib/error';
-
 
 interface MagasinClientProps {
   initialData: any;
@@ -53,14 +57,14 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
     register: registerMvt,
     handleSubmit: handleMvtSubmit,
     reset: resetMvt,
-    watch: watchMvt,
+    control: controlMvt,
     formState: { errors: mvtErrors, isValid: isMvtValid },
   } = useForm<MouvementFormData>({
     resolver: zodResolver(mouvementSchema),
     mode: 'onChange',
   });
 
-  const currentMvtType = watchMvt('type');
+  const currentMvtType = useWatch({ control: controlMvt, name: 'type' });
 
   if (!user) return null;
 
@@ -158,7 +162,9 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
                 placeholder="PDR-001"
                 className={pieceErrors.code ? 'border-red-500' : ''}
               />
-              {pieceErrors.code && <p className="text-[10px] text-red-400">{pieceErrors.code.message}</p>}
+              {pieceErrors.code && (
+                <p className="text-[10px] text-red-400">{pieceErrors.code.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Nom</label>
@@ -167,7 +173,9 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
                 placeholder="Roulement A"
                 className={pieceErrors.nom ? 'border-red-500' : ''}
               />
-              {pieceErrors.nom && <p className="text-[10px] text-red-400">{pieceErrors.nom.message}</p>}
+              {pieceErrors.nom && (
+                <p className="text-[10px] text-red-400">{pieceErrors.nom.message}</p>
+              )}
             </div>
           </div>
           <div className="space-y-2">
@@ -177,7 +185,9 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
               placeholder="..."
               className={pieceErrors.description ? 'border-red-500' : ''}
             />
-            {pieceErrors.description && <p className="text-[10px] text-red-400">{pieceErrors.description.message}</p>}
+            {pieceErrors.description && (
+              <p className="text-[10px] text-red-400">{pieceErrors.description.message}</p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -188,7 +198,9 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
                 {...registerPiece('seuilAlerte', { valueAsNumber: true })}
                 className={pieceErrors.seuilAlerte ? 'border-red-500' : ''}
               />
-              {pieceErrors.seuilAlerte && <p className="text-[10px] text-red-400">{pieceErrors.seuilAlerte.message}</p>}
+              {pieceErrors.seuilAlerte && (
+                <p className="text-[10px] text-red-400">{pieceErrors.seuilAlerte.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Prix Unitaire</label>
@@ -199,7 +211,9 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
                 {...registerPiece('prixUnitaire', { valueAsNumber: true })}
                 className={pieceErrors.prixUnitaire ? 'border-red-500' : ''}
               />
-              {pieceErrors.prixUnitaire && <p className="text-[10px] text-red-400">{pieceErrors.prixUnitaire.message}</p>}
+              {pieceErrors.prixUnitaire && (
+                <p className="text-[10px] text-red-400">{pieceErrors.prixUnitaire.message}</p>
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
@@ -229,7 +243,9 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
               {...registerMvt('quantite', { valueAsNumber: true })}
               className={mvtErrors.quantite ? 'border-red-500' : ''}
             />
-            {mvtErrors.quantite && <p className="text-[10px] text-red-400">{mvtErrors.quantite.message}</p>}
+            {mvtErrors.quantite && (
+              <p className="text-[10px] text-red-400">{mvtErrors.quantite.message}</p>
+            )}
           </div>
           {currentMvtType === 'SORTIE' && (
             <div className="space-y-2">
@@ -239,7 +255,9 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
                 placeholder="OT-XXXXXX"
                 className={mvtErrors.referenceOT ? 'border-red-500' : ''}
               />
-              {mvtErrors.referenceOT && <p className="text-[10px] text-red-400">{mvtErrors.referenceOT.message}</p>}
+              {mvtErrors.referenceOT && (
+                <p className="text-[10px] text-red-400">{mvtErrors.referenceOT.message}</p>
+              )}
             </div>
           )}
           <div className="flex justify-end gap-3 pt-4 border-t border-white/5">

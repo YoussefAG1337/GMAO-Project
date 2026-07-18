@@ -1,6 +1,12 @@
 import { api } from '@/lib/api';
 import { ApiResponse } from '@/types/api.types';
-import { Piece, Mouvement, CreatePieceDto, UpdatePieceDto, CreateMouvementDto } from '@/types/magasin.types';
+import {
+  Piece,
+  Mouvement,
+  CreatePieceDto,
+  UpdatePieceDto,
+  CreateMouvementDto,
+} from '@/types/magasin.types';
 
 export const magasinService = {
   keys: {
@@ -11,7 +17,9 @@ export const magasinService = {
     getAll: () =>
       api.get<ApiResponse<{ pieces: Piece[] } | Piece[]>>('/magasin/pieces').then((res) => {
         const data = res.data;
-        return (data && 'pieces' in data && Array.isArray(data.pieces)) ? data.pieces : (data as Piece[]);
+        return data && 'pieces' in data && Array.isArray(data.pieces)
+          ? data.pieces
+          : (data as Piece[]);
       }),
     create: (data: CreatePieceDto) =>
       api.post<ApiResponse<Piece>>('/magasin/pieces', data).then((res) => res.data),
@@ -24,5 +32,5 @@ export const magasinService = {
   mouvements: {
     create: (data: CreateMouvementDto) =>
       api.post<ApiResponse<Mouvement>>('/magasin/mouvements', data).then((res) => res.data),
-  }
+  },
 };

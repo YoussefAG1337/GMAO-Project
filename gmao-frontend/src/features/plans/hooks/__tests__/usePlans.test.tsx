@@ -23,17 +23,15 @@ describe('usePlans hook', () => {
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-      {children}
-    </SWRConfig>
+    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>{children}</SWRConfig>
   );
 
   it('should call trigger and mutate', async () => {
     vi.mocked(planService.getAll).mockResolvedValue([]);
     vi.mocked(planService.trigger).mockResolvedValue({ id: 1 } as any);
-    
+
     const { result } = renderHook(() => usePlans(), { wrapper });
-    
+
     await waitFor(() => {
       expect(planService.getAll).toHaveBeenCalledTimes(1);
     });

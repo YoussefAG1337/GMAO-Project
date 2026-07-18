@@ -30,14 +30,18 @@ export function EquipmentSelect({
           {...register('atelierId', { valueAsNumber: true })}
           className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.atelierId ? 'border-red-500' : ''}`}
         >
-          <option value={0} disabled>Sélectionner</option>
+          <option value={0} disabled>
+            Sélectionner
+          </option>
           {ateliers?.map((a: Atelier) => (
             <option key={a.id} value={a.id}>
               {a.nom}
             </option>
           ))}
         </select>
-        {errors.atelierId && <p className="text-[10px] text-red-400">{errors.atelierId.message as string}</p>}
+        {errors.atelierId && (
+          <p className="text-[10px] text-red-400">{errors.atelierId.message as string}</p>
+        )}
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium text-white">Ligne</label>
@@ -45,16 +49,23 @@ export function EquipmentSelect({
           {...register('ligneId', { valueAsNumber: true })}
           className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.ligneId ? 'border-red-500' : ''}`}
         >
-          <option value={0} disabled>Sélectionner</option>
+          <option value={0} disabled>
+            Sélectionner
+          </option>
           {lignes
-            ?.filter((l: Ligne) => !watchAtelierId || l.atelierId === watchAtelierId || isNaN(watchAtelierId))
+            ?.filter(
+              (l: Ligne) =>
+                !watchAtelierId || l.atelierId === watchAtelierId || isNaN(watchAtelierId),
+            )
             .map((l: Ligne) => (
               <option key={l.id} value={l.id}>
                 {l.nom}
               </option>
             ))}
         </select>
-        {errors.ligneId && <p className="text-[10px] text-red-400">{errors.ligneId.message as string}</p>}
+        {errors.ligneId && (
+          <p className="text-[10px] text-red-400">{errors.ligneId.message as string}</p>
+        )}
       </div>
       <div className="space-y-2 md:col-span-2">
         <label className="text-sm font-medium text-white">Poste (Équipement)</label>
@@ -62,16 +73,22 @@ export function EquipmentSelect({
           {...register('posteId', { valueAsNumber: true })}
           className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.posteId ? 'border-red-500' : ''}`}
         >
-          <option value={0} disabled>Sélectionner</option>
+          <option value={0} disabled>
+            Sélectionner
+          </option>
           {postes
-            ?.filter((p: Poste) => !watchLigneId || p.ligneId === watchLigneId || isNaN(watchLigneId))
+            ?.filter(
+              (p: Poste) => !watchLigneId || p.ligneId === watchLigneId || isNaN(watchLigneId),
+            )
             .map((p: Poste) => (
               <option key={p.id} value={p.id}>
                 {p.nom}
               </option>
             ))}
         </select>
-        {errors.posteId && <p className="text-[10px] text-red-400">{errors.posteId.message as string}</p>}
+        {errors.posteId && (
+          <p className="text-[10px] text-red-400">{errors.posteId.message as string}</p>
+        )}
       </div>
     </div>
   );

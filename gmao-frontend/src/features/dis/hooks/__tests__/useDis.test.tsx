@@ -22,16 +22,14 @@ describe('useDis hook', () => {
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-      {children}
-    </SWRConfig>
+    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>{children}</SWRConfig>
   );
 
   it('should fetch data and return it', async () => {
     vi.mocked(diService.getAll).mockResolvedValue([{ id: 1, code: 'DI-001' } as any]);
-    
+
     const { result } = renderHook(() => useDis(), { wrapper });
-    
+
     await waitFor(() => {
       expect(result.current.dis).toEqual([{ id: 1, code: 'DI-001' }]);
       expect(result.current.isLoading).toBe(false);
@@ -41,9 +39,9 @@ describe('useDis hook', () => {
   it('should call createDi and trigger mutate', async () => {
     vi.mocked(diService.getAll).mockResolvedValue([]);
     vi.mocked(diService.create).mockResolvedValue({ id: 2 } as any);
-    
+
     const { result } = renderHook(() => useDis(), { wrapper });
-    
+
     // wait for initial fetch
     await waitFor(() => {
       expect(diService.getAll).toHaveBeenCalledTimes(1);

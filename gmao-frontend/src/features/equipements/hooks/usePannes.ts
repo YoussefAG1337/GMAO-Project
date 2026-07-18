@@ -3,9 +3,8 @@ import { panneService } from '@/services/panne.service';
 import { CreatePanneDto, UpdatePanneDto } from '@/types/panne.types';
 
 export function usePannes(ligneId?: number | null, posteId?: number | null) {
-  const { data, error, isLoading, mutate } = useSWR(
-    panneService.keys.all(ligneId, posteId),
-    () => panneService.getAll(ligneId, posteId)
+  const { data, error, isLoading, mutate } = useSWR(panneService.keys.all(ligneId, posteId), () =>
+    panneService.getAll(ligneId, posteId),
   );
 
   const createPanne = async (data: CreatePanneDto) => {

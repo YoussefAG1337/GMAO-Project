@@ -18,7 +18,6 @@ import { Atelier, Ligne, Poste } from '@/types/equipement.types';
 import { getErrorMessage } from '@/lib/error';
 import { CreateDiFormData, UpdateDiFormData } from '@/lib/validations/di';
 
-
 interface DisClientProps {
   initialDis: Di[];
   initialAteliers: Atelier[];
@@ -114,7 +113,8 @@ export function DisClient({
       data.append('ligneId', String(formData.ligneId));
       data.append('posteId', String(formData.posteId));
       if (formData.produitId) data.append('produitId', String(formData.produitId));
-      if (formData.panneId && formData.panneId !== 'NOUVELLE') data.append('panneId', String(formData.panneId));
+      if (formData.panneId && formData.panneId !== 'NOUVELLE')
+        data.append('panneId', String(formData.panneId));
       if (formData.nouvellePanneNom) data.append('nouvellePanneNom', formData.nouvellePanneNom);
       data.append('priorite', formData.priorite);
       if (formData.technicienId) data.append('technicienId', String(formData.technicienId));
@@ -143,7 +143,10 @@ export function DisClient({
     <div className="space-y-8 animate-fade-in-up">
       <DisHeader onOpenCreate={() => setIsModalOpen(true)} />
 
-      <DiList dis={dis} currentUserId={user?.id as any} user={user as any}  
+      <DiList
+        dis={dis}
+        currentUserId={user?.id as any}
+        user={user as any}
         isAdmin={isAdmin}
         isAdminOrChef={isAdminOrChef}
         isTechnician={user?.role === 'TECHNICIEN' || user?.role === 'CHEF_TECHNICIEN'}

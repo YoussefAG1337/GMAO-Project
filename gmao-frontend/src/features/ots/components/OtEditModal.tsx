@@ -57,7 +57,9 @@ export function OtEditModal({
             rows={3}
             className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground ${errors.description ? 'border-red-500' : ''}`}
           />
-          {errors.description && <p className="text-[10px] text-red-400">{errors.description.message}</p>}
+          {errors.description && (
+            <p className="text-[10px] text-red-400">{errors.description.message}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -72,7 +74,9 @@ export function OtEditModal({
               <option value="HAUTE">Haute</option>
               <option value="CRITIQUE">Critique</option>
             </select>
-            {errors.priorite && <p className="text-[10px] text-red-400">{errors.priorite.message}</p>}
+            {errors.priorite && (
+              <p className="text-[10px] text-red-400">{errors.priorite.message}</p>
+            )}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Technicien</label>
@@ -80,14 +84,18 @@ export function OtEditModal({
               {...register('technicienId', { valueAsNumber: true })}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.technicienId ? 'border-red-500' : ''}`}
             >
-              <option value={0} disabled>Non assigné</option>
+              <option value={0} disabled>
+                Non assigné
+              </option>
               {techniciens.map((tech: User) => (
                 <option key={tech.id} value={tech.id}>
                   {tech.prenom} {tech.nom}
                 </option>
               ))}
             </select>
-            {errors.technicienId && <p className="text-[10px] text-red-400">{errors.technicienId.message}</p>}
+            {errors.technicienId && (
+              <p className="text-[10px] text-red-400">{errors.technicienId.message}</p>
+            )}
           </div>
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium text-white">Date prévue</label>
@@ -96,7 +104,9 @@ export function OtEditModal({
               {...register('datePrevue')}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground ${errors.datePrevue ? 'border-red-500' : ''}`}
             />
-            {errors.datePrevue && <p className="text-[10px] text-red-400">{errors.datePrevue.message}</p>}
+            {errors.datePrevue && (
+              <p className="text-[10px] text-red-400">{errors.datePrevue.message}</p>
+            )}
           </div>
         </div>
 
@@ -104,7 +114,11 @@ export function OtEditModal({
           <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
             Annuler
           </Button>
-          <Button type="submit" disabled={isSubmitting || !isValid} className="bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50">
+          <Button
+            type="submit"
+            disabled={isSubmitting || !isValid}
+            className="bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50"
+          >
             {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
           </Button>
         </div>

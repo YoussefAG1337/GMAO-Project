@@ -4,7 +4,7 @@ import { TechnicianWorkrateEntry } from '@/types/analytics.types';
 import { User } from 'lucide-react';
 
 // Capacity limits in minutes
-const DAILY_MAX = 7.5 * 60;   // 450 min
+const DAILY_MAX = 7.5 * 60; // 450 min
 const WEEKLY_MAX = 37.5 * 60; // 2250 min
 
 // Given a value and a period-specific max, compute the load ratio and return
@@ -12,7 +12,8 @@ const WEEKLY_MAX = 37.5 * 60; // 2250 min
 function getLoadColor(minutes: number, max: number) {
   const ratio = max > 0 ? minutes / max : 0;
   if (ratio <= 0) return { bar: 'bg-zinc-700', text: 'text-zinc-400', bg: 'bg-zinc-800/40' };
-  if (ratio < 0.7) return { bar: 'bg-emerald-500', text: 'text-emerald-400', bg: 'bg-emerald-500/10' };
+  if (ratio < 0.7)
+    return { bar: 'bg-emerald-500', text: 'text-emerald-400', bg: 'bg-emerald-500/10' };
   if (ratio <= 1) return { bar: 'bg-amber-500', text: 'text-amber-400', bg: 'bg-amber-500/10' };
   return { bar: 'bg-rose-500', text: 'text-rose-400', bg: 'bg-rose-500/10' };
 }
@@ -24,15 +25,7 @@ function formatMinutes(minutes: number): string {
   return m === 0 ? `${h}h` : `${h}h ${m}m`;
 }
 
-function WorkratePill({
-  label,
-  minutes,
-  max,
-}: {
-  label: string;
-  minutes: number;
-  max: number;
-}) {
+function WorkratePill({ label, minutes, max }: { label: string; minutes: number; max: number }) {
   const { bar, text, bg } = getLoadColor(minutes, max);
   const pct = Math.min((minutes / max) * 100, 100);
 

@@ -6,7 +6,7 @@ export function useRapports(initialData?: Rapport[]) {
   const { data, mutate, error, isLoading } = useSWR(
     rapportService.keys.all,
     rapportService.getAll,
-    { fallbackData: initialData }
+    { fallbackData: initialData },
   );
 
   return {

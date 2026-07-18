@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { EquipmentSelect } from '@/components/EquipmentSelect';
 import { useEffect } from 'react';
 import { usePannes } from '@/features/equipements/hooks/usePannes';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Atelier, Ligne, Poste } from '@/types/equipement.types';
@@ -44,7 +44,7 @@ export function DiFormModal({
     register,
     handleSubmit: handleRHFSubmit,
     reset,
-    watch,
+    control,
     setValue,
     formState: { errors, isValid },
   } = useForm<CreateDiFormData>({
@@ -55,11 +55,11 @@ export function DiFormModal({
     },
   });
 
-  const watchAtelierId = watch('atelierId');
-  const watchLigneId = watch('ligneId');
-  const watchPosteId = watch('posteId');
-  const watchFamilleId = watch('familleId');
-  const watchPanneId = watch('panneId');
+  const watchAtelierId = useWatch({ control, name: 'atelierId' });
+  const watchLigneId = useWatch({ control, name: 'ligneId' });
+  const watchPosteId = useWatch({ control, name: 'posteId' });
+  const watchFamilleId = useWatch({ control, name: 'familleId' });
+  const watchPanneId = useWatch({ control, name: 'panneId' });
 
   const { pannes } = usePannes(watchLigneId || null, watchPosteId || null);
 
@@ -89,14 +89,18 @@ export function DiFormModal({
               {...register('familleId', { valueAsNumber: true })}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.familleId ? 'border-red-500' : ''}`}
             >
-              <option value={0} disabled>Sélectionner</option>
+              <option value={0} disabled>
+                Sélectionner
+              </option>
               {familles?.map((f: FamilleProduit) => (
                 <option key={f.id} value={f.id}>
                   {f.nom}
                 </option>
               ))}
             </select>
-            {errors.familleId && <p className="text-[10px] text-red-400">{errors.familleId.message}</p>}
+            {errors.familleId && (
+              <p className="text-[10px] text-red-400">{errors.familleId.message}</p>
+            )}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Produit Concerné (Optionnel)</label>
@@ -104,11 +108,15 @@ export function DiFormModal({
               {...register('produitId', { valueAsNumber: true })}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.produitId ? 'border-red-500' : ''}`}
             >
-              <option value={0} disabled>Sélectionner</option>
+              <option value={0} disabled>
+                Sélectionner
+              </option>
               {produits
                 ?.filter(
                   (p: Produit) =>
-                    !watchFamilleId || p.familleProduitId === watchFamilleId || isNaN(watchFamilleId),
+                    !watchFamilleId ||
+                    p.familleProduitId === watchFamilleId ||
+                    isNaN(watchFamilleId),
                 )
                 .map((p: Produit) => (
                   <option key={p.id} value={p.id}>
@@ -116,7 +124,9 @@ export function DiFormModal({
                   </option>
                 ))}
             </select>
-            {errors.produitId && <p className="text-[10px] text-red-400">{errors.produitId.message}</p>}
+            {errors.produitId && (
+              <p className="text-[10px] text-red-400">{errors.produitId.message}</p>
+            )}
           </div>
         </div>
 
@@ -124,12 +134,14 @@ export function DiFormModal({
           <label className="text-sm font-medium text-white">Type de Panne</label>
           {watchPanneId !== 'NOUVELLE' ? (
             <select
-              {...register('panneId', { 
-                setValueAs: (v) => v === 'NOUVELLE' ? 'NOUVELLE' : (v ? Number(v) : undefined) 
+              {...register('panneId', {
+                setValueAs: (v) => (v === 'NOUVELLE' ? 'NOUVELLE' : v ? Number(v) : undefined),
               })}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.panneId ? 'border-red-500' : ''}`}
             >
-              <option value="" disabled>Sélectionner ou ajouter</option>
+              <option value="" disabled>
+                Sélectionner ou ajouter
+              </option>
               {pannes.map((p: Panne) => (
                 <option key={p.id} value={p.id}>
                   {p.nom} ({p.type === 'QUALITE' ? 'Qualité' : 'Technique'})
@@ -149,7 +161,9 @@ export function DiFormModal({
                     {...register('nouvellePanneNom')}
                     className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.nouvellePanneNom ? 'border-red-500' : ''}`}
                   />
-                  {errors.nouvellePanneNom && <p className="text-[10px] text-red-400">{errors.nouvellePanneNom.message}</p>}
+                  {errors.nouvellePanneNom && (
+                    <p className="text-[10px] text-red-400">{errors.nouvellePanneNom.message}</p>
+                  )}
                 </div>
                 <Button
                   type="button"
@@ -164,7 +178,9 @@ export function DiFormModal({
                 </Button>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">Type de la nouvelle panne</label>
+                <label className="text-xs font-medium text-muted-foreground">
+                  Type de la nouvelle panne
+                </label>
                 <select
                   {...register('nouvellePanneType')}
                   defaultValue="TECHNIQUE"
@@ -218,7 +234,9 @@ export function DiFormModal({
                 </option>
               ))}
             </select>
-            {errors.technicienId && <p className="text-[10px] text-red-400">{errors.technicienId.message}</p>}
+            {errors.technicienId && (
+              <p className="text-[10px] text-red-400">{errors.technicienId.message}</p>
+            )}
           </div>
         )}
 

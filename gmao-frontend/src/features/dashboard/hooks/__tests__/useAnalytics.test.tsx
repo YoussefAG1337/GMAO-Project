@@ -18,17 +18,15 @@ describe('useAnalytics hook', () => {
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-      {children}
-    </SWRConfig>
+    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>{children}</SWRConfig>
   );
 
   it('should fetch analytics data', async () => {
     const mockData = { totalDI: 15 };
     vi.mocked(analyticsService.getPerformance).mockResolvedValue(mockData as any);
-    
+
     const { result } = renderHook(() => useAnalytics('2023-01-01', '2023-01-31'), { wrapper });
-    
+
     await waitFor(() => {
       expect(result.current.analytics).toEqual(mockData);
     });

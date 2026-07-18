@@ -7,7 +7,7 @@ export function useUtilisateurs(initialData?: User[], enabled: boolean = true) {
   const { data, mutate, error, isLoading } = useSWR(
     enabled ? utilisateurService.keys.all : null,
     utilisateurService.getAll,
-    { fallbackData: initialData }
+    { fallbackData: initialData },
   );
 
   const updateUser = async (id: number, data: UpdateUserDto) => {

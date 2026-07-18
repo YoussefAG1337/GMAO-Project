@@ -13,16 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { toast } from 'sonner';
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  Loader2,
-  AlertCircle,
-  Shield,
-  ArrowRight,
-} from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, Shield, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 function LoginForm() {
@@ -152,7 +143,9 @@ function LoginForm() {
                   Adresse email
                 </Label>
                 <div className="relative group/input">
-                  <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${errors.email ? 'text-red-400' : 'text-muted-foreground/85 group-focus-within/input:text-purple-400'}`} />
+                  <Mail
+                    className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${errors.email ? 'text-red-400' : 'text-muted-foreground/85 group-focus-within/input:text-purple-400'}`}
+                  />
                   <Input
                     id="email"
                     type="email"
@@ -160,8 +153,8 @@ function LoginForm() {
                     {...register('email')}
                     disabled={loading}
                     className={`pl-11 h-11 bg-white/[0.02] border-white/[0.07] hover:border-white/15 focus:ring-4 placeholder:text-muted-foreground/45 text-foreground transition-all duration-300 rounded-xl ${
-                      errors.email 
-                        ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10' 
+                      errors.email
+                        ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10'
                         : 'focus:border-[#651FAA]/50 focus:ring-[#651FAA]/10'
                     }`}
                   />
@@ -182,7 +175,9 @@ function LoginForm() {
                   </Label>
                 </div>
                 <div className="relative group/input">
-                  <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${errors.motDePasse ? 'text-red-400' : 'text-muted-foreground/85 group-focus-within/input:text-purple-400'}`} />
+                  <Lock
+                    className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${errors.motDePasse ? 'text-red-400' : 'text-muted-foreground/85 group-focus-within/input:text-purple-400'}`}
+                  />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
@@ -190,8 +185,8 @@ function LoginForm() {
                     {...register('motDePasse')}
                     disabled={loading}
                     className={`pl-11 pr-11 h-11 bg-white/[0.02] border-white/[0.07] hover:border-white/15 focus:ring-4 placeholder:text-muted-foreground/45 text-foreground transition-all duration-300 rounded-xl ${
-                      errors.motDePasse 
-                        ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10' 
+                      errors.motDePasse
+                        ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10'
                         : 'focus:border-[#651FAA]/50 focus:ring-[#651FAA]/10'
                     }`}
                   />

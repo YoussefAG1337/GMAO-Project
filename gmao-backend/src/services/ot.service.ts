@@ -141,8 +141,7 @@ class OtService implements IOtService {
     if (!ot) throw new NotFoundError('OT introuvable');
 
     // Allow reassigning from NON_VALIDE — resets the OT back to EN_COURS
-    const newStatut =
-      ot.statut === StatutOT.NON_VALIDE ? StatutOT.EN_COURS : StatutOT.ASSIGNE;
+    const newStatut = ot.statut === StatutOT.NON_VALIDE ? StatutOT.EN_COURS : StatutOT.ASSIGNE;
 
     return prisma.ordreTravail.update({
       where: { id },
@@ -317,7 +316,9 @@ class OtService implements IOtService {
     if (!ot) throw new NotFoundError('OT introuvable');
 
     if (ot.statut !== StatutOT.RAPPORTE) {
-      throw new BadRequestError('Seul un OT à l\'état "Rapporté" peut être validé par le technicien');
+      throw new BadRequestError(
+        'Seul un OT à l\'état "Rapporté" peut être validé par le technicien',
+      );
     }
 
     if (ot.technicienId !== currentUser.userId && currentUser.role !== Role.ADMIN) {
@@ -418,7 +419,11 @@ class OtService implements IOtService {
    * - Admin/Chef: depuis EN_ATTENTE_VALIDATION
    * Ensuite, admin/chef peut réassigner l'OT à un autre technicien.
    */
-  public async nonValiderOT(id: number, raison: string, currentUser: { userId: number; role: Role }) {
+  public async nonValiderOT(
+    id: number,
+    raison: string,
+    currentUser: { userId: number; role: Role },
+  ) {
     const ot = await prisma.ordreTravail.findUnique({ where: { id } });
     if (!ot) throw new NotFoundError('OT introuvable');
 

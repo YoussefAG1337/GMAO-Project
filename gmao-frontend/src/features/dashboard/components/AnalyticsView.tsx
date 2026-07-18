@@ -36,11 +36,7 @@ export function AnalyticsView() {
   // Workrate anchor defaults to today
   const [anchorDate, setAnchorDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
-  const {
-    analytics,
-    isLoading,
-    error,
-  } = useAnalytics(dateRange.startDate, dateRange.endDate);
+  const { analytics, isLoading, error } = useAnalytics(dateRange.startDate, dateRange.endDate);
 
   const {
     workrateData,
@@ -145,15 +141,17 @@ export function AnalyticsView() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {analytics.timePerLigne.map((item: { ligne: string; averageTimeMinutes: number }, idx: number) => (
-                <div
-                  key={idx}
-                  className="flex justify-between items-center p-3 rounded-lg bg-white/[0.02] border border-white/5"
-                >
-                  <span className="text-white font-medium">{item.ligne}</span>
-                  <span className="text-indigo-400 font-bold">{item.averageTimeMinutes} min</span>
-                </div>
-              ))}
+              {analytics.timePerLigne.map(
+                (item: { ligne: string; averageTimeMinutes: number }, idx: number) => (
+                  <div
+                    key={idx}
+                    className="flex justify-between items-center p-3 rounded-lg bg-white/[0.02] border border-white/5"
+                  >
+                    <span className="text-white font-medium">{item.ligne}</span>
+                    <span className="text-indigo-400 font-bold">{item.averageTimeMinutes} min</span>
+                  </div>
+                ),
+              )}
               {analytics.timePerLigne.length === 0 && (
                 <p className="text-muted-foreground text-sm">Aucune donnée.</p>
               )}
@@ -168,15 +166,17 @@ export function AnalyticsView() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {analytics.timePerPanne.map((item: { panne: string; averageTimeMinutes: number }, idx: number) => (
-                <div
-                  key={idx}
-                  className="flex justify-between items-center p-3 rounded-lg bg-white/[0.02] border border-white/5"
-                >
-                  <span className="text-white font-medium">{item.panne}</span>
-                  <span className="text-rose-400 font-bold">{item.averageTimeMinutes} min</span>
-                </div>
-              ))}
+              {analytics.timePerPanne.map(
+                (item: { panne: string; averageTimeMinutes: number }, idx: number) => (
+                  <div
+                    key={idx}
+                    className="flex justify-between items-center p-3 rounded-lg bg-white/[0.02] border border-white/5"
+                  >
+                    <span className="text-white font-medium">{item.panne}</span>
+                    <span className="text-rose-400 font-bold">{item.averageTimeMinutes} min</span>
+                  </div>
+                ),
+              )}
               {analytics.timePerPanne.length === 0 && (
                 <p className="text-muted-foreground text-sm">Aucune donnée.</p>
               )}
@@ -203,9 +203,7 @@ export function AnalyticsView() {
             </div>
           </div>
           {workrateError && (
-            <p className="text-rose-400 text-sm">
-              Erreur lors du chargement des taux de travail.
-            </p>
+            <p className="text-rose-400 text-sm">Erreur lors du chargement des taux de travail.</p>
           )}
 
           {workrateLoading && (
@@ -220,16 +218,17 @@ export function AnalyticsView() {
             <>
               {/* Windows metadata */}
               <p className="text-[11px] text-zinc-600">
-                Semaine :{' '}
-                {new Date(workrateData.windows.week.start).toLocaleDateString('fr-FR')}
+                Semaine : {new Date(workrateData.windows.week.start).toLocaleDateString('fr-FR')}
                 {' – '}
                 {new Date(workrateData.windows.week.end).toLocaleDateString('fr-FR')}
                 {'  ·  '}
                 Mois :{' '}
-                {new Date(workrateData.windows.month.start).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                {new Date(workrateData.windows.month.start).toLocaleDateString('fr-FR', {
+                  month: 'long',
+                  year: 'numeric',
+                })}
                 {' ('}
-                {wdim} jours ouvrés, max {(wdim * 7.5).toFixed(0)} h
-                {')'}
+                {wdim} jours ouvrés, max {(wdim * 7.5).toFixed(0)} h{')'}
               </p>
 
               {workrateData.technicians.length === 0 ? (
@@ -237,11 +236,7 @@ export function AnalyticsView() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {workrateData.technicians.map((tech) => (
-                    <TechnicianWorkrateCard
-                      key={tech.id}
-                      tech={tech}
-                      workingDaysInMonth={wdim}
-                    />
+                    <TechnicianWorkrateCard key={tech.id} tech={tech} workingDaysInMonth={wdim} />
                   ))}
                 </div>
               )}

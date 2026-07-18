@@ -7,7 +7,6 @@ import { Check, Plus, X, Edit2, Trash2 } from 'lucide-react';
 import { Panne } from '@/types/panne.types';
 import { getErrorMessage } from '@/lib/error';
 
-
 interface PannesListModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -28,7 +27,7 @@ export function PannesListModal({
 
   const { pannes, isLoading, createPanne, updatePanne, deletePanne } = usePannes(
     isOpen ? ligneId : null,
-    isOpen ? posteId : null
+    isOpen ? posteId : null,
   );
 
   const [newPanneNom, setNewPanneNom] = useState('');

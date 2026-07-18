@@ -13,13 +13,13 @@ export function useProduits(initialData?: { familles: FamilleProduit[]; produits
   const { data: familles, mutate: mutateFamilles } = useSWR(
     produitService.keys.familles,
     produitService.familles.getAll,
-    { fallbackData: initialData?.familles }
+    { fallbackData: initialData?.familles },
   );
 
   const { data: produits, mutate: mutateProduits } = useSWR(
     produitService.keys.produits,
     produitService.produits.getAll,
-    { fallbackData: initialData?.produits }
+    { fallbackData: initialData?.produits },
   );
 
   const createFamille = async (data: CreateFamilleDto) => {

@@ -15,11 +15,7 @@ import { EquipementKpisModal } from '@/features/equipements/components/Equipemen
 
 import { Atelier, Ligne, Poste } from '@/types/equipement.types';
 import { getErrorMessage } from '@/lib/error';
-import {
-  AtelierFormData,
-  LigneFormData,
-  PosteFormData,
-} from '@/lib/validations/equipement';
+import { AtelierFormData, LigneFormData, PosteFormData } from '@/lib/validations/equipement';
 
 type EquipementFormData = AtelierFormData | LigneFormData | PosteFormData;
 
@@ -51,7 +47,9 @@ export function EquipementsClient({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'ATELIER' | 'LIGNE' | 'POSTE'>('ATELIER');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [initialFormData, setInitialFormData] = useState<Record<string, any> | undefined>(undefined);
+  const [initialFormData, setInitialFormData] = useState<Record<string, any> | undefined>(
+    undefined,
+  );
 
   const [isPannesModalOpen, setIsPannesModalOpen] = useState(false);
   const [selectedEquipementForPannes, setSelectedEquipementForPannes] = useState<{
@@ -82,8 +80,7 @@ export function EquipementsClient({
       description: item.description || '',
       atelierId: (item as any).atelierId,
       ligneId: (item as any).ligneId,
-      technicienIds:
-        type === 'LIGNE' ? (item as any).techniciens?.map((t: any) => t.id) || [] : [],
+      technicienIds: type === 'LIGNE' ? (item as any).techniciens?.map((t: any) => t.id) || [] : [],
     });
     setIsModalOpen(true);
   };

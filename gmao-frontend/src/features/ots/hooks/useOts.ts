@@ -1,6 +1,12 @@
 import useSWR from 'swr';
 import { otService } from '@/services/ot.service';
-import { CreateOtDto, UpdateOtDto, AssignOtDto, SubmitRapportDto, RaisonDto } from '@/types/ot.types';
+import {
+  CreateOtDto,
+  UpdateOtDto,
+  AssignOtDto,
+  SubmitRapportDto,
+  RaisonDto,
+} from '@/types/ot.types';
 
 export function useOts(initialData?: any) {
   const { data, mutate, error, isLoading } = useSWR(otService.keys.all, otService.getAll, {

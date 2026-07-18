@@ -10,6 +10,8 @@ export const rapportService = {
   getAll: () =>
     api.get<ApiResponse<{ rapports: Rapport[] } | Rapport[]>>('/ots/rapports').then((res) => {
       const data = res.data;
-      return (data && 'rapports' in data && Array.isArray(data.rapports)) ? data.rapports : (data as Rapport[]);
+      return data && 'rapports' in data && Array.isArray(data.rapports)
+        ? data.rapports
+        : (data as Rapport[]);
     }),
 };

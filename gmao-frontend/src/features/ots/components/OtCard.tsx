@@ -40,8 +40,7 @@ export function OtCard({
   onDelete,
   onOpenDetails,
 }: OtCardProps) {
-  const isTech =
-    user?.role === 'TECHNICIEN' || user?.role === 'CHEF_TECHNICIEN';
+  const isTech = user?.role === 'TECHNICIEN' || user?.role === 'CHEF_TECHNICIEN';
   const isAssignedTech = user?.id === ot.technicienId;
 
   return (
@@ -107,7 +106,6 @@ export function OtCard({
 
       {/* Actions */}
       <div className="flex items-center justify-end gap-2 mt-auto pt-2 border-t border-white/[0.06] flex-wrap">
-
         {/* --- TECHNICIEN ACTIONS --- */}
 
         {/* ASSIGNE → start */}

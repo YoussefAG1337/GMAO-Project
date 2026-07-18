@@ -1,13 +1,6 @@
 import { StatutDI, StatutOT } from '@prisma/client';
 import prisma from '../config/prisma';
-import {
-  startOfDay,
-  endOfDay,
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-} from 'date-fns';
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 
 export class AnalyticsService {
   public async getDashboardAnalytics(startDate?: Date, endDate?: Date) {
@@ -182,7 +175,7 @@ export class AnalyticsService {
     const dayStart = startOfDay(anchorDate);
     const dayEnd = endOfDay(anchorDate);
     const weekStart = startOfWeek(anchorDate, { weekStartsOn: 1 }); // Monday
-    const weekEnd = endOfWeek(anchorDate, { weekStartsOn: 1 });     // Sunday
+    const weekEnd = endOfWeek(anchorDate, { weekStartsOn: 1 }); // Sunday
     const monthStart = startOfMonth(anchorDate);
     const monthEnd = endOfMonth(anchorDate);
 
@@ -217,8 +210,8 @@ export class AnalyticsService {
           id: tech.id,
           nom: tech.nom,
           prenom: tech.prenom,
-          daily,   // minutes
-          weekly,  // minutes
+          daily, // minutes
+          weekly, // minutes
           monthly, // minutes
         };
       }),

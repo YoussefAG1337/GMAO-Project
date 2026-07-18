@@ -151,7 +151,9 @@ function SignupForm() {
                       className={`pl-9 bg-white/[0.02] border-white/10 rounded-lg text-white text-sm focus:border-purple-500/50 ${errors.prenom ? 'border-red-500' : ''}`}
                     />
                   </div>
-                  {errors.prenom && <p className="text-[10px] text-red-400">{errors.prenom.message}</p>}
+                  {errors.prenom && (
+                    <p className="text-[10px] text-red-400">{errors.prenom.message}</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Nom</Label>
@@ -196,7 +198,9 @@ function SignupForm() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                {errors.motDePasse && <p className="text-[10px] text-red-400">{errors.motDePasse.message}</p>}
+                {errors.motDePasse && (
+                  <p className="text-[10px] text-red-400">{errors.motDePasse.message}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">

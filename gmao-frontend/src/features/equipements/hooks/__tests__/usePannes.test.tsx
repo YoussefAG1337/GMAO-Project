@@ -19,17 +19,15 @@ describe('usePannes hook', () => {
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-      {children}
-    </SWRConfig>
+    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>{children}</SWRConfig>
   );
 
   it('should call createPanne and mutate', async () => {
     vi.mocked(panneService.getAll).mockResolvedValue([]);
     vi.mocked(panneService.create).mockResolvedValue({ id: 1, nom: 'Test Panne' } as any);
-    
+
     const { result } = renderHook(() => usePannes(1, null), { wrapper });
-    
+
     await waitFor(() => {
       expect(panneService.getAll).toHaveBeenCalledTimes(1);
     });

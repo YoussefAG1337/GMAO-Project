@@ -21,8 +21,7 @@ export const otService = {
       return data && 'ots' in data && Array.isArray(data.ots) ? data.ots : (data as Ot[]);
     }),
 
-  create: (data: CreateOtDto) =>
-    api.post<ApiResponse<Ot>>('/ots', data).then((res) => res.data),
+  create: (data: CreateOtDto) => api.post<ApiResponse<Ot>>('/ots', data).then((res) => res.data),
 
   update: (id: number, data: UpdateOtDto) =>
     api.put<ApiResponse<Ot>>(`/ots/${id}`, data).then((res) => res.data),
@@ -30,11 +29,9 @@ export const otService = {
   assign: (id: number, data: AssignOtDto) =>
     api.patch<ApiResponse<Ot>>(`/ots/${id}/assign`, data).then((res) => res.data),
 
-  delete: (id: number) =>
-    api.delete<ApiResponse<void>>(`/ots/${id}`).then((res) => res.data),
+  delete: (id: number) => api.delete<ApiResponse<void>>(`/ots/${id}`).then((res) => res.data),
 
-  start: (id: number) =>
-    api.patch<ApiResponse<Ot>>(`/ots/${id}/start`).then((res) => res.data),
+  start: (id: number) => api.patch<ApiResponse<Ot>>(`/ots/${id}/start`).then((res) => res.data),
 
   submitRapport: (id: number, data: SubmitRapportDto) =>
     api.post<ApiResponse<any>>(`/ots/${id}/rapport`, data).then((res) => res.data),

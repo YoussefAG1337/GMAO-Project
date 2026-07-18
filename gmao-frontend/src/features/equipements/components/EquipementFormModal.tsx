@@ -3,7 +3,7 @@
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Atelier, Ligne } from '@/types/equipement.types';
@@ -54,7 +54,7 @@ export function EquipementFormModal({
     register,
     handleSubmit: handleRHFSubmit,
     reset,
-    watch,
+    control,
     setValue,
     formState: { errors, isSubmitting, isValid },
   } = useForm<any>({
@@ -75,7 +75,7 @@ export function EquipementFormModal({
     }
   }, [isOpen, initialData, reset]);
 
-  const watchedTechnicienIds: number[] = watch('technicienIds') || [];
+  const watchedTechnicienIds: number[] = useWatch({ control, name: 'technicienIds' }) || [];
 
   // Toggle a technicien in/out of the selected list
   const handleTechnicienToggle = (techId: number) => {
@@ -127,9 +127,13 @@ export function EquipementFormModal({
                 {...register('atelierId', { valueAsNumber: true })}
                 className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${(errors as any).atelierId ? 'border-red-500' : ''}`}
               >
-                <option value={0} disabled>Sélectionner un atelier</option>
+                <option value={0} disabled>
+                  Sélectionner un atelier
+                </option>
                 {ateliers?.map((a: Atelier) => (
-                  <option key={a.id} value={a.id}>{a.nom}</option>
+                  <option key={a.id} value={a.id}>
+                    {a.nom}
+                  </option>
                 ))}
               </select>
               {(errors as any).atelierId && (
@@ -155,16 +159,30 @@ export function EquipementFormModal({
                     >
                       <div
                         className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
-                          isSelected ? 'bg-[#651FAA] border-[#651FAA]' : 'border-white/20 bg-black/20'
+                          isSelected
+                            ? 'bg-[#651FAA] border-[#651FAA]'
+                            : 'border-white/20 bg-black/20'
                         }`}
                       >
                         {isSelected && (
-                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={3}
+                              d="M5 13l4 4L19 7"
+                            />
                           </svg>
                         )}
                       </div>
-                      <span className="truncate">{t.nom} {t.prenom}</span>
+                      <span className="truncate">
+                        {t.nom} {t.prenom}
+                      </span>
                     </button>
                   );
                 })}
@@ -181,7 +199,9 @@ export function EquipementFormModal({
               {...register('ligneId', { valueAsNumber: true })}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${(errors as any).ligneId ? 'border-red-500' : ''}`}
             >
-              <option value={0} disabled>Sélectionner une ligne</option>
+              <option value={0} disabled>
+                Sélectionner une ligne
+              </option>
               {lignes?.map((l: Ligne) => (
                 <option key={l.id} value={l.id}>
                   {l.atelier?.nom} &rsaquo; {l.nom}

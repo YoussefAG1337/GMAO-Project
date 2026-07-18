@@ -3,7 +3,14 @@
 import { Inter } from 'next/font/google';
 import { Geist_Mono } from 'next/font/google';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 import './globals.css';
 
@@ -39,7 +46,7 @@ export default function GlobalError({
             </div>
             <CardTitle className="text-2xl font-bold tracking-tight">Erreur fatale</CardTitle>
             <CardDescription className="text-base mt-2">
-              L'application a rencontré une erreur inattendue et ne peut pas continuer.
+              L&apos;application a rencontré une erreur inattendue et ne peut pas continuer.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center pt-2 pb-6">
@@ -58,8 +65,13 @@ export default function GlobalError({
             <Button size="lg" className="w-full" onClick={() => reset()}>
               Réessayer
             </Button>
-            <Button size="lg" variant="outline" className="w-full" onClick={() => window.location.href = '/'}>
-              Retourner à l'accueil
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full"
+              onClick={() => (window.location.href = '/')}
+            >
+              Retourner à l&apos;accueil
             </Button>
           </CardFooter>
         </Card>

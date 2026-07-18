@@ -21,10 +21,14 @@ export const equipementService = {
 
   ateliers: {
     getAll: () =>
-      api.get<ApiResponse<{ ateliers: Atelier[] } | Atelier[]>>('/equipements/ateliers').then((res) => {
-        const data = res.data;
-        return (data && 'ateliers' in data && Array.isArray(data.ateliers)) ? data.ateliers : (data as Atelier[]);
-      }),
+      api
+        .get<ApiResponse<{ ateliers: Atelier[] } | Atelier[]>>('/equipements/ateliers')
+        .then((res) => {
+          const data = res.data;
+          return data && 'ateliers' in data && Array.isArray(data.ateliers)
+            ? data.ateliers
+            : (data as Atelier[]);
+        }),
     create: (data: CreateAtelierDto) =>
       api.post<ApiResponse<Atelier>>('/equipements/ateliers', data).then((res) => res.data),
     update: (id: number, data: UpdateAtelierDto) =>
@@ -32,14 +36,18 @@ export const equipementService = {
     delete: (id: number) =>
       api.delete<ApiResponse<void>>(`/equipements/ateliers/${id}`).then((res) => res.data),
     toggleActive: (id: number, actif: boolean) =>
-      api.put<ApiResponse<Atelier>>(`/equipements/ateliers/${id}`, { actif }).then((res) => res.data),
+      api
+        .put<ApiResponse<Atelier>>(`/equipements/ateliers/${id}`, { actif })
+        .then((res) => res.data),
   },
 
   lignes: {
     getAll: () =>
       api.get<ApiResponse<{ lignes: Ligne[] } | Ligne[]>>('/equipements/lignes').then((res) => {
         const data = res.data;
-        return (data && 'lignes' in data && Array.isArray(data.lignes)) ? data.lignes : (data as Ligne[]);
+        return data && 'lignes' in data && Array.isArray(data.lignes)
+          ? data.lignes
+          : (data as Ligne[]);
       }),
     create: (data: CreateLigneDto) =>
       api.post<ApiResponse<Ligne>>('/equipements/lignes', data).then((res) => res.data),
@@ -55,7 +63,9 @@ export const equipementService = {
     getAll: () =>
       api.get<ApiResponse<{ postes: Poste[] } | Poste[]>>('/equipements/postes').then((res) => {
         const data = res.data;
-        return (data && 'postes' in data && Array.isArray(data.postes)) ? data.postes : (data as Poste[]);
+        return data && 'postes' in data && Array.isArray(data.postes)
+          ? data.postes
+          : (data as Poste[]);
       }),
     create: (data: CreatePosteDto) =>
       api.post<ApiResponse<Poste>>('/equipements/postes', data).then((res) => res.data),

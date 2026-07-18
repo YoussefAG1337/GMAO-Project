@@ -21,7 +21,6 @@ export interface ApiErrorResponse {
   errors?: Array<{ field: string; message: string }>;
 }
 
-
 export enum StatutDI {
   NOUVELLE = 'NOUVELLE',
   EN_COURS = 'EN_COURS',
@@ -57,8 +56,6 @@ export enum FrequenceMaintenance {
   SEMESTRIELLE = 'SEMESTRIELLE',
   ANNUELLE = 'ANNUELLE',
 }
-
-
 
 export interface Atelier {
   id: number;
@@ -96,7 +93,6 @@ export interface Poste {
   createdAt: string;
   updatedAt: string;
 }
-
 
 export interface DemandeIntervention {
   id: number;

@@ -1,23 +1,12 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PieChart as PieChartIcon, BarChart3 } from 'lucide-react';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from 'recharts';
+import { BarChart3 } from 'lucide-react';
+import { Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 interface DashboardChartsProps {
-  stats: { 
-    pannesParLigne: Array<{ ligne: string; ligneNom: string; count: number }>; 
+  stats: {
+    pannesParLigne: Array<{ ligne: string; ligneNom: string; count: number }>;
     pannesParPoste: Array<{ poste: string; count: number }>;
     repartitionCorrectivePreventive: { corrective: number; preventive: number };
   };
@@ -25,21 +14,6 @@ interface DashboardChartsProps {
 }
 
 export function DashboardCharts({ stats, loading }: DashboardChartsProps) {
-  const repartitionData = stats
-    ? [
-        {
-          name: 'Corrective',
-          value: stats.repartitionCorrectivePreventive.corrective,
-          color: '#f43f5e',
-        },
-        {
-          name: 'Préventive',
-          value: stats.repartitionCorrectivePreventive.preventive,
-          color: '#10b981',
-        },
-      ]
-    : [];
-
   const barData = stats
     ? stats.pannesParLigne.map((p: { ligne: string; ligneNom: string; count: number }) => ({
         name: p.ligneNom,

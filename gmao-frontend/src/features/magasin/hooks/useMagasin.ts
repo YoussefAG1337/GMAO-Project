@@ -8,7 +8,7 @@ export function useMagasin(initialData?: { pieces: Piece[] }) {
   const { data, mutate, error, isLoading } = useSWR(
     magasinService.keys.pieces,
     magasinService.pieces.getAll,
-    { fallbackData: initialData?.pieces }
+    { fallbackData: initialData?.pieces },
   );
 
   const createPiece = async (data: CreatePieceDto) => {

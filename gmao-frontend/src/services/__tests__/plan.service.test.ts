@@ -24,7 +24,14 @@ describe('planService', () => {
   });
 
   it('should call api.post for create', async () => {
-    const mockData = { intitule: 'Plan 1', atelierId: 1, ligneId: 1, posteId: 1, frequence: 'MENSUELLE', prochaineExecution: '2023-01-01' } as any;
+    const mockData = {
+      intitule: 'Plan 1',
+      atelierId: 1,
+      ligneId: 1,
+      posteId: 1,
+      frequence: 'MENSUELLE',
+      prochaineExecution: '2023-01-01',
+    } as any;
     vi.mocked(api.post).mockResolvedValue({ data: { id: 1, ...mockData } });
     const result = await planService.create(mockData);
     expect(api.post).toHaveBeenCalledWith('/plans', mockData);
@@ -50,6 +57,6 @@ describe('planService', () => {
     vi.mocked(api.post).mockResolvedValue({ data: { numeroOT: 'OT-001' } });
     const result = await planService.trigger(1);
     expect(api.post).toHaveBeenCalledWith('/plans/1/trigger');
-    expect((result as any)!.numeroOT).toBe("OT-001");
+    expect((result as any)!.numeroOT).toBe('OT-001');
   });
 });

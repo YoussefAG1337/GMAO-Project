@@ -15,7 +15,6 @@ import { PlanDetailModal } from '@/features/plans/components/PlanDetailModal';
 import { getErrorMessage } from '@/lib/error';
 import { type PlanFormData } from '@/lib/validations/plan';
 
-
 interface PlansClientProps {
   initialPlans: any[];
   initialAteliers: any[];

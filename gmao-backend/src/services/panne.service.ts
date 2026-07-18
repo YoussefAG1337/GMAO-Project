@@ -21,7 +21,10 @@ class PanneService {
     });
   }
 
-  public async updatePanne(id: number, data: { nom?: string; description?: string; type?: TypePanne }) {
+  public async updatePanne(
+    id: number,
+    data: { nom?: string; description?: string; type?: TypePanne },
+  ) {
     return prisma.panne.update({
       where: { id },
       data,

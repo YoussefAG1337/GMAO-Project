@@ -35,7 +35,14 @@ describe('otService', () => {
 
   describe('create', () => {
     it('should call api.post', async () => {
-      const mockData = { atelierId: 1, ligneId: 1, posteId: 1, description: 'Test', priorite: 'HAUTE', typeMaintenance: 'CURATIVE' } as any;
+      const mockData = {
+        atelierId: 1,
+        ligneId: 1,
+        posteId: 1,
+        description: 'Test',
+        priorite: 'HAUTE',
+        typeMaintenance: 'CURATIVE',
+      } as any;
       vi.mocked(api.post).mockResolvedValue({ data: { id: 1, ...mockData } });
       const result = await otService.create(mockData);
       expect(api.post).toHaveBeenCalledWith('/ots', mockData);
@@ -92,7 +99,13 @@ describe('otService', () => {
 
   describe('submitRapport', () => {
     it('should call api.post', async () => {
-      const mockData = { diagnostic: 'Test', causePanne: 'Usure', actionsRealisees: 'Fix', tempsIntervention: 60, commentaires: 'OK' };
+      const mockData = {
+        diagnostic: 'Test',
+        causePanne: 'Usure',
+        actionsRealisees: 'Fix',
+        tempsIntervention: 60,
+        commentaires: 'OK',
+      };
       vi.mocked(api.post).mockResolvedValue({ data: { success: true } });
       const result = await otService.submitRapport(1, mockData);
       expect(api.post).toHaveBeenCalledWith('/ots/1/rapport', mockData);

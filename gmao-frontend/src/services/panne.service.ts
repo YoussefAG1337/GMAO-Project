@@ -29,6 +29,5 @@ export const panneService = {
   update: (id: number, data: UpdatePanneDto) =>
     api.put<ApiResponse<Panne>>(`/pannes/${id}`, data).then((res) => res.data),
 
-  delete: (id: number) =>
-    api.delete<ApiResponse<void>>(`/pannes/${id}`).then((res) => res.data),
+  delete: (id: number) => api.delete<ApiResponse<void>>(`/pannes/${id}`).then((res) => res.data),
 };

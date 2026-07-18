@@ -258,7 +258,10 @@ export function OtsClient({
 
   return (
     <div className="space-y-8 animate-fade-in-up">
-      <OtsHeader isAdminOrChefTech={isAdminOrChefTech} onOpenCreate={() => setIsCreateModalOpen(true)} />
+      <OtsHeader
+        isAdminOrChefTech={isAdminOrChefTech}
+        onOpenCreate={() => setIsCreateModalOpen(true)}
+      />
 
       <OtList
         ots={ots}

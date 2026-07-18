@@ -25,17 +25,15 @@ describe('usePlanning hook', () => {
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-      {children}
-    </SWRConfig>
+    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>{children}</SWRConfig>
   );
 
   it('should fetch calendar and allow trigger', async () => {
     vi.mocked(planningService.getCalendar).mockResolvedValue({ ots: [], upcomingPlans: [] });
     vi.mocked(planService.trigger).mockResolvedValue({ id: 1 } as any);
-    
+
     const { result } = renderHook(() => usePlanning(5, 2023), { wrapper });
-    
+
     await waitFor(() => {
       expect(planningService.getCalendar).toHaveBeenCalledWith(5, 2023);
       expect(result.current.calendarData).toEqual({ ots: [], upcomingPlans: [] });

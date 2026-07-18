@@ -13,5 +13,4 @@ router.use(authMiddleware);
 router.get('/', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]), getDashboardAnalytics);
 router.get('/workrates', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]), getWorkrates);
 
-
 export default router;

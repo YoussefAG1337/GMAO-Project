@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Modal } from '@/components/ui/modal';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
@@ -23,7 +23,7 @@ export function EquipementKpisModal({
   const [kpis, setKpis] = useState<{ mtbf: number; mttr: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchKpis = async () => {
+  const fetchKpis = useCallback(async () => {
     if (!equipementId || !equipementType) return;
     setIsLoading(true);
     try {
@@ -38,19 +38,20 @@ export function EquipementKpisModal({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [equipementId, equipementType]);
 
   useEffect(() => {
     if (isOpen) {
       fetchKpis();
     }
-  }, [isOpen, equipementId, equipementType]);
+  }, [isOpen, fetchKpis]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`KPIs: ${equipementNom}`}>
       <div className="space-y-4">
         <p className="text-sm text-muted-foreground mb-4">
-          Indicateurs de performance calculés sur l&apos;ensemble du cycle de vie de l&apos;équipement.
+          Indicateurs de performance calculés sur l&apos;ensemble du cycle de vie de
+          l&apos;équipement.
         </p>
 
         {isLoading ? (
@@ -63,7 +64,8 @@ export function EquipementKpisModal({
             <div className="bg-zinc-900/50 p-4 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center">
               <Clock className="w-8 h-8 text-blue-400 mb-2" />
               <div className="text-3xl font-bold text-white mb-1">
-                {kpis.mttr.toFixed(1)} <span className="text-lg text-muted-foreground font-normal">h</span>
+                {kpis.mttr.toFixed(1)}{' '}
+                <span className="text-lg text-muted-foreground font-normal">h</span>
               </div>
               <div className="text-xs text-muted-foreground font-semibold tracking-wide uppercase">
                 MTTR
@@ -77,7 +79,8 @@ export function EquipementKpisModal({
             <div className="bg-zinc-900/50 p-4 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center">
               <Activity className="w-8 h-8 text-emerald-400 mb-2" />
               <div className="text-3xl font-bold text-white mb-1">
-                {kpis.mtbf.toFixed(1)} <span className="text-lg text-muted-foreground font-normal">h</span>
+                {kpis.mtbf.toFixed(1)}{' '}
+                <span className="text-lg text-muted-foreground font-normal">h</span>
               </div>
               <div className="text-xs text-muted-foreground font-semibold tracking-wide uppercase">
                 MTBF
@@ -88,9 +91,7 @@ export function EquipementKpisModal({
             </div>
           </div>
         ) : (
-          <div className="text-center text-muted-foreground p-4">
-            Aucune donnée disponible.
-          </div>
+          <div className="text-center text-muted-foreground p-4">Aucune donnée disponible.</div>
         )}
       </div>
     </Modal>

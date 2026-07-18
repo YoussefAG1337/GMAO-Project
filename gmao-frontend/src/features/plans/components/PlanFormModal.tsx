@@ -4,7 +4,7 @@ import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Atelier, Ligne, Poste } from '@/types/equipement.types';
@@ -35,24 +35,24 @@ export function PlanFormModal({
     register,
     handleSubmit: handleRHFSubmit,
     reset,
-    watch,
+    control,
     formState: { errors, isSubmitting, isValid },
   } = useForm<PlanFormData>({
     resolver: zodResolver(planSchema),
     mode: 'onChange',
   });
 
-  const watchedAtelierId = watch('atelierId');
-  const watchedLigneId = watch('ligneId');
+  const watchedAtelierId = useWatch({ control, name: 'atelierId' });
+  const watchedLigneId = useWatch({ control, name: 'ligneId' });
 
   useEffect(() => {
     if (isOpen) {
       reset({
         intitule: initialData?.intitule || '',
         description: initialData?.description || '',
-        atelierId: initialData?.atelierId ? Number(initialData.atelierId) : undefined as any,
-        ligneId: initialData?.ligneId ? Number(initialData.ligneId) : undefined as any,
-        posteId: initialData?.posteId ? Number(initialData.posteId) : undefined as any,
+        atelierId: initialData?.atelierId ? Number(initialData.atelierId) : (undefined as any),
+        ligneId: initialData?.ligneId ? Number(initialData.ligneId) : (undefined as any),
+        posteId: initialData?.posteId ? Number(initialData.posteId) : (undefined as any),
         frequence: initialData?.frequence || 'MENSUELLE',
         prochaineExecution: initialData?.prochaineExecution || '',
       });
@@ -92,12 +92,18 @@ export function PlanFormModal({
               {...register('atelierId', { valueAsNumber: true })}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.atelierId ? 'border-red-500' : ''}`}
             >
-              <option value={0} disabled>Sélectionner</option>
+              <option value={0} disabled>
+                Sélectionner
+              </option>
               {ateliers?.map((a: Atelier) => (
-                <option key={a.id} value={a.id}>{a.nom}</option>
+                <option key={a.id} value={a.id}>
+                  {a.nom}
+                </option>
               ))}
             </select>
-            {errors.atelierId && <p className="text-[10px] text-red-400">{errors.atelierId.message}</p>}
+            {errors.atelierId && (
+              <p className="text-[10px] text-red-400">{errors.atelierId.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -106,9 +112,13 @@ export function PlanFormModal({
               {...register('ligneId', { valueAsNumber: true })}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.ligneId ? 'border-red-500' : ''}`}
             >
-              <option value={0} disabled>Sélectionner</option>
+              <option value={0} disabled>
+                Sélectionner
+              </option>
               {filteredLignes?.map((l: Ligne) => (
-                <option key={l.id} value={l.id}>{l.nom}</option>
+                <option key={l.id} value={l.id}>
+                  {l.nom}
+                </option>
               ))}
             </select>
             {errors.ligneId && <p className="text-[10px] text-red-400">{errors.ligneId.message}</p>}
@@ -120,9 +130,13 @@ export function PlanFormModal({
               {...register('posteId', { valueAsNumber: true })}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.posteId ? 'border-red-500' : ''}`}
             >
-              <option value={0} disabled>Sélectionner</option>
+              <option value={0} disabled>
+                Sélectionner
+              </option>
               {filteredPostes?.map((p: Poste) => (
-                <option key={p.id} value={p.id}>{p.nom}</option>
+                <option key={p.id} value={p.id}>
+                  {p.nom}
+                </option>
               ))}
             </select>
             {errors.posteId && <p className="text-[10px] text-red-400">{errors.posteId.message}</p>}
@@ -151,7 +165,9 @@ export function PlanFormModal({
               <option value="SEMESTRIELLE">Semestrielle</option>
               <option value="ANNUELLE">Annuelle</option>
             </select>
-            {errors.frequence && <p className="text-[10px] text-red-400">{errors.frequence.message}</p>}
+            {errors.frequence && (
+              <p className="text-[10px] text-red-400">{errors.frequence.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">

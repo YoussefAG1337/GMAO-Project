@@ -1,7 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -24,7 +31,9 @@ export default function DashboardError({
           <div className="mx-auto bg-destructive/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
             <AlertCircle className="h-8 w-8 text-destructive" />
           </div>
-          <CardTitle className="text-xl font-bold tracking-tight">Erreur d'affichage</CardTitle>
+          <CardTitle className="text-xl font-bold tracking-tight">
+            Erreur d&apos;affichage
+          </CardTitle>
           <CardDescription className="text-sm mt-2">
             Un problème est survenu lors du chargement de cette section.
           </CardDescription>

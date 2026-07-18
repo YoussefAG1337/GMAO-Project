@@ -11,7 +11,7 @@ export const utilisateurService = {
   getAll: () =>
     api.get<ApiResponse<{ users: User[] } | User[]>>('/users').then((res) => {
       const data = res.data;
-      return (data && 'users' in data && Array.isArray(data.users)) ? data.users : (data as User[]);
+      return data && 'users' in data && Array.isArray(data.users) ? data.users : (data as User[]);
     }),
 
   update: (id: number, data: UpdateUserDto) =>

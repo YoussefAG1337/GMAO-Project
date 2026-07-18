@@ -61,7 +61,9 @@ export function OtRapportModal({
             rows={2}
             className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.diagnostic ? 'border-red-500' : ''}`}
           />
-          {errors.diagnostic && <p className="text-[10px] text-red-400">{errors.diagnostic.message}</p>}
+          {errors.diagnostic && (
+            <p className="text-[10px] text-red-400">{errors.diagnostic.message}</p>
+          )}
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-white">Cause de la Panne (optionnel)</label>
@@ -70,7 +72,9 @@ export function OtRapportModal({
             {...register('causePanne')}
             className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.causePanne ? 'border-red-500' : ''}`}
           />
-          {errors.causePanne && <p className="text-[10px] text-red-400">{errors.causePanne.message}</p>}
+          {errors.causePanne && (
+            <p className="text-[10px] text-red-400">{errors.causePanne.message}</p>
+          )}
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-white">Actions réalisées</label>
@@ -79,7 +83,9 @@ export function OtRapportModal({
             rows={3}
             className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.actionsRealisees ? 'border-red-500' : ''}`}
           />
-          {errors.actionsRealisees && <p className="text-[10px] text-red-400">{errors.actionsRealisees.message}</p>}
+          {errors.actionsRealisees && (
+            <p className="text-[10px] text-red-400">{errors.actionsRealisees.message}</p>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -92,7 +98,9 @@ export function OtRapportModal({
               min="1"
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.tempsIntervention ? 'border-red-500' : ''}`}
             />
-            {errors.tempsIntervention && <p className="text-[10px] text-red-400">{errors.tempsIntervention.message}</p>}
+            {errors.tempsIntervention && (
+              <p className="text-[10px] text-red-400">{errors.tempsIntervention.message}</p>
+            )}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">
@@ -104,7 +112,9 @@ export function OtRapportModal({
               min="0"
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.tempsArret ? 'border-red-500' : ''}`}
             />
-            {errors.tempsArret && <p className="text-[10px] text-red-400">{errors.tempsArret.message}</p>}
+            {errors.tempsArret && (
+              <p className="text-[10px] text-red-400">{errors.tempsArret.message}</p>
+            )}
           </div>
         </div>
         <div className="space-y-2">
@@ -162,7 +172,11 @@ export function OtRapportModal({
           <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
             Annuler
           </Button>
-          <Button type="submit" disabled={isSubmitting || !isValid} className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50">
+          <Button
+            type="submit"
+            disabled={isSubmitting || !isValid}
+            className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50"
+          >
             {isSubmitting ? 'Soumission...' : 'Soumettre'}
           </Button>
         </div>

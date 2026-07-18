@@ -3,7 +3,7 @@
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useReferenceData } from '@/hooks/useReferenceData';
 
@@ -28,7 +28,7 @@ export function UtilisateurEditModal({
     register,
     handleSubmit: handleRHFSubmit,
     reset,
-    watch,
+    control,
     setValue,
     formState: { errors, isSubmitting, isValid },
   } = useForm<UtilisateurEditFormData>({
@@ -46,8 +46,8 @@ export function UtilisateurEditModal({
     }
   }, [isOpen, initialData, reset]);
 
-  const watchedRole = watch('role');
-  const watchedLignes = watch('lignes') || [];
+  const watchedRole = useWatch({ control, name: 'role' });
+  const watchedLignes = useWatch({ control, name: 'lignes' }) || [];
   const showLignesSelection = watchedRole === 'TECHNICIEN' || watchedRole === 'CHEF_TECHNICIEN';
 
   const handleLigneToggle = (ligneId: number) => {
@@ -94,7 +94,10 @@ export function UtilisateurEditModal({
             <label className="text-sm font-medium text-white">Lignes Assignées</label>
             <div className="max-h-40 overflow-y-auto bg-zinc-900 border border-white/10 rounded-lg p-2 space-y-2">
               {lignes.map((ligne: any) => (
-                <label key={ligne.id} className="flex items-center space-x-2 text-white cursor-pointer">
+                <label
+                  key={ligne.id}
+                  className="flex items-center space-x-2 text-white cursor-pointer"
+                >
                   <input
                     type="checkbox"
                     className="rounded bg-zinc-800 border-white/20 text-purple-600 focus:ring-purple-600"

@@ -12,8 +12,6 @@ import { PlanningCalendarGrid } from '@/features/planning/components/PlanningCal
 import { PlanningDayModal } from '@/features/planning/components/PlanningDayModal';
 import { getErrorMessage } from '@/lib/error';
 
-
-
 interface PlanningClientProps {
   initialCalendarData: any;
   initialMonth: number;
@@ -43,7 +41,7 @@ export function PlanningClient({
   const { calendarData, triggerPlan } = usePlanning(
     month,
     year,
-    isInitialFetch ? initialCalendarData : undefined
+    isInitialFetch ? initialCalendarData : undefined,
   );
 
   const ots = calendarData?.ots || [];

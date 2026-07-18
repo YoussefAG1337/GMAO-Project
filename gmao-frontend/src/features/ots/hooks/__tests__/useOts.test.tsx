@@ -29,16 +29,14 @@ describe('useOts hook', () => {
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-      {children}
-    </SWRConfig>
+    <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>{children}</SWRConfig>
   );
 
   it('should fetch data and return it', async () => {
     vi.mocked(otService.getAll).mockResolvedValue([{ id: 1, code: 'OT-001' } as any]);
-    
+
     const { result } = renderHook(() => useOts(), { wrapper });
-    
+
     await waitFor(() => {
       expect(result.current.ots).toEqual([{ id: 1, code: 'OT-001' }]);
       expect(result.current.isLoading).toBe(false);
@@ -48,15 +46,22 @@ describe('useOts hook', () => {
   it('should call createOt and trigger mutate', async () => {
     vi.mocked(otService.getAll).mockResolvedValue([]);
     vi.mocked(otService.create).mockResolvedValue({ id: 2 } as any);
-    
+
     const { result } = renderHook(() => useOts(), { wrapper });
-    
+
     await waitFor(() => {
       expect(otService.getAll).toHaveBeenCalledTimes(1);
     });
 
     await act(async () => {
-      await result.current.createOt({ description: 'Test', priorite: 'HAUTE', typeMaintenance: 'CURATIVE', atelierId: 1, ligneId: 1, posteId: 1 });
+      await result.current.createOt({
+        description: 'Test',
+        priorite: 'HAUTE',
+        typeMaintenance: 'CURATIVE',
+        atelierId: 1,
+        ligneId: 1,
+        posteId: 1,
+      });
     });
 
     expect(otService.create).toHaveBeenCalled();

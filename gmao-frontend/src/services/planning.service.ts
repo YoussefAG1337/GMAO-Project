@@ -8,5 +8,7 @@ export const planningService = {
   },
 
   getCalendar: (month: number, year: number) =>
-    api.get<ApiResponse<CalendarResponse>>(`/calendar?month=${month}&year=${year}`).then((res) => res.data),
+    api
+      .get<ApiResponse<CalendarResponse>>(`/calendar?month=${month}&year=${year}`)
+      .then((res) => res.data),
 };

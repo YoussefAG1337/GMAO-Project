@@ -9,7 +9,7 @@ export function usePlanning(month: number, year: number, initialData?: CalendarR
     () => planningService.getCalendar(month, year),
     {
       fallbackData: initialData,
-    }
+    },
   );
 
   const triggerPlan = async (planId: number) => {

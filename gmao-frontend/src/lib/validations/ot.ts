@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 export const createOtSchema = z.object({
   atelierId: z.number().min(1, "L'atelier est requis"),
-  ligneId: z.number().min(1, "La ligne est requise"),
-  posteId: z.number().min(1, "Le poste est requis"),
+  ligneId: z.number().min(1, 'La ligne est requise'),
+  posteId: z.number().min(1, 'Le poste est requis'),
   description: z.string().min(1, 'La description est requise'),
   priorite: z.enum(['BASSE', 'MOYENNE', 'HAUTE', 'CRITIQUE']),
   typeMaintenance: z.enum(['PREVENTIVE', 'CURATIVE', 'CORRECTIVE', 'AMELIORATIVE']),
@@ -28,12 +28,14 @@ export const submitRapportSchema = z.object({
   actionsRealisees: z.string().min(1, 'Les actions réalisées sont requises'),
   tempsIntervention: z.number().min(1, "Le temps d'intervention doit être d'au moins 1 minute"),
   tempsArret: z.number().min(0).optional().nullable(),
-  piecesUtilisees: z.array(
-    z.object({
-      pieceId: z.number().min(1, "La pièce est requise"),
-      quantite: z.number().min(1, "La quantité doit être au moins de 1"),
-    })
-  ).optional(),
+  piecesUtilisees: z
+    .array(
+      z.object({
+        pieceId: z.number().min(1, 'La pièce est requise'),
+        quantite: z.number().min(1, 'La quantité doit être au moins de 1'),
+      }),
+    )
+    .optional(),
   commentaires: z.string().optional(),
 });
 

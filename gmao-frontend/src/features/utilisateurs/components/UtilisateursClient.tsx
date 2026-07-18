@@ -13,7 +13,6 @@ import { UtilisateurEditModal } from '@/features/utilisateurs/components/Utilisa
 import { getErrorMessage } from '@/lib/error';
 import { type UtilisateurEditFormData } from '@/lib/validations/utilisateur';
 
-
 interface UtilisateursClientProps {
   initialUsers: User[];
 }
