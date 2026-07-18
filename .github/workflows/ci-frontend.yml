@@ -71,7 +71,7 @@ jobs:
       #Build
 
       - name: Cache Next.js build artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: gmao-frontend/.next/cache
           # Cache key tied to lockfile: invalidates when dependencies change.
