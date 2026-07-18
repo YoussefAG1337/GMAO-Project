@@ -1,5 +1,5 @@
 import { Queue, Worker, Job } from 'bullmq';
-import { sendDiAssignmentEmail } from '../services/email.service';
+import { sendDiAssignmentEmail, DiAssignmentEmailData } from '../services/email.service';
 import prisma from '../config/prisma'; // Make sure this path is correct for your Prisma client
 
 const QUEUE_NAME = 'email-queue';
@@ -34,10 +34,32 @@ export const emailWorker = new Worker(
     console.log(`[BullMQ] Processing job ${job.id} of type ${job.name}`);
 
     if (job.name === 'EMAIL_DI_ASSIGNED') {
-      const { technicienEmail, diNumero, outboxEventId } = job.data;
+      const {
+        technicienEmail,
+        outboxEventId,
+        diNumero,
+        atelier,
+        ligne,
+        poste,
+        priorite,
+        produit,
+        panneNom,
+        panneDescription,
+        panneType,
+      } = job.data as DiAssignmentEmailData & { technicienEmail: string; outboxEventId?: number };
 
       // Call our Nodemailer service
-      await sendDiAssignmentEmail(technicienEmail, diNumero);
+      await sendDiAssignmentEmail(technicienEmail, {
+        diNumero,
+        atelier,
+        ligne,
+        poste,
+        priorite,
+        produit,
+        panneNom,
+        panneDescription,
+        panneType,
+      });
 
       // Once successful, update the OutboxEvent status in the DB
       if (outboxEventId) {

@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   output : "standalone",
   async rewrites() {
     // Use local backend by default for dev, or the remote URL if explicitly provided

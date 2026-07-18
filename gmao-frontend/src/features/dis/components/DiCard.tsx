@@ -6,15 +6,17 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { statutColors, prioriteColors } from '../lib/constants';
 
+import { Di } from '@/types/di.types';
+
 interface DiCardProps {
-  di: any;
+  di: Di;
   isAdmin: boolean;
   isAdminOrChef: boolean;
   isTechnician: boolean;
   currentUserId?: number;
-  onEdit: (di: any) => void;
+  onEdit: (di: Di) => void;
   onDelete: (id: number) => void;
-  onOpenDetails: (di: any) => void;
+  onOpenDetails: (di: Di) => void;
   onStartWork: (id: number) => void;
 }
 
@@ -54,9 +56,22 @@ export function DiCard({
               • {di.priorite}
             </span>
           </div>
-          <p className="text-sm text-muted-foreground line-clamp-1">
-            {di.panne?.nom ? `Panne signalée : ${di.panne.nom}` : 'Aucune description détaillée'}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground line-clamp-1">
+              {di.panne?.nom ? `Panne signalée : ${di.panne.nom}` : 'Aucune description détaillée'}
+            </p>
+            {di.panne?.type && (
+              <span
+                className={`text-[9px] px-1.5 py-0.2 rounded-full font-medium ${
+                  di.panne.type === 'QUALITE'
+                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                    : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                }`}
+              >
+                {di.panne.type === 'QUALITE' ? 'Qualité' : 'Technique'}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground/70">
             <span>
               📍 {di.atelier?.nom} &rsaquo; {di.ligne?.nom} &rsaquo; {di.poste?.nom}

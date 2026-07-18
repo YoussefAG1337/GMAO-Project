@@ -21,9 +21,6 @@ export interface ApiErrorResponse {
   errors?: Array<{ field: string; message: string }>;
 }
 
-// ----------------------------------------------------
-// ENUMS GMAO
-// ----------------------------------------------------
 
 export enum StatutDI {
   NOUVELLE = 'NOUVELLE',
@@ -61,9 +58,7 @@ export enum FrequenceMaintenance {
   ANNUELLE = 'ANNUELLE',
 }
 
-// ----------------------------------------------------
-// INTERFACES EQUIPEMENTS
-// ----------------------------------------------------
+
 
 export interface Atelier {
   id: number;
@@ -102,9 +97,6 @@ export interface Poste {
   updatedAt: string;
 }
 
-// ----------------------------------------------------
-// INTERFACES DI & OT
-// ----------------------------------------------------
 
 export interface DemandeIntervention {
   id: number;

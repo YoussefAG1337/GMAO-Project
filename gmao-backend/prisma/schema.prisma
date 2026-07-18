@@ -16,6 +16,12 @@ enum Role {
   MAGASINIER
 }
 
+enum TypePanne {
+  TECHNIQUE
+  QUALITE
+}
+
+
 /// Actions d'audit pour le suivi des connexions
 enum AuditAction {
   LOGIN_SUCCESS
@@ -39,8 +45,12 @@ enum StatutOT {
   CREE
   ASSIGNE
   EN_COURS
-  EN_ATTENTE_VALIDATION
-  FERME
+  REPORTE        // Technicien reporte à une autre date
+  RAPPORTE       // Rapport soumis — en attente de validation par le technicien
+  EN_ATTENTE_VALIDATION // Technicien a validé son propre travail — en attente admin/chef
+  NON_VALIDE     // Rejeté (tech ou admin) avec raison
+  ANNULE         // OT annulé avec explication
+  FERME          // Clôturé par admin/chef
 }
 
 /// Niveaux de priorité
@@ -203,12 +213,13 @@ model Poste {
 
 /// Type de panne associée à une ligne ou un poste
 model Panne {
-  id          Int      @id @default(autoincrement())
-  nom         String   @db.VarChar(200)
-  description String?  @db.Text
+  id          Int       @id @default(autoincrement())
+  nom         String    @db.VarChar(200)
+  description String?   @db.Text
   ligneId     Int?
   posteId     Int?
-  createdAt   DateTime @default(now())
+  type        TypePanne @default(TECHNIQUE)
+  createdAt   DateTime  @default(now())
 
   ligne    Ligne?                @relation(fields: [ligneId], references: [id], onDelete: Cascade)
   poste    Poste?                @relation(fields: [posteId], references: [id], onDelete: Cascade)
@@ -364,14 +375,17 @@ model OrdreTravail {
   priorite              Priorite        @default(MOYENNE)
   statut                StatutOT        @default(CREE)
   typeMaintenance       TypeMaintenance @default(CORRECTIVE)
-  description           String?         @db.Text
-  planMaintenanceId     Int?
-  valideParId           Int?
-  dateValidation        DateTime?
-  dateDebut             DateTime?
-  dateFin               DateTime?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  description          String?         @db.Text
+  planMaintenanceId    Int?
+  valideParId          Int?
+  dateValidation       DateTime?
+  dateDebut            DateTime?
+  dateFin              DateTime?
+  raisonReport         String?         @db.Text
+  raisonAnnulation     String?         @db.Text
+  raisonNonValidation  String?         @db.Text
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
 
   demandeIntervention DemandeIntervention? @relation(fields: [demandeInterventionId], references: [id])
   technicien          User?                @relation("OTTechnicien", fields: [technicienId], references: [id])

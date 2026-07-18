@@ -1,0 +1,207 @@
+name: Security & Compliance Scans
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Detects which parts of the repo changed so docker-security/terraform can
+  # skip themselves when irrelevant. secret-scan and codeql always run in full
+  # regardless of this — both are cheap enough that skipping them by path isn't
+  # worth the risk of missing something.
+  changes:
+    name: Detect Changed Areas
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      docker: ${{ steps.filter.outputs.docker }}
+      terraform: ${{ steps.filter.outputs.terraform }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Filter changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            docker:
+              - 'gmao-backend/**'
+              - 'gmao-frontend/**'
+            terraform:
+              - 'terraform/**'
+
+  # Runs independently to catch accidentally committed secrets.
+  # Does NOT need node, no working-directory needed.
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history so TruffleHog can scan all commits in the push.
+          fetch-depth: 0
+
+      - name: Scan for secrets with TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+  # Static analysis of our own source code (not dependencies) for vulnerable
+  # patterns. Covers both gmao-backend and gmao-frontend in one pass since both
+  # are JS/TS. Findings surface as alerts in the repo's Security tab rather than
+  # failing the job inline — same behavior as GitHub's default CodeQL setup.
+  codeql:
+    name: CodeQL (SAST)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
+
+  # hadolint checks our own Dockerfile authoring (always immediately fixable by
+  # us, so it's a hard gate like ESLint/Prettier). Trivy checks the built images
+  # for known CVEs in the base image/OS packages — those aren't always
+  # immediately fixable (may require an upstream base-image update), so like
+  # CodeQL it surfaces findings via the Security tab rather than failing the job.
+  docker-security:
+    name: Docker Image & Dockerfile Security
+    needs: changes
+    if: needs.changes.outputs.docker == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Lint backend Dockerfile with hadolint
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: gmao-backend/Dockerfile
+
+      - name: Lint frontend Dockerfile with hadolint
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: gmao-frontend/Dockerfile
+
+      - name: Build backend image
+        run: docker build -t gmao-backend:ci gmao-backend
+
+      - name: Build frontend image
+        run: docker build -t gmao-frontend:ci gmao-frontend
+
+      - name: Scan backend image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: gmao-backend:ci
+          format: sarif
+          output: trivy-backend.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+
+      - name: Upload backend Trivy results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-backend.sarif
+          category: trivy-backend
+
+      - name: Scan frontend image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: gmao-frontend:ci
+          format: sarif
+          output: trivy-frontend.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+
+      - name: Upload frontend Trivy results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-frontend.sarif
+          category: trivy-frontend
+
+  # fmt/validate are a hard gate (style/correctness, always fixable by us).
+  # Trivy's config scan checks for IaC misconfigurations and, like the other
+  # scanners above, surfaces findings via the Security tab instead of failing
+  # the job. No Azure credentials are needed: `-backend=false` skips remote
+  # state entirely, so this only validates syntax/schema against providers.
+  terraform:
+    name: Terraform Validate & Security
+    needs: changes
+    if: needs.changes.outputs.terraform == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Check formatting
+        working-directory: terraform
+        run: terraform fmt -check -recursive
+
+      - name: Initialize (no backend, no cloud credentials needed)
+        working-directory: terraform
+        run: terraform init -backend=false
+
+      - name: Validate
+        working-directory: terraform
+        run: terraform validate
+
+      - name: Scan for IaC misconfigurations with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: terraform
+          format: sarif
+          output: trivy-terraform.sarif
+          exit-code: '0'
+
+      - name: Upload Terraform Trivy results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-terraform.sarif
+          category: trivy-terraform

@@ -2,18 +2,41 @@
 
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
+import { useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import { Atelier, Ligne } from '@/types/equipement.types';
+import { User } from '@/types';
+import {
+  atelierSchema,
+  ligneSchema,
+  posteSchema,
+  AtelierFormData,
+  LigneFormData,
+  PosteFormData,
+} from '@/lib/validations/equipement';
+
+// Each modal type uses a different schema — we union the form data here
+type EquipementFormData = AtelierFormData | LigneFormData | PosteFormData;
 
 interface EquipementFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (e: React.FormEvent) => Promise<void>;
+  onSubmit: (data: EquipementFormData) => Promise<void>;
   modalType: 'ATELIER' | 'LIGNE' | 'POSTE';
-  formData: any;
-  setFormData: (data: any) => void;
-  ateliers: any[];
-  lignes: any[];
-  techniciens?: any[];
+  initialData?: Record<string, any>;
+  ateliers: Atelier[];
+  lignes: Ligne[];
+  techniciens?: User[];
   isEditing?: boolean;
+}
+
+// Pick the right Zod schema based on modal type
+function getSchema(modalType: 'ATELIER' | 'LIGNE' | 'POSTE') {
+  if (modalType === 'LIGNE') return ligneSchema;
+  if (modalType === 'POSTE') return posteSchema;
+  return atelierSchema;
 }
 
 export function EquipementFormModal({
@@ -21,81 +44,109 @@ export function EquipementFormModal({
   onClose,
   onSubmit,
   modalType,
-  formData,
-  setFormData,
+  initialData,
   ateliers,
   lignes,
   techniciens,
   isEditing,
 }: EquipementFormModalProps) {
+  const {
+    register,
+    handleSubmit: handleRHFSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<any>({
+    resolver: zodResolver(getSchema(modalType)),
+    mode: 'onChange',
+  });
+
+  // Reset the form whenever the modal opens with new data
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        nom: initialData?.nom || '',
+        description: initialData?.description || '',
+        atelierId: initialData?.atelierId ? Number(initialData.atelierId) : undefined,
+        ligneId: initialData?.ligneId ? Number(initialData.ligneId) : undefined,
+        technicienIds: initialData?.technicienIds?.map(Number) || [],
+      });
+    }
+  }, [isOpen, initialData, reset]);
+
+  const watchedTechnicienIds: number[] = watch('technicienIds') || [];
+
+  // Toggle a technicien in/out of the selected list
+  const handleTechnicienToggle = (techId: number) => {
+    const current = watchedTechnicienIds;
+    const updated = current.includes(techId)
+      ? current.filter((id) => id !== techId)
+      : [...current, techId];
+    setValue('technicienIds', updated, { shouldValidate: true });
+  };
+
+  const typeLabel = modalType.charAt(0) + modalType.slice(1).toLowerCase();
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`${isEditing ? 'Modifier' : 'Ajouter'} un(e) ${modalType.charAt(0) + modalType.slice(1).toLowerCase()}`}
+      title={`${isEditing ? 'Modifier' : 'Ajouter'} un(e) ${typeLabel}`}
     >
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={handleRHFSubmit(onSubmit)} className="space-y-4">
+        {/* Nom */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-white">Nom de l&apos;équipement</label>
           <input
             type="text"
-            required
-            className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
+            {...register('nom')}
+            className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground ${errors.nom ? 'border-red-500' : ''}`}
             placeholder="Ex: Convoyeur A"
-            value={formData.nom}
-            onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
           />
+          {errors.nom && <p className="text-[10px] text-red-400">{errors.nom.message as string}</p>}
         </div>
 
+        {/* Description */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-white">Description (optionnelle)</label>
           <textarea
+            {...register('description')}
             rows={3}
             className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white placeholder-muted-foreground"
             placeholder="Description de l'équipement..."
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           />
         </div>
 
+        {/* LIGNE-specific fields: atelier parent + techniciens */}
         {modalType === 'LIGNE' && (
           <>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Atelier Parent</label>
               <select
-                required
-                className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
-                value={formData.atelierId}
-                onChange={(e) => setFormData({ ...formData, atelierId: e.target.value })}
+                {...register('atelierId', { valueAsNumber: true })}
+                className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${(errors as any).atelierId ? 'border-red-500' : ''}`}
               >
-                <option value="">Sélectionner un atelier</option>
-                {ateliers?.map((a: any) => (
-                  <option key={a.id} value={a.id}>
-                    {a.nom}
-                  </option>
+                <option value={0} disabled>Sélectionner un atelier</option>
+                {ateliers?.map((a: Atelier) => (
+                  <option key={a.id} value={a.id}>{a.nom}</option>
                 ))}
               </select>
+              {(errors as any).atelierId && (
+                <p className="text-[10px] text-red-400">{(errors as any).atelierId.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Techniciens Assignés</label>
               <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
-                {techniciens?.map((t: any) => {
-                  const isSelected =
-                    formData.technicienIds?.includes(t.id.toString()) ||
-                    formData.technicienIds?.includes(t.id);
+                {techniciens?.map((t: User) => {
+                  const isSelected = watchedTechnicienIds.includes(t.id);
                   return (
                     <button
                       key={t.id}
                       type="button"
-                      onClick={() => {
-                        const current = formData.technicienIds || [];
-                        const strId = t.id.toString();
-                        const newIds = isSelected
-                          ? current.filter((id: any) => id.toString() !== strId)
-                          : [...current, strId];
-                        setFormData({ ...formData, technicienIds: newIds });
-                      }}
+                      onClick={() => handleTechnicienToggle(t.id)}
                       className={`flex items-center gap-2 p-2 rounded-lg border transition-all text-sm text-left ${
                         isSelected
                           ? 'bg-[#651FAA]/20 border-[#651FAA] text-purple-200'
@@ -104,30 +155,16 @@ export function EquipementFormModal({
                     >
                       <div
                         className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
-                          isSelected
-                            ? 'bg-[#651FAA] border-[#651FAA]'
-                            : 'border-white/20 bg-black/20'
+                          isSelected ? 'bg-[#651FAA] border-[#651FAA]' : 'border-white/20 bg-black/20'
                         }`}
                       >
                         {isSelected && (
-                          <svg
-                            className="w-3 h-3 text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={3}
-                              d="M5 13l4 4L19 7"
-                            />
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         )}
                       </div>
-                      <span className="truncate">
-                        {t.nom} {t.prenom}
-                      </span>
+                      <span className="truncate">{t.nom} {t.prenom}</span>
                     </button>
                   );
                 })}
@@ -136,31 +173,37 @@ export function EquipementFormModal({
           </>
         )}
 
+        {/* POSTE-specific fields: ligne parent */}
         {modalType === 'POSTE' && (
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Ligne Parente</label>
             <select
-              required
-              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
-              value={formData.ligneId}
-              onChange={(e) => setFormData({ ...formData, ligneId: e.target.value })}
+              {...register('ligneId', { valueAsNumber: true })}
+              className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${(errors as any).ligneId ? 'border-red-500' : ''}`}
             >
-              <option value="">Sélectionner une ligne</option>
-              {lignes?.map((l: any) => (
+              <option value={0} disabled>Sélectionner une ligne</option>
+              {lignes?.map((l: Ligne) => (
                 <option key={l.id} value={l.id}>
                   {l.atelier?.nom} &rsaquo; {l.nom}
                 </option>
               ))}
             </select>
+            {(errors as any).ligneId && (
+              <p className="text-[10px] text-red-400">{(errors as any).ligneId.message}</p>
+            )}
           </div>
         )}
 
         <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.05]">
-          <Button type="button" variant="ghost" onClick={onClose}>
+          <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
             Annuler
           </Button>
-          <Button type="submit" className="bg-[#651FAA] hover:bg-purple-600 text-white">
-            {isEditing ? 'Enregistrer' : 'Créer'}
+          <Button
+            type="submit"
+            disabled={isSubmitting || !isValid}
+            className="bg-[#651FAA] hover:bg-purple-600 text-white disabled:opacity-50"
+          >
+            {isSubmitting ? 'Enregistrement...' : isEditing ? 'Enregistrer' : 'Créer'}
           </Button>
         </div>
       </form>

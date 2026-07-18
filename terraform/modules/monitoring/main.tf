@@ -22,11 +22,11 @@ resource "azurerm_log_analytics_workspace" "main" {
 # 2. Application Insights (APM)
 
 resource "azurerm_application_insights" "main" {
-  name                = "appi-${var.project_name}-${var.environment}"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  workspace_id        = azurerm_log_analytics_workspace.main.id
-  application_type    = "Node.JS"
+  name                 = "appi-${var.project_name}-${var.environment}"
+  location             = var.location
+  resource_group_name  = var.resource_group_name
+  workspace_id         = azurerm_log_analytics_workspace.main.id
+  application_type     = "Node.JS"
   daily_data_cap_in_gb = 0.05 # Cap daily data at 50MB to match workspace
   sampling_percentage  = 50   # Drop 50% of telemetry traces to reduce volume
 }

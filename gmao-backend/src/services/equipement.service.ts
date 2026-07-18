@@ -253,6 +253,52 @@ class EquipementService implements IEquipementService {
       where: { id },
     });
   }
+
+  // ==========================================
+  // KPIs
+  // ==========================================
+
+  public async getLigneKpis(id: number) {
+    const ligne = await prisma.ligne.findUnique({ where: { id } });
+    if (!ligne) throw new NotFoundError('Ligne introuvable');
+
+    const countDIs = await prisma.demandeIntervention.count({ where: { ligneId: id } });
+    const lifetimeMs = Math.max(0, Date.now() - ligne.createdAt.getTime());
+    const lifetimeHours = lifetimeMs / (1000 * 60 * 60);
+    const mtbf = countDIs > 0 ? lifetimeHours / countDIs : 0;
+
+    const ots = await prisma.ordreTravail.findMany({
+      where: { ligneId: id, rapportIntervention: { isNot: null } },
+      include: { rapportIntervention: true },
+    });
+
+    const rapports = ots.map((o) => o.rapportIntervention!);
+    const totalTempsInterventionMinutes = rapports.reduce((acc, r) => acc + r.tempsIntervention, 0);
+    const mttr = rapports.length > 0 ? totalTempsInterventionMinutes / 60 / rapports.length : 0;
+
+    return { mtbf, mttr };
+  }
+
+  public async getPosteKpis(id: number) {
+    const poste = await prisma.poste.findUnique({ where: { id } });
+    if (!poste) throw new NotFoundError('Poste introuvable');
+
+    const countDIs = await prisma.demandeIntervention.count({ where: { posteId: id } });
+    const lifetimeMs = Math.max(0, Date.now() - poste.createdAt.getTime());
+    const lifetimeHours = lifetimeMs / (1000 * 60 * 60);
+    const mtbf = countDIs > 0 ? lifetimeHours / countDIs : 0;
+
+    const ots = await prisma.ordreTravail.findMany({
+      where: { posteId: id, rapportIntervention: { isNot: null } },
+      include: { rapportIntervention: true },
+    });
+
+    const rapports = ots.map((o) => o.rapportIntervention!);
+    const totalTempsInterventionMinutes = rapports.reduce((acc, r) => acc + r.tempsIntervention, 0);
+    const mttr = rapports.length > 0 ? totalTempsInterventionMinutes / 60 / rapports.length : 0;
+
+    return { mtbf, mttr };
+  }
 }
 
 export const equipementService = new EquipementService();

@@ -1,26 +1,30 @@
 import { apiServer } from '@/lib/api-server';
 import { OtsClient } from '@/features/ots/components/OtsClient';
+import { ApiResponse } from '@/types/api.types';
+import { Ot } from '@/types/ot.types';
+import { Atelier, Ligne, Poste } from '@/types/equipement.types';
+import { User } from '@/types/index';
 
 export default async function OrdresTravailPage() {
   const [otsData, ateliers, lignes, postes, techniciens] = await Promise.all([
     apiServer
-      .get<any>('/ots')
+      .get<ApiResponse<Ot[]>>('/ots')
       .then((res) => res.data)
       .catch(() => ({ ots: [] })),
     apiServer
-      .get<any>('/equipements/ateliers')
+      .get<ApiResponse<Atelier[]>>('/equipements/ateliers')
       .then((res) => res.data)
       .catch(() => []),
     apiServer
-      .get<any>('/equipements/lignes')
+      .get<ApiResponse<Ligne[]>>('/equipements/lignes')
       .then((res) => res.data)
       .catch(() => []),
     apiServer
-      .get<any>('/equipements/postes')
+      .get<ApiResponse<Poste[]>>('/equipements/postes')
       .then((res) => res.data)
       .catch(() => []),
     apiServer
-      .get<any>('/users/techniciens')
+      .get<ApiResponse<User[]>>('/users/techniciens')
       .then((res) => res.data)
       .catch(() => []),
   ]);
@@ -28,10 +32,10 @@ export default async function OrdresTravailPage() {
   return (
     <OtsClient
       initialOts={otsData}
-      initialAteliers={ateliers}
-      initialLignes={lignes}
-      initialPostes={postes}
-      initialTechniciens={techniciens}
+      initialAteliers={ateliers || []}
+      initialLignes={lignes || []}
+      initialPostes={postes || []}
+      initialTechniciens={techniciens || []}
     />
   );
 }

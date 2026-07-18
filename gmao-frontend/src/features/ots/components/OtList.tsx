@@ -8,7 +8,12 @@ interface OtListProps {
   isAdminOrChefTech: boolean;
   onStart: (id: number) => void;
   onOpenRapport: (id: number) => void;
+  onValiderTechnicien: (id: number) => void;
   onValidate: (id: number) => void;
+  onReporter: (id: number) => void;
+  onAnnuler: (id: number) => void;
+  onNonValider: (id: number) => void;
+  onReassign: (ot: any) => void;
   onEdit: (ot: any) => void;
   onDelete: (id: number) => void;
   onOpenDetails: (ot: any) => void;
@@ -20,7 +25,12 @@ export function OtList({
   isAdminOrChefTech,
   onStart,
   onOpenRapport,
+  onValiderTechnicien,
   onValidate,
+  onReporter,
+  onAnnuler,
+  onNonValider,
+  onReassign,
   onEdit,
   onDelete,
   onOpenDetails,
@@ -43,7 +53,12 @@ export function OtList({
           isAdminOrChefTech={isAdminOrChefTech}
           onStart={onStart}
           onOpenRapport={onOpenRapport}
+          onValiderTechnicien={onValiderTechnicien}
           onValidate={onValidate}
+          onReporter={onReporter}
+          onAnnuler={onAnnuler}
+          onNonValider={onNonValider}
+          onReassign={onReassign}
           onEdit={onEdit}
           onDelete={onDelete}
           onOpenDetails={onOpenDetails}

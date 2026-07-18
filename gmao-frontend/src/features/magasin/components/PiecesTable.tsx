@@ -1,12 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, Package, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { Piece } from '@/types/magasin.types';
 
 interface PiecesTableProps {
-  pieces: any[];
+  pieces: Piece[];
   onAdd: () => void;
-  onEdit: (piece: any) => void;
+  onEdit: (piece: Piece) => void;
   onDelete: (id: number) => void;
-  onMouvement: (piece: any, type: 'ENTREE' | 'SORTIE') => void;
+  onMouvement: (piece: Piece, type: 'ENTREE' | 'SORTIE') => void;
   canManage: boolean;
 }
 

@@ -1,5 +1,7 @@
 import { apiServer } from '@/lib/api-server';
 import { PlanningClient } from '@/features/planning/components/PlanningClient';
+import { ApiResponse } from '@/types/api.types';
+import { CalendarResponse } from '@/types/planning.types';
 
 export default async function PlanningPage() {
   const currentDate = new Date();
@@ -7,7 +9,7 @@ export default async function PlanningPage() {
   const year = currentDate.getFullYear();
 
   const calendarData = await apiServer
-    .get<any>(`/calendar?month=${month}&year=${year}`)
+    .get<ApiResponse<CalendarResponse>>(`/calendar?month=${month}&year=${year}`)
     .then((res) => res.data)
     .catch(() => ({ ots: [], upcomingPlans: [] }));
 

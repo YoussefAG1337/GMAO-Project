@@ -11,3 +11,4 @@ dist/
 fix.js
 
 prisma/seed.ts
+docker-compose.yml

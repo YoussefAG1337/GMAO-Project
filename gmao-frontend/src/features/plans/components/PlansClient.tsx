@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { useReferenceData } from '@/hooks/useReferenceData';
-import { api } from '@/lib/api';
+import { usePlans } from '@/features/plans/hooks/usePlans';
+import { planService } from '@/services/plan.service';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
@@ -11,6 +12,9 @@ import { PlansHeader } from '@/features/plans/components/PlansHeader';
 import { PlanList } from '@/features/plans/components/PlanList';
 import { PlanFormModal } from '@/features/plans/components/PlanFormModal';
 import { PlanDetailModal } from '@/features/plans/components/PlanDetailModal';
+import { getErrorMessage } from '@/lib/error';
+import { type PlanFormData } from '@/lib/validations/plan';
+
 
 interface PlansClientProps {
   initialPlans: any[];
@@ -29,12 +33,7 @@ export function PlansClient({
   const isAdmin = user?.role === 'ADMIN';
   const isAdminOrChef = isAdmin || user?.role === 'CHEF_MAINTENANCE';
 
-  const { data: plansResponse, mutate } = useSWR('/plans', {
-    fallbackData: initialPlans,
-  });
-  // Si initialPlans vient en tant que array brut ou object {plans: []}, à vérifier
-  // En se basant sur le code original: const plans = plansResponse || []
-  const plans = plansResponse || [];
+  const { plans, updatePlan, deletePlan, togglePlanActive, triggerPlan } = usePlans(initialPlans);
 
   const { ateliers, lignes, postes } = useReferenceData({
     initialAteliers,
@@ -42,87 +41,72 @@ export function PlansClient({
     initialPostes,
   });
 
-  // States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<any>(null);
   const [detailPlanId, setDetailPlanId] = useState<number | null>(null);
 
-  const { data: detailPlanData } = useSWR(detailPlanId ? `/plans/${detailPlanId}` : null);
-
-  const [formData, setFormData] = useState({
-    intitule: '',
-    description: '',
-    atelierId: '',
-    ligneId: '',
-    posteId: '',
-    frequence: 'MENSUELLE',
-    prochaineExecution: '',
-  });
+  const { data: detailPlanData } = useSWR(
+    detailPlanId ? planService.keys.detail(detailPlanId) : null,
+    () => planService.getById(detailPlanId!),
+  );
 
   const isEditing = !!editingPlan;
 
+  // Derive initialData for the modal from the plan being edited
+  const initialData = editingPlan
+    ? {
+        intitule: editingPlan.intitule,
+        description: editingPlan.description || '',
+        atelierId: editingPlan.atelierId,
+        ligneId: editingPlan.ligneId,
+        posteId: editingPlan.posteId,
+        frequence: editingPlan.frequence,
+        prochaineExecution: editingPlan.prochaineExecution
+          ? new Date(editingPlan.prochaineExecution).toISOString().split('T')[0]
+          : '',
+      }
+    : undefined;
+
   const handleOpenCreate = () => {
     setEditingPlan(null);
-    setFormData({
-      intitule: '',
-      description: '',
-      atelierId: '',
-      ligneId: '',
-      posteId: '',
-      frequence: 'MENSUELLE',
-      prochaineExecution: '',
-    });
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (plan: any) => {
     setEditingPlan(plan);
-    setFormData({
-      intitule: plan.intitule,
-      description: plan.description || '',
-      atelierId: plan.atelierId.toString(),
-      ligneId: plan.ligneId.toString(),
-      posteId: plan.posteId.toString(),
-      frequence: plan.frequence,
-      prochaineExecution: plan.prochaineExecution
-        ? new Date(plan.prochaineExecution).toISOString().split('T')[0]
-        : '',
-    });
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (data: PlanFormData) => {
     try {
       const payload = {
-        ...formData,
-        atelierId: Number(formData.atelierId),
-        ligneId: Number(formData.ligneId),
-        posteId: Number(formData.posteId),
-        prochaineExecution: formData.prochaineExecution
-          ? new Date(formData.prochaineExecution).toISOString()
-          : undefined,
+        ...data,
+        atelierId: Number(data.atelierId),
+        ligneId: Number(data.ligneId),
+        posteId: Number(data.posteId),
+        frequence: data.frequence,
+        prochaineExecution: data.prochaineExecution
+          ? new Date(data.prochaineExecution).toISOString()
+          : '',
       };
 
       if (isEditing) {
-        await api.put(`/plans/${editingPlan.id}`, payload);
+        await updatePlan(editingPlan.id, payload);
         toast.success('Plan de maintenance mis à jour');
       } else {
-        await api.post('/plans', payload);
+        await planService.create(payload as any);
         toast.success('Plan de maintenance créé avec succès');
       }
       setIsModalOpen(false);
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || "Erreur lors de l'enregistrement");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || "Erreur lors de l'enregistrement");
     }
   };
 
   const togglePlan = async (id: number, actif: boolean) => {
     try {
-      await api.put(`/plans/${id}`, { actif: !actif });
+      await togglePlanActive(id, !actif);
       toast.success(actif ? 'Plan désactivé' : 'Plan activé');
-      mutate();
     } catch {
       toast.error('Erreur lors du changement de statut');
     }
@@ -131,22 +115,20 @@ export function PlansClient({
   const handleDelete = async (id: number) => {
     if (!window.confirm('Voulez-vous vraiment supprimer ce plan de maintenance ?')) return;
     try {
-      await api.delete(`/plans/${id}`);
+      await deletePlan(id);
       toast.success('Plan de maintenance supprimé');
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la suppression');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la suppression');
     }
   };
 
   const handleTrigger = async (id: number) => {
     if (!window.confirm('Générer un OT maintenant pour ce plan ?')) return;
     try {
-      const response = await api.post<any>(`/plans/${id}/trigger`);
-      toast.success(`OT préventif généré : ${response.data.numeroOT}`);
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la génération');
+      const response = await triggerPlan(id);
+      toast.success(`OT préventif généré : ${(response as any)!.numeroOT}`);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la génération');
     }
   };
 
@@ -170,9 +152,8 @@ export function PlansClient({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
-        formData={formData}
-        setFormData={setFormData}
         isEditing={isEditing}
+        initialData={initialData}
         ateliers={ateliers || []}
         lignes={lignes || []}
         postes={postes || []}

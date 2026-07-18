@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import useSWR from 'swr';
-import { api } from '@/lib/api';
+import { useState, useEffect } from 'react';
+import { useProduits } from '@/features/produits/hooks/useProduits';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { familleSchema, produitSchema, type FamilleFormData, type ProduitFormData } from '@/lib/validations/produit';
 import { useAuth } from '@/context/AuthContext';
 import { ShieldAlert, Package, Layers } from 'lucide-react';
 import { toast } from 'sonner';
@@ -13,11 +15,13 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const fetcher = (url: string) =>
-  api.get<any>(url).then((res) => (res.data !== undefined ? res.data : res));
+
+import { FamilleProduit, Produit } from '@/types/produit.types';
+import { getErrorMessage } from '@/lib/error';
+
 
 interface ProduitsClientProps {
-  initialData: { familles: any[]; produits: any[] };
+  initialData: { familles: FamilleProduit[]; produits: Produit[] };
 }
 
 export function ProduitsClient({ initialData }: ProduitsClientProps) {
@@ -26,23 +30,45 @@ export function ProduitsClient({ initialData }: ProduitsClientProps) {
 
   const isAdminOrChef = user?.role === 'ADMIN' || user?.role === 'CHEF_MAINTENANCE';
 
-  // --- Familles ---
-  const { data: familles, mutate: mutateFamilles } = useSWR('/produits/familles', fetcher, {
-    fallbackData: initialData.familles,
-  });
+  const {
+    familles,
+    produits,
+    createFamille,
+    updateFamille,
+    deleteFamille,
+    createProduit,
+    updateProduit,
+    deleteProduit,
+  } = useProduits(initialData);
 
   const [isFamilleModalOpen, setIsFamilleModalOpen] = useState(false);
-  const [familleForm, setFamilleForm] = useState({ id: 0, nom: '' });
+  const [selectedFamilleId, setSelectedFamilleId] = useState<number | null>(null);
   const [isUpdatingFamille, setIsUpdatingFamille] = useState(false);
 
-  // --- Produits ---
-  const { data: produits, mutate: mutateProduits } = useSWR('/produits', fetcher, {
-    fallbackData: initialData.produits,
+  const {
+    register: registerFamille,
+    handleSubmit: handleFamilleSubmit,
+    reset: resetFamille,
+    formState: { errors: familleErrors, isValid: isFamilleValid },
+  } = useForm<FamilleFormData>({
+    resolver: zodResolver(familleSchema),
+    mode: 'onChange',
   });
 
+  // --- Produits ---
   const [isProduitModalOpen, setIsProduitModalOpen] = useState(false);
-  const [produitForm, setProduitForm] = useState({ id: 0, nom: '', familleProduitId: 0 });
+  const [selectedProduitId, setSelectedProduitId] = useState<number | null>(null);
   const [isUpdatingProduit, setIsUpdatingProduit] = useState(false);
+
+  const {
+    register: registerProduit,
+    handleSubmit: handleProduitSubmit,
+    reset: resetProduit,
+    formState: { errors: produitErrors, isValid: isProduitValid },
+  } = useForm<ProduitFormData>({
+    resolver: zodResolver(produitSchema),
+    mode: 'onChange',
+  });
 
   if (!isAdminOrChef) {
     return (
@@ -57,86 +83,76 @@ export function ProduitsClient({ initialData }: ProduitsClientProps) {
   }
 
   // Actions Familles
-  const handleEditFamille = (f: any) => {
-    setFamilleForm({ id: f.id, nom: f.nom });
+  const handleEditFamille = (f: FamilleProduit) => {
+    setSelectedFamilleId(f.id);
+    resetFamille({ nom: f.nom });
     setIsFamilleModalOpen(true);
   };
   const handleAddFamille = () => {
-    setFamilleForm({ id: 0, nom: '' });
+    setSelectedFamilleId(null);
+    resetFamille({ nom: '' });
     setIsFamilleModalOpen(true);
   };
   const handleDeleteFamille = async (id: number) => {
     if (!confirm('Voulez-vous vraiment supprimer cette famille ?')) return;
     try {
-      await api.delete(`/produits/familles/${id}`);
+      await deleteFamille(id);
       toast.success('Famille supprimée');
-      mutateFamilles();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la suppression');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la suppression');
     }
   };
-  const submitFamille = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitFamille = async (data: FamilleFormData) => {
     setIsUpdatingFamille(true);
     try {
-      if (familleForm.id) {
-        await api.put(`/produits/familles/${familleForm.id}`, { nom: familleForm.nom });
+      if (selectedFamilleId) {
+        await updateFamille(selectedFamilleId, data);
         toast.success('Famille modifiée');
       } else {
-        await api.post('/produits/familles', { nom: familleForm.nom });
+        await createFamille(data);
         toast.success('Famille créée');
       }
       setIsFamilleModalOpen(false);
-      mutateFamilles();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur');
     } finally {
       setIsUpdatingFamille(false);
     }
   };
 
   // Actions Produits
-  const handleEditProduit = (p: any) => {
-    setProduitForm({ id: p.id, nom: p.nom, familleProduitId: p.familleProduitId });
+  const handleEditProduit = (p: Produit) => {
+    setSelectedProduitId(p.id);
+    resetProduit({ nom: p.nom, familleProduitId: p.familleProduitId });
     setIsProduitModalOpen(true);
   };
   const handleAddProduit = () => {
-    setProduitForm({ id: 0, nom: '', familleProduitId: familles[0]?.id || 0 });
+    setSelectedProduitId(null);
+    resetProduit({ nom: '', familleProduitId: familles[0]?.id || 0 });
     setIsProduitModalOpen(true);
   };
   const handleDeleteProduit = async (id: number) => {
     if (!confirm('Voulez-vous vraiment supprimer ce produit ?')) return;
     try {
-      await api.delete(`/produits/${id}`);
+      await deleteProduit(id);
       toast.success('Produit supprimé');
-      mutateProduits();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la suppression');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la suppression');
     }
   };
-  const submitProduit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!produitForm.familleProduitId) {
-      toast.error('Sélectionnez une famille');
-      return;
-    }
+  const submitProduit = async (data: ProduitFormData) => {
     setIsUpdatingProduit(true);
     try {
-      const payload: any = {
-        nom: produitForm.nom,
-        familleProduitId: Number(produitForm.familleProduitId),
-      };
-      if (produitForm.id) {
-        await api.put(`/produits/${produitForm.id}`, payload);
+      if (selectedProduitId) {
+        await updateProduit(selectedProduitId, data);
         toast.success('Produit modifié');
       } else {
-        await api.post('/produits', payload);
+        await createProduit(data);
         toast.success('Produit créé');
       }
       setIsProduitModalOpen(false);
-      mutateProduits();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur');
     } finally {
       setIsUpdatingProduit(false);
     }
@@ -189,23 +205,23 @@ export function ProduitsClient({ initialData }: ProduitsClientProps) {
       <Modal
         isOpen={isFamilleModalOpen}
         onClose={() => setIsFamilleModalOpen(false)}
-        title={familleForm.id ? 'Modifier Famille' : 'Ajouter Famille'}
+        title={selectedFamilleId ? 'Modifier Famille' : 'Ajouter Famille'}
       >
-        <form onSubmit={submitFamille} className="space-y-4">
+        <form onSubmit={handleFamilleSubmit(submitFamille)} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Nom de la famille</label>
             <Input
-              required
-              value={familleForm.nom}
-              onChange={(e) => setFamilleForm({ ...familleForm, nom: e.target.value })}
+              {...registerFamille('nom')}
               placeholder="Ex: Câblages"
+              className={familleErrors.nom ? 'border-red-500' : ''}
             />
+            {familleErrors.nom && <p className="text-[10px] text-red-400">{familleErrors.nom.message}</p>}
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
             <Button type="button" variant="ghost" onClick={() => setIsFamilleModalOpen(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isUpdatingFamille}>
+            <Button type="submit" disabled={isUpdatingFamille || !isFamilleValid}>
               {isUpdatingFamille ? '...' : 'Enregistrer'}
             </Button>
           </div>
@@ -216,43 +232,40 @@ export function ProduitsClient({ initialData }: ProduitsClientProps) {
       <Modal
         isOpen={isProduitModalOpen}
         onClose={() => setIsProduitModalOpen(false)}
-        title={produitForm.id ? 'Modifier Produit' : 'Ajouter Produit'}
+        title={selectedProduitId ? 'Modifier Produit' : 'Ajouter Produit'}
       >
-        <form onSubmit={submitProduit} className="space-y-4">
+        <form onSubmit={handleProduitSubmit(submitProduit)} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Nom du produit</label>
             <Input
-              required
-              value={produitForm.nom}
-              onChange={(e) => setProduitForm({ ...produitForm, nom: e.target.value })}
+              {...registerProduit('nom')}
               placeholder="Ex: Faisceau A320"
+              className={produitErrors.nom ? 'border-red-500' : ''}
             />
+            {produitErrors.nom && <p className="text-[10px] text-red-400">{produitErrors.nom.message}</p>}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Famille</label>
             <select
-              required
-              className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
-              value={produitForm.familleProduitId}
-              onChange={(e) =>
-                setProduitForm({ ...produitForm, familleProduitId: Number(e.target.value) })
-              }
+              {...registerProduit('familleProduitId', { valueAsNumber: true })}
+              className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${produitErrors.familleProduitId ? 'border-red-500' : ''}`}
             >
               <option value={0} disabled>
                 Sélectionner une famille
               </option>
-              {familles?.map((f: any) => (
+              {familles?.map((f: FamilleProduit) => (
                 <option key={f.id} value={f.id}>
                   {f.nom}
                 </option>
               ))}
             </select>
+            {produitErrors.familleProduitId && <p className="text-[10px] text-red-400">{produitErrors.familleProduitId.message}</p>}
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
             <Button type="button" variant="ghost" onClick={() => setIsProduitModalOpen(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isUpdatingProduit}>
+            <Button type="submit" disabled={isUpdatingProduit || !isProduitValid}>
               {isUpdatingProduit ? '...' : 'Enregistrer'}
             </Button>
           </div>

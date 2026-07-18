@@ -9,6 +9,8 @@ export const createDISchema = z.object({
     produitId: z.coerce.number().int().positive().optional(),
     panneId: z.coerce.number().int().positive().optional(),
     nouvellePanneNom: z.string().optional(),
+    nouvellePanneType: z.enum(['TECHNIQUE', 'QUALITE']).optional(),
+    technicienId: z.coerce.number().int().positive().optional(),
     priorite: z.nativeEnum(Priorite).optional(),
   }),
 });
@@ -24,6 +26,8 @@ export const updateDISchema = z.object({
     produitId: z.coerce.number().int().positive().optional(),
     panneId: z.coerce.number().int().positive().optional(),
     nouvellePanneNom: z.string().optional(),
+    nouvellePanneType: z.enum(['TECHNIQUE', 'QUALITE']).optional(),
+    technicienId: z.coerce.number().int().positive().optional(),
     priorite: z.nativeEnum(Priorite).optional(),
   }),
 });

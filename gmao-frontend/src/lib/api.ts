@@ -22,7 +22,7 @@ class ApiClient {
     options?: RequestInit;
   }[] = [];
 
-  private async processQueue(err: any, tokenSuccess = false) {
+  private async processQueue(err: unknown, tokenSuccess = false) {
     const queue = this.failedQueue;
     this.failedQueue = [];
 

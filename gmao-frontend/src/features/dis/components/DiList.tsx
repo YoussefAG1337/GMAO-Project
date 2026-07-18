@@ -3,21 +3,25 @@
 import { DiCard } from './DiCard';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
+import { Di } from '@/types/di.types';
+import { User } from '@/types';
 
 interface DiListProps {
-  dis: any[];
+  currentUserId?: number;
+  dis: Di[];
+  user: User | null;
   isAdmin: boolean;
   isAdminOrChef: boolean;
   isTechnician: boolean;
-  currentUserId?: number;
-  onEdit: (di: any) => void;
+  onEdit: (di: Di) => void;
   onDelete: (id: number) => void;
-  onOpenDetails: (di: any) => void;
+  onOpenDetails: (di: Di) => void;
   onStartWork: (id: number) => void;
 }
 
 export function DiList({
   dis,
+  user,
   isAdmin,
   isAdminOrChef,
   isTechnician,

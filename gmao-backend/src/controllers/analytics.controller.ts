@@ -29,3 +29,14 @@ export const getDashboardAnalytics = async (req: Request, res: Response, next: N
     next(error);
   }
 };
+
+export const getWorkrates = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { date } = req.query as { date?: string };
+    const anchor = date ? startOfDay(new Date(date)) : startOfDay(new Date());
+    const data = await analyticsService.getTechnicianWorkrates(anchor);
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -2,52 +2,70 @@
 
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
-import useSWR from 'swr';
-import { api } from '@/lib/api';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useReferenceData } from '@/hooks/useReferenceData';
 
-const fetcher = (url: string) =>
-  api.get<any>(url).then((res) => (res.data !== undefined ? res.data : res));
+import { utilisateurEditSchema, type UtilisateurEditFormData } from '@/lib/validations/utilisateur';
 
 interface UtilisateurEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (e: React.FormEvent) => Promise<void>;
-  editForm: { role: string; actif: boolean; lignes?: number[] };
-  setEditForm: (data: { role: string; actif: boolean; lignes?: number[] }) => void;
-  isUpdating: boolean;
+  onSubmit: (data: UtilisateurEditFormData) => Promise<void>;
+  initialData: { role: string; actif: boolean; lignes?: number[] };
 }
 
 export function UtilisateurEditModal({
   isOpen,
   onClose,
   onSubmit,
-  editForm,
-  setEditForm,
-  isUpdating,
+  initialData,
 }: UtilisateurEditModalProps) {
-  const { data: lignesResult } = useSWR(isOpen ? '/equipements/lignes' : null, fetcher);
-  const lignes = lignesResult?.data || [];
+  const { lignes } = useReferenceData();
+
+  const {
+    register,
+    handleSubmit: handleRHFSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<UtilisateurEditFormData>({
+    resolver: zodResolver(utilisateurEditSchema),
+    mode: 'onChange',
+  });
+
+  useEffect(() => {
+    if (isOpen && initialData) {
+      reset({
+        role: initialData.role as UtilisateurEditFormData['role'],
+        actif: initialData.actif,
+        lignes: initialData.lignes || [],
+      });
+    }
+  }, [isOpen, initialData, reset]);
+
+  const watchedRole = watch('role');
+  const watchedLignes = watch('lignes') || [];
+  const showLignesSelection = watchedRole === 'TECHNICIEN' || watchedRole === 'CHEF_TECHNICIEN';
 
   const handleLigneToggle = (ligneId: number) => {
-    const currentLignes = editForm.lignes || [];
-    const newLignes = currentLignes.includes(ligneId)
-      ? currentLignes.filter((id) => id !== ligneId)
-      : [...currentLignes, ligneId];
-    setEditForm({ ...editForm, lignes: newLignes });
+    const current = watchedLignes;
+    const updated = current.includes(ligneId)
+      ? current.filter((id) => id !== ligneId)
+      : [...current, ligneId];
+    setValue('lignes', updated, { shouldValidate: true });
   };
-
-  const showLignesSelection = editForm.role === 'TECHNICIEN' || editForm.role === 'CHEF_TECHNICIEN';
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Modifier l'utilisateur">
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={handleRHFSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-white">Rôle</label>
           <select
-            required
-            className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
-            value={editForm.role}
-            onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+            {...register('role')}
+            className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.role ? 'border-red-500' : ''}`}
           >
             <option value="ADMIN">Administrateur</option>
             <option value="CHEF_MAINTENANCE">Chef de Maintenance</option>
@@ -55,14 +73,16 @@ export function UtilisateurEditModal({
             <option value="TECHNICIEN">Technicien</option>
             <option value="MAGASINIER">Magasinier</option>
           </select>
+          {errors.role && <p className="text-[10px] text-red-400">{errors.role.message}</p>}
         </div>
+
         <div className="space-y-2">
           <label className="text-sm font-medium text-white">Statut du compte</label>
           <select
-            required
+            {...register('actif', {
+              setValueAs: (v) => v === 'true' || v === true,
+            })}
             className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
-            value={editForm.actif ? 'true' : 'false'}
-            onChange={(e) => setEditForm({ ...editForm, actif: e.target.value === 'true' })}
           >
             <option value="true">Actif (Autorisé à se connecter)</option>
             <option value="false">En attente / Désactivé</option>
@@ -74,11 +94,11 @@ export function UtilisateurEditModal({
             <label className="text-sm font-medium text-white">Lignes Assignées</label>
             <div className="max-h-40 overflow-y-auto bg-zinc-900 border border-white/10 rounded-lg p-2 space-y-2">
               {lignes.map((ligne: any) => (
-                <label key={ligne.id} className="flex items-center space-x-2 text-white">
+                <label key={ligne.id} className="flex items-center space-x-2 text-white cursor-pointer">
                   <input
                     type="checkbox"
                     className="rounded bg-zinc-800 border-white/20 text-purple-600 focus:ring-purple-600"
-                    checked={(editForm.lignes || []).includes(ligne.id)}
+                    checked={watchedLignes.includes(ligne.id)}
                     onChange={() => handleLigneToggle(ligne.id)}
                   />
                   <span>{ligne.nom}</span>
@@ -92,15 +112,15 @@ export function UtilisateurEditModal({
         )}
 
         <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.05]">
-          <Button type="button" variant="ghost" onClick={onClose}>
+          <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
             Annuler
           </Button>
           <Button
             type="submit"
-            disabled={isUpdating}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
+            disabled={isSubmitting || !isValid}
+            className="bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50"
           >
-            {isUpdating ? 'Enregistrement...' : 'Enregistrer'}
+            {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
           </Button>
         </div>
       </form>

@@ -20,10 +20,12 @@ export interface IEquipementService {
   createLigne(data: CreateLigneDTO): Promise<Ligne>;
   updateLigne(id: number, data: UpdateLigneDTO): Promise<Ligne>;
   deleteLigne(id: number): Promise<any>;
+  getLigneKpis(id: number): Promise<{ mtbf: number; mttr: number }>;
 
   getPostes(ligneId?: number, actif?: boolean): Promise<Poste[]>;
   getPosteById(id: number): Promise<Poste>;
   createPoste(data: CreatePosteDTO): Promise<Poste>;
   updatePoste(id: number, data: UpdatePosteDTO): Promise<Poste>;
   deletePoste(id: number): Promise<any>;
+  getPosteKpis(id: number): Promise<{ mtbf: number; mttr: number }>;
 }

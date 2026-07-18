@@ -1,5 +1,13 @@
 import { StatutDI, StatutOT } from '@prisma/client';
 import prisma from '../config/prisma';
+import {
+  startOfDay,
+  endOfDay,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+} from 'date-fns';
 
 export class AnalyticsService {
   public async getDashboardAnalytics(startDate?: Date, endDate?: Date) {
@@ -160,6 +168,70 @@ export class AnalyticsService {
       },
       timePerPanne,
       timePerLigne,
+    };
+  }
+
+  /**
+   * Compute workrate (total tempsIntervention in minutes) for each active technician
+   * over three windows anchored on the given date:
+   *   - daily:   the given day
+   *   - weekly:  the Monday–Sunday week containing that day
+   *   - monthly: the full calendar month containing that day
+   */
+  public async getTechnicianWorkrates(anchorDate: Date) {
+    const dayStart = startOfDay(anchorDate);
+    const dayEnd = endOfDay(anchorDate);
+    const weekStart = startOfWeek(anchorDate, { weekStartsOn: 1 }); // Monday
+    const weekEnd = endOfWeek(anchorDate, { weekStartsOn: 1 });     // Sunday
+    const monthStart = startOfMonth(anchorDate);
+    const monthEnd = endOfMonth(anchorDate);
+
+    // Fetch all active technicians
+    const technicians = await prisma.user.findMany({
+      where: { role: 'TECHNICIEN', actif: true },
+      select: { id: true, nom: true, prenom: true },
+      orderBy: { nom: 'asc' },
+    });
+
+    // For each technician, aggregate tempsIntervention for the 3 windows
+    const results = await Promise.all(
+      technicians.map(async (tech) => {
+        const sumFor = async (from: Date, to: Date) => {
+          const agg = await prisma.rapportIntervention.aggregate({
+            _sum: { tempsIntervention: true },
+            where: {
+              redacteurId: tech.id,
+              createdAt: { gte: from, lte: to },
+            },
+          });
+          return agg._sum.tempsIntervention ?? 0;
+        };
+
+        const [daily, weekly, monthly] = await Promise.all([
+          sumFor(dayStart, dayEnd),
+          sumFor(weekStart, weekEnd),
+          sumFor(monthStart, monthEnd),
+        ]);
+
+        return {
+          id: tech.id,
+          nom: tech.nom,
+          prenom: tech.prenom,
+          daily,   // minutes
+          weekly,  // minutes
+          monthly, // minutes
+        };
+      }),
+    );
+
+    return {
+      anchorDate: anchorDate.toISOString(),
+      windows: {
+        day: { start: dayStart.toISOString(), end: dayEnd.toISOString() },
+        week: { start: weekStart.toISOString(), end: weekEnd.toISOString() },
+        month: { start: monthStart.toISOString(), end: monthEnd.toISOString() },
+      },
+      technicians: results,
     };
   }
 }

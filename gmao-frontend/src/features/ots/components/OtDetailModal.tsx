@@ -2,10 +2,12 @@
 
 import { Modal } from '@/components/ui/modal';
 
+import { Ot } from '@/types/ot.types';
+
 interface OtDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedItem: any;
+  selectedItem: Ot | null;
 }
 
 export function OtDetailModal({ isOpen, onClose, selectedItem }: OtDetailModalProps) {

@@ -1,18 +1,21 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Factory, Layers, Cpu, Edit2, Trash2, Power, Wrench } from 'lucide-react';
+import { Factory, Layers, Cpu, Edit2, Trash2, Power, Wrench, Activity } from 'lucide-react';
+import { Atelier, Ligne, Poste } from '@/types/equipement.types';
+import { User } from '@/types';
 
 interface EquipementsGridProps {
   activeTab: 'ATELIERS' | 'LIGNES' | 'POSTES';
-  ateliers: any[];
-  lignes: any[];
-  postes: any[];
+  ateliers: Atelier[];
+  lignes: Ligne[];
+  postes: Poste[];
   isAdminOrChef: boolean;
-  onEdit: (item: any, type: 'ATELIER' | 'LIGNE' | 'POSTE') => void;
+  onEdit: (item: Atelier | Ligne | Poste, type: 'ATELIER' | 'LIGNE' | 'POSTE') => void;
   onDelete: (id: number, type: 'ATELIER' | 'LIGNE' | 'POSTE') => void;
   onToggleActive: (id: number, type: 'ATELIER' | 'LIGNE' | 'POSTE', currentStatus: boolean) => void;
-  onManagePannes?: (item: any, type: 'LIGNE' | 'POSTE') => void;
+  onManagePannes?: (item: Ligne | Poste, type: 'LIGNE' | 'POSTE') => void;
+  onViewKpis?: (item: Ligne | Poste, type: 'LIGNE' | 'POSTE') => void;
 }
 
 export function EquipementsGrid({
@@ -25,11 +28,12 @@ export function EquipementsGrid({
   onDelete,
   onToggleActive,
   onManagePannes,
+  onViewKpis,
 }: EquipementsGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {activeTab === 'ATELIERS' &&
-        ateliers?.map((item: any) => (
+        ateliers?.map((item: Atelier) => (
           <Card
             key={item.id}
             className="border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl hover:border-purple-500/30 transition-all group"
@@ -82,7 +86,7 @@ export function EquipementsGrid({
         ))}
 
       {activeTab === 'LIGNES' &&
-        lignes?.map((item: any) => (
+        lignes?.map((item: Ligne) => (
           <Card
             key={item.id}
             className="border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl hover:border-blue-500/30 transition-all group"
@@ -109,6 +113,15 @@ export function EquipementsGrid({
                         <Wrench className="w-4 h-4" />
                       </button>
                     )}
+                    {onViewKpis && (
+                      <button
+                        className="text-muted-foreground hover:text-emerald-400"
+                        onClick={() => onViewKpis(item, 'LIGNE')}
+                        title="Voir les KPIs"
+                      >
+                        <Activity className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
                       className="text-muted-foreground hover:text-amber-400"
                       onClick={() => onToggleActive(item.id, 'LIGNE', item.actif)}
@@ -132,9 +145,9 @@ export function EquipementsGrid({
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                 {item.description || 'Aucune description'}
               </p>
-              {item.techniciens && item.techniciens.length > 0 && (
+              {(item as any).techniciens && (item as any).techniciens.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">
-                  {item.techniciens.map((t: any) => (
+                  {(item as any).techniciens.map((t: User) => (
                     <span
                       key={t.id}
                       className="text-[10px] bg-white/5 text-muted-foreground px-2 py-0.5 rounded-full border border-white/10"
@@ -159,7 +172,7 @@ export function EquipementsGrid({
         ))}
 
       {activeTab === 'POSTES' &&
-        postes?.map((item: any) => (
+        postes?.map((item: Poste) => (
           <Card
             key={item.id}
             className="border-white/[0.06] bg-zinc-950/45 backdrop-blur-xl hover:border-emerald-500/30 transition-all group"
@@ -184,6 +197,15 @@ export function EquipementsGrid({
                         title="Gérer les pannes"
                       >
                         <Wrench className="w-4 h-4" />
+                      </button>
+                    )}
+                    {onViewKpis && (
+                      <button
+                        className="text-muted-foreground hover:text-emerald-400"
+                        onClick={() => onViewKpis(item, 'POSTE')}
+                        title="Voir les KPIs"
+                      >
+                        <Activity className="w-4 h-4" />
                       </button>
                     )}
                     <button

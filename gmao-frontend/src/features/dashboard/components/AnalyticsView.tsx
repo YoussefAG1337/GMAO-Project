@@ -1,24 +1,52 @@
 'use client';
 
-import useSWR from 'swr';
-import { api } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useState } from 'react';
 import { format, subMonths } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { useAnalytics } from '@/features/dashboard/hooks/useAnalytics';
+import { useWorkrates } from '@/features/dashboard/hooks/useWorkrates';
+import { TechnicianWorkrateCard } from '@/features/dashboard/components/TechnicianWorkrateCard';
+import { useAuth } from '@/context/AuthContext';
+import { Users } from 'lucide-react';
 
-const fetcher = (url: string) => api.get<any>(url).then((res) => res.data);
+function workingDaysInMonth(dateStr: string): number {
+  const anchor = new Date(dateStr);
+  const year = anchor.getFullYear();
+  const month = anchor.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let count = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const day = new Date(year, month, d).getDay();
+    if (day !== 0 && day !== 6) count++; // exclude Sun (0) and Sat (6)
+  }
+  return count;
+}
 
 export function AnalyticsView() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+  const isAdminOrChef = isAdmin || user?.role === 'CHEF_MAINTENANCE';
+
   const [dateRange, setDateRange] = useState({
     startDate: format(subMonths(new Date(), 1), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
   });
 
+  // Workrate anchor defaults to today
+  const [anchorDate, setAnchorDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+
   const {
-    data: analyticsResponse,
+    analytics,
     isLoading,
     error,
-  } = useSWR(`/analytics?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`, fetcher);
+  } = useAnalytics(dateRange.startDate, dateRange.endDate);
+
+  const {
+    workrateData,
+    isLoading: workrateLoading,
+    error: workrateError,
+  } = useWorkrates(isAdminOrChef ? anchorDate : '');
 
   if (error) {
     return (
@@ -28,18 +56,18 @@ export function AnalyticsView() {
     );
   }
 
-  const analytics = analyticsResponse;
-
   if (isLoading) {
     return <div className="animate-pulse h-64 bg-card rounded-xl"></div>;
   }
 
   if (!analytics) return null;
 
+  const wdim = workingDaysInMonth(anchorDate);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">Analyse des Performances (DI & OT)</h2>
+        <h2 className="text-xl font-bold text-white">Analyse des Performances (DI &amp; OT)</h2>
         <div className="flex gap-2">
           <input
             type="date"
@@ -117,7 +145,7 @@ export function AnalyticsView() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {analytics.timePerLigne.map((item: any, idx: number) => (
+              {analytics.timePerLigne.map((item: { ligne: string; averageTimeMinutes: number }, idx: number) => (
                 <div
                   key={idx}
                   className="flex justify-between items-center p-3 rounded-lg bg-white/[0.02] border border-white/5"
@@ -140,7 +168,7 @@ export function AnalyticsView() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {analytics.timePerPanne.map((item: any, idx: number) => (
+              {analytics.timePerPanne.map((item: { panne: string; averageTimeMinutes: number }, idx: number) => (
                 <div
                   key={idx}
                   className="flex justify-between items-center p-3 rounded-lg bg-white/[0.02] border border-white/5"
@@ -156,6 +184,71 @@ export function AnalyticsView() {
           </CardContent>
         </Card>
       </div>
+      {isAdminOrChef && (
+        <div className="space-y-4">
+          {/* Section header + date anchor picker */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <Users className="w-5 h-5 text-indigo-400" />
+              <h3 className="text-lg font-bold text-white">Taux de Travail — Techniciens</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-500">Date de référence :</span>
+              <input
+                type="date"
+                value={anchorDate}
+                onChange={(e) => setAnchorDate(e.target.value)}
+                className="bg-background border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white"
+              />
+            </div>
+          </div>
+          {workrateError && (
+            <p className="text-rose-400 text-sm">
+              Erreur lors du chargement des taux de travail.
+            </p>
+          )}
+
+          {workrateLoading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse h-28 bg-zinc-900 rounded-2xl" />
+              ))}
+            </div>
+          )}
+
+          {!workrateLoading && workrateData && (
+            <>
+              {/* Windows metadata */}
+              <p className="text-[11px] text-zinc-600">
+                Semaine :{' '}
+                {new Date(workrateData.windows.week.start).toLocaleDateString('fr-FR')}
+                {' – '}
+                {new Date(workrateData.windows.week.end).toLocaleDateString('fr-FR')}
+                {'  ·  '}
+                Mois :{' '}
+                {new Date(workrateData.windows.month.start).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                {' ('}
+                {wdim} jours ouvrés, max {(wdim * 7.5).toFixed(0)} h
+                {')'}
+              </p>
+
+              {workrateData.technicians.length === 0 ? (
+                <p className="text-zinc-500 text-sm py-4">Aucun technicien actif trouvé.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {workrateData.technicians.map((tech) => (
+                    <TechnicianWorkrateCard
+                      key={tech.id}
+                      tech={tech}
+                      workingDaysInMonth={wdim}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

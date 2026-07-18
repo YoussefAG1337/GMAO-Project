@@ -13,11 +13,13 @@ import {
   deleteAtelier,
   getLignes,
   getLigneById,
+  getLigneKpis,
   createLigne,
   updateLigne,
   deleteLigne,
   getPostes,
   getPosteById,
+  getPosteKpis,
   createPoste,
   updatePoste,
   deletePoste,
@@ -68,6 +70,7 @@ router.delete('/ateliers/:id', rbac([Role.ADMIN]), deleteAtelier);
 
 router.get('/lignes', getLignes);
 router.get('/lignes/:id', getLigneById);
+router.get('/lignes/:id/kpis', getLigneKpis);
 
 router.post(
   '/lignes',
@@ -91,6 +94,7 @@ router.delete('/lignes/:id', rbac([Role.ADMIN]), deleteLigne);
 
 router.get('/postes', getPostes);
 router.get('/postes/:id', getPosteById);
+router.get('/postes/:id/kpis', getPosteKpis);
 
 router.post(
   '/postes',

@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import useSWR from 'swr';
-import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { usePlanning } from '@/features/planning/hooks/usePlanning';
 import { toast } from 'sonner';
 import { startOfMonth, eachDayOfInterval, addMonths, subMonths, getDay, isSameDay } from 'date-fns';
 
@@ -11,9 +10,9 @@ import { PlanningHeader } from '@/features/planning/components/PlanningHeader';
 import { PlanningLegend } from '@/features/planning/components/PlanningLegend';
 import { PlanningCalendarGrid } from '@/features/planning/components/PlanningCalendarGrid';
 import { PlanningDayModal } from '@/features/planning/components/PlanningDayModal';
+import { getErrorMessage } from '@/lib/error';
 
-const fetcher = (url: string) =>
-  api.get<any>(url).then((res) => (res.data !== undefined ? res.data : res));
+
 
 interface PlanningClientProps {
   initialCalendarData: any;
@@ -41,9 +40,11 @@ export function PlanningClient({
   // Only use initialData if the month/year match the server's initial fetch
   const isInitialFetch = month === initialMonth && year === initialYear;
 
-  const { data: calendarData, mutate } = useSWR(`/calendar?month=${month}&year=${year}`, fetcher, {
-    fallbackData: isInitialFetch ? initialCalendarData : undefined,
-  });
+  const { calendarData, triggerPlan } = usePlanning(
+    month,
+    year,
+    isInitialFetch ? initialCalendarData : undefined
+  );
 
   const ots = calendarData?.ots || [];
   const upcomingPlans = calendarData?.upcomingPlans || [];
@@ -72,11 +73,10 @@ export function PlanningClient({
   const handleGenerateNow = async (planId: number) => {
     if (!window.confirm('Générer un OT maintenant pour ce plan ?')) return;
     try {
-      const response = await api.post<any>(`/plans/${planId}/trigger`);
-      toast.success(`OT préventif généré : ${response.data.numeroOT}`);
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la génération');
+      const response = await triggerPlan(planId);
+      toast.success(`OT préventif généré : ${(response as any)!.numeroOT}`);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la génération');
     }
   };
 

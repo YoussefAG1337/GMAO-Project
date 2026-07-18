@@ -60,7 +60,37 @@ export const submitRapportSchema = z.object({
   }),
 });
 
+export const reporterOTSchema = z.object({
+  params: z.object({
+    id: z.string().regex(/^\d+$/, "L'ID doit être un nombre"),
+  }),
+  body: z.object({
+    raison: z.string().min(5, 'Veuillez préciser la raison du report (min. 5 caractères)'),
+  }),
+});
+
+export const annulerOTSchema = z.object({
+  params: z.object({
+    id: z.string().regex(/^\d+$/, "L'ID doit être un nombre"),
+  }),
+  body: z.object({
+    raison: z.string().min(5, "Veuillez préciser la raison de l'annulation (min. 5 caractères)"),
+  }),
+});
+
+export const nonValideOTSchema = z.object({
+  params: z.object({
+    id: z.string().regex(/^\d+$/, "L'ID doit être un nombre"),
+  }),
+  body: z.object({
+    raison: z.string().min(5, 'Veuillez préciser la raison du refus (min. 5 caractères)'),
+  }),
+});
+
 export type CreateOTDTO = z.infer<typeof createOTSchema>['body'];
 export type UpdateOTDTO = z.infer<typeof updateOTSchema>['body'];
 export type AssignOTDTO = z.infer<typeof assignOTSchema>['body'];
 export type SubmitRapportDTO = z.infer<typeof submitRapportSchema>['body'];
+export type ReporterOTDTO = z.infer<typeof reporterOTSchema>['body'];
+export type AnnulerOTDTO = z.infer<typeof annulerOTSchema>['body'];
+export type NonValideOTDTO = z.infer<typeof nonValideOTSchema>['body'];

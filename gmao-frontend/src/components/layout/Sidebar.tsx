@@ -22,6 +22,7 @@ import {
   Factory,
   MessageSquareWarning,
   FileText,
+  ArrowUpDown,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -50,7 +51,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   if (!user) return null;
 
-  const sections: SidebarSection[] = [
+  const isTech = user.role === 'TECHNICIEN';
+
+  const baseSections: SidebarSection[] = [
     {
       title: 'Principal',
       items: [
@@ -79,11 +82,15 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           href: '/dashboard/rapports',
           icon: FileText,
         },
-        {
-          name: 'Plans préventifs',
-          href: '/dashboard/plans',
-          icon: CalendarRange,
-        },
+        ...(!isTech
+          ? [
+              {
+                name: 'Plans préventifs',
+                href: '/dashboard/plans',
+                icon: CalendarRange,
+              },
+            ]
+          : []),
         {
           name: 'Calendrier',
           href: '/dashboard/planning',
@@ -99,31 +106,15 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           href: '/dashboard/magasin',
           icon: Package,
         },
-        {
-          name: 'Produits',
-          href: '/dashboard/produits',
-          icon: Package,
-        },
-      ],
-    },
-    {
-      title: 'Analyse',
-      items: [
-        {
-          name: 'Analyse pannes',
-          href: '/dashboard/pannes',
-          icon: Activity,
-        },
-        {
-          name: 'Diagramme Pareto',
-          href: '/dashboard/pareto',
-          icon: BarChart3,
-        },
-        {
-          name: 'KPIs',
-          href: '/dashboard/kpis',
-          icon: Gauge,
-        },
+        ...(!isTech
+          ? [
+              {
+                name: 'Produits',
+                href: '/dashboard/produits',
+                icon: ArrowUpDown,
+              },
+            ]
+          : []),
       ],
     },
   ];
@@ -146,7 +137,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   };
 
   const allSections: SidebarSection[] =
-    user.role === 'ADMIN' ? [...sections, adminSection] : sections;
+    user.role === 'ADMIN' ? [...baseSections, adminSection] : baseSections;
 
   return (
     <aside

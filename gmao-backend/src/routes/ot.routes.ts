@@ -12,7 +12,11 @@ import {
   assignOT,
   startOT,
   submitRapport,
+  validerTechnicien,
   validateOT,
+  reporterOT,
+  annulerOT,
+  nonValiderOT,
   deleteOT,
   getOTStats,
   startFromDi,
@@ -26,6 +30,9 @@ import {
   updateOTSchema,
   assignOTSchema,
   submitRapportSchema,
+  reporterOTSchema,
+  annulerOTSchema,
+  nonValideOTSchema,
 } from '../dtos/ot.dto';
 
 const router = Router();
@@ -75,6 +82,7 @@ router.post(
   startFromDi,
 );
 
+// Technicien soumet ou met à jour son rapport (statut → RAPPORTE)
 router.post(
   '/:id/rapport',
   rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
@@ -82,7 +90,39 @@ router.post(
   submitRapport,
 );
 
+// Technicien valide son propre travail (RAPPORTE → EN_ATTENTE_VALIDATION)
+router.patch(
+  '/:id/valider-technicien',
+  rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
+  validerTechnicien,
+);
+
+// Admin/Chef donne la validation finale (EN_ATTENTE_VALIDATION → FERME)
 router.patch('/:id/validate', rbac([Role.ADMIN, Role.CHEF_TECHNICIEN]), validateOT);
+
+// Technicien reporte l'intervention (EN_COURS → REPORTE)
+router.patch(
+  '/:id/reporter',
+  rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
+  validateRequest(reporterOTSchema),
+  reporterOT,
+);
+
+// Technicien annule l'OT (EN_COURS ou RAPPORTE → ANNULE)
+router.patch(
+  '/:id/annuler',
+  rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
+  validateRequest(annulerOTSchema),
+  annulerOT,
+);
+
+// Technicien ou Admin/Chef marque l'OT non validé avec raison
+router.patch(
+  '/:id/non-valide',
+  rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
+  validateRequest(nonValideOTSchema),
+  nonValiderOT,
+);
 
 router.delete('/:id', rbac([Role.ADMIN]), deleteOT);
 

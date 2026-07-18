@@ -40,7 +40,7 @@ resource "azurerm_container_app" "backend" {
   template {
     # We define the container and give it minimal CPU/RAM to stay in the free tier
     container {
-      name   = "backend"
+      name = "backend"
       # Initially, we deploy a dummy hello-world image until GitHub Actions builds ours
       image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
       cpu    = 0.25

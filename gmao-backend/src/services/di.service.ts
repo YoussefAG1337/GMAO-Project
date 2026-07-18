@@ -4,6 +4,7 @@ import { NotFoundError, BadRequestError } from '../utils/errors';
 import { IDiService } from '../interfaces/services/IDiService';
 import { CreateDIDTO, UpdateDIDTO } from '../dtos/di.dto';
 import { Role } from '@prisma/client';
+import { DiAssignmentEmailData } from './email.service';
 
 class DiService implements IDiService {
   public async getDIs(filters: any, pageNum: number, limitNum: number) {
@@ -58,8 +59,19 @@ class DiService implements IDiService {
   }
 
   public async createDI(userId: number, data: CreateDIDTO, documentUtileUrl?: string) {
-    const { atelierId, ligneId, posteId, produitId, panneId, nouvellePanneNom, priorite } =
-      data as CreateDIDTO & { nouvellePanneNom?: string };
+    const {
+      atelierId,
+      ligneId,
+      posteId,
+      produitId,
+      panneId,
+      nouvellePanneNom,
+      nouvellePanneType,
+      priorite,
+    } = data as CreateDIDTO & {
+      nouvellePanneNom?: string;
+      nouvellePanneType?: 'TECHNIQUE' | 'QUALITE';
+    };
 
     // Validate hierarchy consistency
     const poste = await prisma.poste.findUnique({ where: { id: posteId } });
@@ -75,9 +87,9 @@ class DiService implements IDiService {
       throw new BadRequestError("La ligne n'existe pas ou n'appartient pas à l'atelier spécifié");
     }
 
-    // Auto-assign to the first technician associated with this line, if any
-    let technicienId = undefined;
-    if (ligne.techniciens && ligne.techniciens.length > 0) {
+    // Auto-assign to the requested technician or the first technician associated with this line
+    let technicienId = data.technicienId;
+    if (!technicienId && ligne.techniciens && ligne.techniciens.length > 0) {
       technicienId = ligne.techniciens[0].id;
     }
 
@@ -86,7 +98,7 @@ class DiService implements IDiService {
       let finalPanneId = panneId;
       if (nouvellePanneNom && !finalPanneId) {
         const newPanne = await tx.panne.create({
-          data: { nom: nouvellePanneNom, ligneId, posteId },
+          data: { nom: nouvellePanneNom, type: nouvellePanneType, ligneId, posteId },
         });
         finalPanneId = newPanne.id;
       }
@@ -107,22 +119,41 @@ class DiService implements IDiService {
         },
       });
 
-      // Update with proper formatted numeroDI AND include the technician for the email
+      // Update with proper formatted numeroDI AND include everything needed to enrich the email
       const formattedNumero = di.id.toString().padStart(6, '0');
       const updatedDi = await tx.demandeIntervention.update({
         where: { id: di.id },
         data: { numeroDI: formattedNumero },
-        include: { technicien: true }, // We need this to get their email address!
+        include: {
+          technicien: true, // We need this to get their email address!
+          atelier: { select: { nom: true } },
+          ligne: { select: { nom: true } },
+          poste: { select: { nom: true } },
+          produit: { select: { nom: true } },
+          panne: { select: { nom: true, description: true, type: true } },
+        },
       });
 
       // If assigned to a technician, safely log our intent to send an email
       let outboxEvent = null;
       if (updatedDi.technicienId && updatedDi.technicien?.email) {
+        const emailData: DiAssignmentEmailData = {
+          diNumero: updatedDi.numeroDI,
+          atelier: updatedDi.atelier.nom,
+          ligne: updatedDi.ligne.nom,
+          poste: updatedDi.poste.nom,
+          priorite: updatedDi.priorite,
+          produit: updatedDi.produit?.nom ?? null,
+          panneNom: updatedDi.panne?.nom ?? null,
+          panneDescription: updatedDi.panne?.description ?? null,
+          panneType: updatedDi.panne?.type ?? null,
+        };
+
         outboxEvent = await tx.outboxEvent.create({
           data: {
             type: 'EMAIL_DI_ASSIGNED',
             payload: {
-              diNumero: updatedDi.numeroDI,
+              ...emailData,
               technicienEmail: updatedDi.technicien.email,
             },
             status: 'PENDING',
@@ -135,8 +166,11 @@ class DiService implements IDiService {
     });
   }
 
-  public async updateDI(id: number, data: UpdateDIDTO & { nouvellePanneNom?: string }) {
-    const { nouvellePanneNom, ...updateData } = data;
+  public async updateDI(
+    id: number,
+    data: UpdateDIDTO & { nouvellePanneNom?: string; nouvellePanneType?: 'TECHNIQUE' | 'QUALITE' },
+  ) {
+    const { nouvellePanneNom, nouvellePanneType, ...updateData } = data;
 
     let finalPanneId = updateData.panneId;
     if (nouvellePanneNom && !finalPanneId) {
@@ -146,7 +180,7 @@ class DiService implements IDiService {
         const ligneId = updateData.ligneId || existingDi.ligneId;
         const posteId = updateData.posteId || existingDi.posteId;
         const newPanne = await prisma.panne.create({
-          data: { nom: nouvellePanneNom, ligneId, posteId },
+          data: { nom: nouvellePanneNom, type: nouvellePanneType, ligneId, posteId },
         });
         finalPanneId = newPanne.id;
       }

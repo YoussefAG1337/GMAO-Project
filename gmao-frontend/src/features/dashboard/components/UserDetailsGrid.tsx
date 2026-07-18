@@ -6,9 +6,11 @@ import { User as UserIcon, Mail, Shield, CalendarDays, Activity } from 'lucide-r
 import { User } from '@/types';
 import { roleLabels } from './WelcomeSection';
 
+import { DashboardKpis } from '@/types/analytics.types';
+
 interface UserDetailsGridProps {
   user: User;
-  kpis: any;
+  kpis?: DashboardKpis | null;
   loading: boolean;
 }
 

@@ -24,7 +24,11 @@ export interface IOtService {
     data: SubmitRapportDTO,
     currentUser: { userId: number; role: Role },
   ): Promise<RapportIntervention>;
+  validerTechnicien(id: number, currentUser: { userId: number; role: Role }): Promise<OrdreTravail>;
   validateOT(id: number, userId: number): Promise<OrdreTravail>;
+  reporterOT(id: number, raison: string, currentUser: { userId: number; role: Role }): Promise<OrdreTravail>;
+  annulerOT(id: number, raison: string, currentUser: { userId: number; role: Role }): Promise<OrdreTravail>;
+  nonValiderOT(id: number, raison: string, currentUser: { userId: number; role: Role }): Promise<OrdreTravail>;
   deleteOT(id: number): Promise<void>;
   getOTStats(): Promise<any>;
 }

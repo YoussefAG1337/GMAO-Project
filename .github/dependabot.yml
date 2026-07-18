@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/gmao-backend"
+    schedule:
+      interval: "weekly"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+
+  - package-ecosystem: "npm"
+    directory: "/gmao-frontend"
+    schedule:
+      interval: "weekly"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+
+  - package-ecosystem: "terraform"
+    directory: "/terraform"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

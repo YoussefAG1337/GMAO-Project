@@ -35,6 +35,11 @@ COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 # Copy the compiled Javascript from the builder stage
 COPY --from=builder /app/dist ./dist
 
+# Run as the non-root 'node' user (built into the base image) instead of root.
+# uploads/ is created at runtime by multer, so /app must be writable by this user.
+RUN chown -R node:node /app
+USER node
+
 # Expose the port the Express app runs on
 EXPOSE 8080
 ENV PORT=8080

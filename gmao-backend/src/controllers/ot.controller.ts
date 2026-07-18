@@ -115,8 +115,24 @@ export const submitRapport = async (req: Request, res: Response): Promise<void> 
 
   res.status(201).json({
     success: true,
-    message: 'Rapport soumis avec succès, en attente de validation',
+    message: 'Rapport soumis avec succès',
     data: rapport,
+  });
+};
+
+export const validerTechnicien = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+
+  if (!req.user) {
+    throw new UnauthorizedError('Utilisateur non authentifié');
+  }
+
+  const ot = await otService.validerTechnicien(parseInt(id as string, 10), req.user);
+
+  res.status(200).json({
+    success: true,
+    message: 'Travail validé — en attente de validation admin',
+    data: ot,
   });
 };
 
@@ -132,6 +148,57 @@ export const validateOT = async (req: Request, res: Response): Promise<void> => 
   res.status(200).json({
     success: true,
     message: 'OT validé et fermé',
+    data: ot,
+  });
+};
+
+export const reporterOT = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { raison } = req.body;
+
+  if (!req.user) {
+    throw new UnauthorizedError('Utilisateur non authentifié');
+  }
+
+  const ot = await otService.reporterOT(parseInt(id as string, 10), raison, req.user);
+
+  res.status(200).json({
+    success: true,
+    message: 'Intervention reportée à une autre date',
+    data: ot,
+  });
+};
+
+export const annulerOT = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { raison } = req.body;
+
+  if (!req.user) {
+    throw new UnauthorizedError('Utilisateur non authentifié');
+  }
+
+  const ot = await otService.annulerOT(parseInt(id as string, 10), raison, req.user);
+
+  res.status(200).json({
+    success: true,
+    message: 'OT annulé',
+    data: ot,
+  });
+};
+
+export const nonValiderOT = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { raison } = req.body;
+
+  if (!req.user) {
+    throw new UnauthorizedError('Utilisateur non authentifié');
+  }
+
+  const ot = await otService.nonValiderOT(parseInt(id as string, 10), raison, req.user);
+
+  res.status(200).json({
+    success: true,
+    message: 'OT marqué comme non validé',
     data: ot,
   });
 };

@@ -26,7 +26,7 @@ export function DisHeader({ onOpenCreate }: DisHeaderProps) {
           className="bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Signaler un incident
+          Signaler une demande
         </Button>
       </div>
     </div>

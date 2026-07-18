@@ -50,6 +50,8 @@ export const createDI = async (req: Request, res: Response): Promise<void> => {
     produitId: req.body.produitId ? parseInt(req.body.produitId) : undefined,
     panneId: req.body.panneId ? parseInt(req.body.panneId) : undefined,
     nouvellePanneNom: req.body.nouvellePanneNom || undefined,
+    nouvellePanneType: req.body.nouvellePanneType || undefined,
+    technicienId: req.body.technicienId ? parseInt(req.body.technicienId) : undefined,
   };
 
   // 1. Save to DB safely using our new transaction
@@ -101,6 +103,8 @@ export const updateDI = async (req: Request, res: Response): Promise<void> => {
     produitId: req.body.produitId ? parseInt(req.body.produitId) : undefined,
     panneId: req.body.panneId ? parseInt(req.body.panneId) : undefined,
     nouvellePanneNom: req.body.nouvellePanneNom || undefined,
+    nouvellePanneType: req.body.nouvellePanneType || undefined,
+    technicienId: req.body.technicienId ? parseInt(req.body.technicienId) : undefined,
   };
 
   const di = await diService.updateDI(parseInt(id as string, 10), parsedBody);

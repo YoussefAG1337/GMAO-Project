@@ -1,20 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
-import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { useUtilisateurs } from '@/features/utilisateurs/hooks/useUtilisateurs';
+import { User } from '@/types/index';
 import { ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { UtilisateursHeader } from '@/features/utilisateurs/components/UtilisateursHeader';
 import { UtilisateursTable } from '@/features/utilisateurs/components/UtilisateursTable';
 import { UtilisateurEditModal } from '@/features/utilisateurs/components/UtilisateurEditModal';
+import { getErrorMessage } from '@/lib/error';
+import { type UtilisateurEditFormData } from '@/lib/validations/utilisateur';
 
-const fetcher = (url: string) => api.get(url).then((res: any) => res.data);
 
 interface UtilisateursClientProps {
-  initialUsers: any[];
+  initialUsers: User[];
 }
 
 export function UtilisateursClient({ initialUsers }: UtilisateursClientProps) {
@@ -22,19 +23,16 @@ export function UtilisateursClient({ initialUsers }: UtilisateursClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editForm, setEditForm] = useState<{ role: string; actif: boolean; lignes?: number[] }>({
-    role: '',
-    actif: false,
-    lignes: [],
-  });
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [initialEditData, setInitialEditData] = useState<{
+    role: string;
+    actif: boolean;
+    lignes?: number[];
+  } | null>(null);
 
   // Seuls les admins peuvent accéder à la gestion complète
   const isAdmin = user?.role === 'ADMIN';
 
-  const { data: users, mutate } = useSWR(isAdmin ? '/users' : null, fetcher, {
-    fallbackData: initialUsers,
-  });
+  const { users, updateUser, approveUser } = useUtilisateurs(initialUsers, isAdmin);
 
   if (!isAdmin) {
     return (
@@ -49,7 +47,7 @@ export function UtilisateursClient({ initialUsers }: UtilisateursClientProps) {
   }
 
   const filteredUsers =
-    users?.filter((u: any) => {
+    users.filter((u: User) => {
       const searchLower = searchTerm.toLowerCase();
       return (
         u.nom.toLowerCase().includes(searchLower) ||
@@ -61,7 +59,7 @@ export function UtilisateursClient({ initialUsers }: UtilisateursClientProps) {
 
   const handleOpenEdit = (u: any) => {
     setSelectedUser(u);
-    setEditForm({
+    setInitialEditData({
       role: u.role,
       actif: u.actif,
       lignes: u.lignes?.map((tl: any) => tl.ligneId) || [],
@@ -69,29 +67,27 @@ export function UtilisateursClient({ initialUsers }: UtilisateursClientProps) {
     setIsEditModalOpen(true);
   };
 
-  const handleUpdateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdateUser = async (data: UtilisateurEditFormData) => {
     if (!selectedUser) return;
-    setIsUpdating(true);
     try {
-      await api.put(`/users/${selectedUser.id}`, editForm);
+      await updateUser(selectedUser.id, {
+        role: data.role,
+        actif: data.actif,
+        lignes: data.lignes,
+      });
       toast.success('Utilisateur mis à jour avec succès');
       setIsEditModalOpen(false);
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la mise à jour');
-    } finally {
-      setIsUpdating(false);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la mise à jour');
     }
   };
 
   const handleApprove = async (id: number) => {
     try {
-      await api.put(`/users/${id}`, { actif: true });
+      await approveUser(id);
       toast.success('Compte approuvé avec succès');
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || "Erreur lors de l'approbation");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || "Erreur lors de l'approbation");
     }
   };
 
@@ -105,14 +101,14 @@ export function UtilisateursClient({ initialUsers }: UtilisateursClientProps) {
         onOpenEdit={handleOpenEdit}
       />
 
-      <UtilisateurEditModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSubmit={handleUpdateUser}
-        editForm={editForm}
-        setEditForm={setEditForm}
-        isUpdating={isUpdating}
-      />
+      {initialEditData && (
+        <UtilisateurEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={handleUpdateUser}
+          initialData={initialEditData}
+        />
+      )}
     </div>
   );
 }

@@ -11,16 +11,69 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendDiAssignmentEmail = async (to: string, diNumero: string) => {
+export interface DiAssignmentEmailData {
+  diNumero: string;
+  atelier: string;
+  ligne: string;
+  poste: string;
+  priorite: string;
+  produit?: string | null;
+  panneNom?: string | null;
+  panneDescription?: string | null;
+  panneType?: string | null;
+}
+
+export const sendDiAssignmentEmail = async (to: string, data: DiAssignmentEmailData) => {
+  const {
+    diNumero,
+    atelier,
+    ligne,
+    poste,
+    priorite,
+    produit,
+    panneNom,
+    panneDescription,
+    panneType,
+  } = data;
+
+  const localisation = `${atelier} / ${ligne} / ${poste}`;
+  const panneLabel = panneNom
+    ? `${panneNom}${panneType ? ` (${panneType})` : ''}`
+    : 'Non spécifiée (à qualifier sur place)';
+
   const mailOptions = {
     from: process.env.SMTP_FROM || '"GMAO System" <noreply@gmao.com>',
     to,
-    subject: `Nouvelle Assignation: Intervention ${diNumero}`,
-    text: `Bonjour,\n\nVous avez été assigné à la Demande d'Intervention ${diNumero}.\nVeuillez consulter le tableau de bord pour plus de détails.\n\nCordialement,\nL'équipe Maintenance.`,
+    subject: `Nouvelle Assignation: Intervention ${diNumero} [${priorite}]`,
+    text: [
+      `Bonjour,`,
+      ``,
+      `Vous avez été assigné à la Demande d'Intervention ${diNumero}.`,
+      ``,
+      `Localisation : ${localisation}`,
+      produit ? `Produit concerné : ${produit}` : null,
+      `Panne signalée : ${panneLabel}`,
+      panneDescription ? `Détails : ${panneDescription}` : null,
+      `Priorité : ${priorite}`,
+      ``,
+      `Veuillez consulter le tableau de bord pour plus de détails.`,
+      ``,
+      `Cordialement,`,
+      `L'équipe Maintenance.`,
+    ]
+      .filter((line) => line !== null)
+      .join('\n'),
     html: `
       <h3>Nouvelle Assignation DI</h3>
       <p>Bonjour,</p>
       <p>Vous avez été assigné à la Demande d'Intervention <strong>${diNumero}</strong>.</p>
+      <ul>
+        <li><strong>Localisation :</strong> ${localisation}</li>
+        ${produit ? `<li><strong>Produit :</strong> ${produit}</li>` : ''}
+        <li><strong>Panne :</strong> ${panneLabel}</li>
+        ${panneDescription ? `<li><strong>Détails :</strong> ${panneDescription}</li>` : ''}
+        <li><strong>Priorité :</strong> ${priorite}</li>
+      </ul>
       <p>Veuillez consulter le tableau de bord pour plus de détails.</p>
       <br/>
       <p>Cordialement,<br/>L'équipe Maintenance.</p>

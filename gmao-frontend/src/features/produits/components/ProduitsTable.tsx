@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, Package } from 'lucide-react';
+import { Produit } from '@/types/produit.types';
 
 interface ProduitsTableProps {
-  produits: any[];
+  produits: Produit[];
   onAdd: () => void;
-  onEdit: (produit: any) => void;
+  onEdit: (produit: Produit) => void;
   onDelete: (id: number) => void;
 }
 
@@ -33,7 +34,7 @@ export function ProduitsTable({ produits, onAdd, onEdit, onDelete }: ProduitsTab
             {produits?.map((p) => (
               <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
                 <td className="px-6 py-4 font-medium text-white">{p.nom}</td>
-                <td className="px-6 py-4">{p.familleProduit?.nom || '-'}</td>
+                <td className="px-6 py-4">{p.famille?.nom || '-'}</td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
                     <button

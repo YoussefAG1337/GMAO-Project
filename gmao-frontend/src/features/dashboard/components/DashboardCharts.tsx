@@ -16,7 +16,11 @@ import {
 } from 'recharts';
 
 interface DashboardChartsProps {
-  stats: any;
+  stats: { 
+    pannesParLigne: Array<{ ligne: string; ligneNom: string; count: number }>; 
+    pannesParPoste: Array<{ poste: string; count: number }>;
+    repartitionCorrectivePreventive: { corrective: number; preventive: number };
+  };
   loading: boolean;
 }
 
@@ -37,7 +41,7 @@ export function DashboardCharts({ stats, loading }: DashboardChartsProps) {
     : [];
 
   const barData = stats
-    ? stats.pannesParLigne.map((p: any) => ({
+    ? stats.pannesParLigne.map((p: { ligne: string; ligneNom: string; count: number }) => ({
         name: p.ligneNom,
         pannes: p.count,
       }))

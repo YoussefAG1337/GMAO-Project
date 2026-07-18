@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import useSWR from 'swr';
 import { api } from '@/lib/api';
+import { ApiResponse } from '@/types/api.types';
+import { DashboardStats, DashboardKpis } from '@/types/analytics.types';
 
 import { WelcomeSection } from '@/features/dashboard/components/WelcomeSection';
 import { KpiGrid } from '@/features/dashboard/components/KpiGrid';
@@ -12,16 +14,16 @@ import { DashboardCharts } from '@/features/dashboard/components/DashboardCharts
 import { UserDetailsGrid } from '@/features/dashboard/components/UserDetailsGrid';
 import { AnalyticsView } from '@/features/dashboard/components/AnalyticsView';
 
-const fetcher = (url: string) => api.get<any>(url).then((res) => res.data);
+const fetcher = <T,>(url: string) => api.get<ApiResponse<T>>(url).then((res) => res.data);
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
 
-  const { data: stats, isLoading: statsLoading } = useSWR('/dashboard/stats', fetcher);
-  const { data: kpis, isLoading: kpisLoading } = useSWR(
+  const { data: stats, isLoading: statsLoading } = useSWR<DashboardStats>('/dashboard/stats', fetcher as any);
+  const { data: kpis, isLoading: kpisLoading } = useSWR<DashboardKpis | null>(
     user?.role === 'ADMIN' || user?.role === 'CHEF_MAINTENANCE' ? '/dashboard/kpis' : null,
-    fetcher,
+    fetcher as any,
   );
 
   useEffect(() => {
@@ -55,7 +57,7 @@ export default function DashboardPage() {
       {(user.role === 'ADMIN' || user.role === 'CHEF_MAINTENANCE') && (
         <>
           <AnalyticsView />
-          <DashboardCharts stats={stats} loading={statsLoading} />
+          <DashboardCharts stats={stats as any} loading={statsLoading} />
         </>
       )}
 

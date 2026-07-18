@@ -1,3 +1,4 @@
+import { TypePanne } from '@prisma/client';
 import prisma from '../config/prisma';
 
 class PanneService {
@@ -13,13 +14,14 @@ class PanneService {
     description?: string;
     ligneId?: number;
     posteId?: number;
+    type?: TypePanne;
   }) {
     return prisma.panne.create({
       data,
     });
   }
 
-  public async updatePanne(id: number, data: { nom?: string; description?: string }) {
+  public async updatePanne(id: number, data: { nom?: string; description?: string; type?: TypePanne }) {
     return prisma.panne.update({
       where: { id },
       data,

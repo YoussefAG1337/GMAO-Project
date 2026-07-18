@@ -3,9 +3,11 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertTriangle, Wrench, FileText, Activity } from 'lucide-react';
 
+import { DashboardStats, DashboardKpis } from '@/types/analytics.types';
+
 interface KpiGridProps {
-  stats: any;
-  kpis: any;
+  stats?: DashboardStats;
+  kpis?: DashboardKpis | null;
   loading: boolean;
 }
 

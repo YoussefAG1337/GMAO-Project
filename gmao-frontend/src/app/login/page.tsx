@@ -1,16 +1,19 @@
 'use client';
 
-import { useState, type FormEvent, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/error';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { toast } from 'sonner';
 import {
-  Factory,
   Mail,
   Lock,
   Eye,
@@ -27,8 +30,6 @@ function LoginForm() {
   const { login } = useAuth();
   const searchParams = useSearchParams();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -39,22 +40,30 @@ function LoginForm() {
     redirectUrl = redirect;
   }
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onChange',
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
     setError('');
     setLoading(true);
 
     try {
-      await login(email, password);
+      await login(data.email, data.motDePasse);
       toast.success('Connexion réussie !', {
         description: 'Redirection vers le tableau de bord...',
       });
       router.push(redirectUrl);
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message);
+        setError(getErrorMessage(err));
         toast.error('Échec de la connexion', {
-          description: err.message,
+          description: getErrorMessage(err),
         });
       } else {
         setError('Une erreur inattendue est survenue. Veuillez réessayer.');
@@ -114,10 +123,9 @@ function LoginForm() {
               </div>
             </div>
 
-            {/* Title */}
             <div className="space-y-1">
               <h1 className="text-3xl font-extrabold bg-gradient-to-r from-purple-300 via-purple-200 to-violet-400 bg-clip-text text-transparent tracking-tight">
-                GMAO Pro
+                GMAO
               </h1>
               <p className="text-xs text-muted-foreground/80 font-semibold tracking-wide uppercase">
                 Système de Gestion de Maintenance Industrielle
@@ -126,7 +134,7 @@ function LoginForm() {
           </CardHeader>
 
           <CardContent className="pt-4 px-6 pb-8">
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {/* Error message */}
               {error && (
                 <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-fade-in-up">
@@ -144,39 +152,48 @@ function LoginForm() {
                   Adresse email
                 </Label>
                 <div className="relative group/input">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/85 group-focus-within/input:text-purple-400 transition-colors" />
+                  <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${errors.email ? 'text-red-400' : 'text-muted-foreground/85 group-focus-within/input:text-purple-400'}`} />
                   <Input
                     id="email"
                     type="email"
                     placeholder="votre.email@entreprise.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
+                    {...register('email')}
                     disabled={loading}
-                    className="pl-11 h-11 bg-white/[0.02] border-white/[0.07] hover:border-white/15 focus:border-[#651FAA]/50 focus:ring-4 focus:ring-[#651FAA]/10 placeholder:text-muted-foreground/45 text-foreground transition-all duration-300 rounded-xl"
+                    className={`pl-11 h-11 bg-white/[0.02] border-white/[0.07] hover:border-white/15 focus:ring-4 placeholder:text-muted-foreground/45 text-foreground transition-all duration-300 rounded-xl ${
+                      errors.email 
+                        ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10' 
+                        : 'focus:border-[#651FAA]/50 focus:ring-[#651FAA]/10'
+                    }`}
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-xs text-red-400 mt-1">{errors.email.message}</p>
+                )}
               </div>
 
               {/* Password field */}
               <div className="space-y-2">
-                <Label
-                  htmlFor="password"
-                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/90"
-                >
-                  Mot de passe
-                </Label>
+                <div className="flex justify-between items-center">
+                  <Label
+                    htmlFor="password"
+                    className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/90"
+                  >
+                    Mot de passe
+                  </Label>
+                </div>
                 <div className="relative group/input">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/85 group-focus-within/input:text-purple-400 transition-colors" />
+                  <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${errors.motDePasse ? 'text-red-400' : 'text-muted-foreground/85 group-focus-within/input:text-purple-400'}`} />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
+                    {...register('motDePasse')}
                     disabled={loading}
-                    className="pl-11 pr-11 h-11 bg-white/[0.02] border-white/[0.07] hover:border-white/15 focus:border-[#651FAA]/50 focus:ring-4 focus:ring-[#651FAA]/10 placeholder:text-muted-foreground/45 text-foreground transition-all duration-300 rounded-xl"
+                    className={`pl-11 pr-11 h-11 bg-white/[0.02] border-white/[0.07] hover:border-white/15 focus:ring-4 placeholder:text-muted-foreground/45 text-foreground transition-all duration-300 rounded-xl ${
+                      errors.motDePasse 
+                        ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10' 
+                        : 'focus:border-[#651FAA]/50 focus:ring-[#651FAA]/10'
+                    }`}
                   />
                   <button
                     type="button"
@@ -187,12 +204,15 @@ function LoginForm() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {errors.motDePasse && (
+                  <p className="text-xs text-red-400 mt-1">{errors.motDePasse.message}</p>
+                )}
               </div>
 
               {/* Submit button with micro-interactions */}
               <Button
                 type="submit"
-                disabled={loading || !email || !password}
+                disabled={loading || !isValid}
                 className="w-full h-11 relative overflow-hidden bg-gradient-to-r from-[#651FAA] to-[#7c3aed] text-white font-semibold shadow-lg shadow-purple-950/40 hover:shadow-[#651FAA]/25 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none rounded-xl cursor-pointer group/button"
               >
                 <span className="absolute inset-0 bg-white/5 opacity-0 group-hover/button:opacity-100 transition-opacity duration-300 pointer-events-none" />
@@ -259,7 +279,7 @@ export default function LoginPage() {
         <div className="relative min-h-screen flex items-center justify-center bg-[#07080d]">
           <div className="text-center space-y-4">
             <div className="w-12 h-12 rounded-full border-4 border-[#651FAA]/30 border-t-[#651FAA] animate-spin mx-auto" />
-            <p className="text-sm text-purple-400/80 font-medium">Chargement de GMAO Pro...</p>
+            <p className="text-sm text-purple-400/80 font-medium">Chargement de GMAO...</p>
           </div>
         </div>
       }

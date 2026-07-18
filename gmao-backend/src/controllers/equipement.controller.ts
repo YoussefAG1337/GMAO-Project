@@ -91,6 +91,17 @@ export const getLigneById = async (req: Request, res: Response): Promise<void> =
   });
 };
 
+export const getLigneKpis = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const kpis = await equipementService.getLigneKpis(parseInt(id as string, 10));
+
+  res.status(200).json({
+    success: true,
+    message: 'KPIs de la ligne récupérés avec succès',
+    data: kpis,
+  });
+};
+
 export const createLigne = async (req: Request, res: Response): Promise<void> => {
   const ligne = await equipementService.createLigne(req.body);
 
@@ -150,6 +161,17 @@ export const getPosteById = async (req: Request, res: Response): Promise<void> =
     success: true,
     message: 'Poste récupéré avec succès',
     data: poste,
+  });
+};
+
+export const getPosteKpis = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const kpis = await equipementService.getPosteKpis(parseInt(id as string, 10));
+
+  res.status(200).json({
+    success: true,
+    message: 'KPIs du poste récupérés avec succès',
+    data: kpis,
   });
 };
 

@@ -1,0 +1,93 @@
+name: CI — Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'gmao-frontend/**'
+      - '.github/workflows/ci-frontend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'gmao-frontend/**'
+      - '.github/workflows/ci-frontend.yml'
+
+concurrency:
+  group: ci-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write   # Needed to post coverage comments on PRs
+
+jobs:
+  frontend:
+    name: Frontend Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: gmao-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: gmao-frontend
+        run: npm ci
+
+      #Static Analysis
+
+      - name: Lint
+        working-directory: gmao-frontend
+        run: npm run lint
+
+      - name: Check formatting
+        working-directory: gmao-frontend
+        run: npx prettier --check "src/**/*.{ts,tsx,css,json}"
+
+      - name: TypeScript type-check
+        working-directory: gmao-frontend
+        run: npx tsc --noEmit
+
+      #Tests
+
+      - name: Run tests with coverage
+        working-directory: gmao-frontend
+        run: npx vitest run --coverage
+
+      - name: Report coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          working-directory: gmao-frontend
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      #Build
+
+      - name: Cache Next.js build artifacts
+        uses: actions/cache@v4
+        with:
+          path: gmao-frontend/.next/cache
+          # Cache key tied to lockfile: invalidates when dependencies change.
+          key: nextjs-${{ runner.os }}-${{ hashFiles('gmao-frontend/package-lock.json') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-
+
+      - name: Build frontend
+        working-directory: gmao-frontend
+        run: npm run build
+        env:
+          # Prevents Next.js from sending anonymous telemetry during CI builds.
+          NEXT_TELEMETRY_DISABLED: 1
+
+      #Security
+
+      - name: Audit dependencies for known vulnerabilities
+        working-directory: gmao-frontend
+        run: npm audit --audit-level=high

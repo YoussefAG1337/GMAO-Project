@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, Box } from 'lucide-react';
+import { FamilleProduit } from '@/types/produit.types';
 
 interface FamillesTableProps {
-  familles: any[];
+  familles: FamilleProduit[];
   onAdd: () => void;
-  onEdit: (famille: any) => void;
+  onEdit: (famille: FamilleProduit) => void;
   onDelete: (id: number) => void;
 }
 

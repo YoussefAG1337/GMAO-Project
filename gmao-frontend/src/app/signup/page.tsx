@@ -1,15 +1,18 @@
 'use client';
 
-import { useState, type FormEvent, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/error';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { signupSchema, type SignupFormData } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { toast } from 'sonner';
 import {
-  Factory,
   Mail,
   Lock,
   Eye,
@@ -24,35 +27,34 @@ import Link from 'next/link';
 function SignupForm() {
   const router = useRouter();
 
-  const [nom, setNom] = useState('');
-  const [prenom, setPrenom] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+    mode: 'onChange',
+    defaultValues: { role: 'TECHNICIEN' },
+  });
+
+  const onSubmit = async (data: SignupFormData) => {
     setError('');
     setLoading(true);
 
     try {
-      await api.post('/auth/signup', {
-        nom,
-        prenom,
-        email,
-        motDePasse: password,
-      });
+      await api.post('/auth/signup', data);
       setSuccess(true);
       toast.success('Inscription réussie !', {
         description: 'Votre compte est en attente de validation.',
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof ApiError) {
-        setError(err.message);
+        setError(getErrorMessage(err));
       } else {
         setError('Une erreur inattendue est survenue. Veuillez réessayer.');
       }
@@ -131,7 +133,7 @@ function SignupForm() {
           </CardHeader>
 
           <CardContent className="pt-4 px-6 pb-8">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {error && (
                 <div className="flex items-start gap-2.5 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -145,24 +147,22 @@ function SignupForm() {
                   <div className="relative">
                     <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                      value={prenom}
-                      onChange={(e) => setPrenom(e.target.value)}
-                      required
-                      className="pl-9 bg-white/[0.02] border-white/10 rounded-lg text-white text-sm focus:border-purple-500/50"
+                      {...register('prenom')}
+                      className={`pl-9 bg-white/[0.02] border-white/10 rounded-lg text-white text-sm focus:border-purple-500/50 ${errors.prenom ? 'border-red-500' : ''}`}
                     />
                   </div>
+                  {errors.prenom && <p className="text-[10px] text-red-400">{errors.prenom.message}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Nom</Label>
                   <div className="relative">
                     <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                      value={nom}
-                      onChange={(e) => setNom(e.target.value)}
-                      required
-                      className="pl-9 bg-white/[0.02] border-white/10 rounded-lg text-white text-sm focus:border-purple-500/50"
+                      {...register('nom')}
+                      className={`pl-9 bg-white/[0.02] border-white/10 rounded-lg text-white text-sm focus:border-purple-500/50 ${errors.nom ? 'border-red-500' : ''}`}
                     />
                   </div>
+                  {errors.nom && <p className="text-[10px] text-red-400">{errors.nom.message}</p>}
                 </div>
               </div>
 
@@ -172,12 +172,11 @@ function SignupForm() {
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="pl-9 bg-white/[0.02] border-white/10 rounded-lg text-white text-sm focus:border-purple-500/50"
+                    {...register('email')}
+                    className={`pl-9 bg-white/[0.02] border-white/10 rounded-lg text-white text-sm focus:border-purple-500/50 ${errors.email ? 'border-red-500' : ''}`}
                   />
                 </div>
+                {errors.email && <p className="text-[10px] text-red-400">{errors.email.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -186,10 +185,8 @@ function SignupForm() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="pl-9 pr-9 bg-white/[0.02] border-white/10 rounded-lg text-white text-sm focus:border-purple-500/50"
+                    {...register('motDePasse')}
+                    className={`pl-9 pr-9 bg-white/[0.02] border-white/10 rounded-lg text-white text-sm focus:border-purple-500/50 ${errors.motDePasse ? 'border-red-500' : ''}`}
                   />
                   <button
                     type="button"
@@ -199,12 +196,27 @@ function SignupForm() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {errors.motDePasse && <p className="text-[10px] text-red-400">{errors.motDePasse.message}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Rôle</Label>
+                <select
+                  {...register('role')}
+                  className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white text-sm focus:border-purple-500/50 ${errors.role ? 'border-red-500' : ''}`}
+                >
+                  <option value="TECHNICIEN">Technicien</option>
+                  <option value="CHEF_TECHNICIEN">Chef Technicien</option>
+                  <option value="MAGASINIER">Magasinier</option>
+                  <option value="CHEF_MAINTENANCE">Chef Maintenance</option>
+                </select>
+                {errors.role && <p className="text-[10px] text-red-400">{errors.role.message}</p>}
               </div>
 
               <Button
                 type="submit"
-                disabled={loading}
-                className="w-full mt-2 bg-[#651FAA] hover:bg-purple-600 text-white rounded-xl h-11"
+                disabled={loading || !isValid}
+                className="w-full mt-2 bg-[#651FAA] hover:bg-purple-600 text-white rounded-xl h-11 disabled:opacity-50"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 S&apos;inscrire

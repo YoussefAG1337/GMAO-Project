@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useReferenceData } from '@/hooks/useReferenceData';
-import { api } from '@/lib/api';
+import { useEquipementManager } from '@/features/equipements/hooks/useEquipementManager';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
@@ -11,11 +11,22 @@ import { EquipementTabs } from '@/features/equipements/components/EquipementTabs
 import { EquipementsGrid } from '@/features/equipements/components/EquipementsGrid';
 import { EquipementFormModal } from '@/features/equipements/components/EquipementFormModal';
 import { PannesListModal } from '@/features/equipements/components/PannesListModal';
+import { EquipementKpisModal } from '@/features/equipements/components/EquipementKpisModal';
+
+import { Atelier, Ligne, Poste } from '@/types/equipement.types';
+import { getErrorMessage } from '@/lib/error';
+import {
+  AtelierFormData,
+  LigneFormData,
+  PosteFormData,
+} from '@/lib/validations/equipement';
+
+type EquipementFormData = AtelierFormData | LigneFormData | PosteFormData;
 
 interface EquipementsClientProps {
-  initialAteliers: any[];
-  initialLignes: any[];
-  initialPostes: any[];
+  initialAteliers: Atelier[];
+  initialLignes: Ligne[];
+  initialPostes: Poste[];
 }
 
 export function EquipementsClient({
@@ -26,18 +37,21 @@ export function EquipementsClient({
   const { user } = useAuth();
   const isAdminOrChef = user?.role === 'ADMIN' || user?.role === 'CHEF_MAINTENANCE';
 
-  const { ateliers, mutateAteliers, lignes, mutateLignes, postes, mutatePostes, techniciens } =
-    useReferenceData({
-      initialAteliers,
-      initialLignes,
-      initialPostes,
-    });
+  const { ateliers, lignes, postes, techniciens } = useReferenceData({
+    initialAteliers,
+    initialLignes,
+    initialPostes,
+    fetchTechniciens: true,
+  });
+
+  const manager = useEquipementManager();
 
   const [activeTab, setActiveTab] = useState<'ATELIERS' | 'LIGNES' | 'POSTES'>('ATELIERS');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'ATELIER' | 'LIGNE' | 'POSTE'>('ATELIER');
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [initialFormData, setInitialFormData] = useState<Record<string, any> | undefined>(undefined);
 
   const [isPannesModalOpen, setIsPannesModalOpen] = useState(false);
   const [selectedEquipementForPannes, setSelectedEquipementForPannes] = useState<{
@@ -46,48 +60,42 @@ export function EquipementsClient({
     nom: string;
   } | null>(null);
 
-  const [formData, setFormData] = useState<{
+  const [isKpisModalOpen, setIsKpisModalOpen] = useState(false);
+  const [selectedEquipementForKpis, setSelectedEquipementForKpis] = useState<{
+    id: number;
+    type: 'LIGNE' | 'POSTE';
     nom: string;
-    description: string;
-    atelierId: string;
-    ligneId: string;
-    technicienIds: string[];
-  }>({
-    nom: '',
-    description: '',
-    atelierId: '',
-    ligneId: '',
-    technicienIds: [],
-  });
+  } | null>(null);
 
   const handleOpenModal = (type: 'ATELIER' | 'LIGNE' | 'POSTE') => {
     setEditingId(null);
     setModalType(type);
-    setFormData({ nom: '', description: '', atelierId: '', ligneId: '', technicienIds: [] });
+    setInitialFormData(undefined);
     setIsModalOpen(true);
   };
 
-  const handleEdit = (item: any, type: 'ATELIER' | 'LIGNE' | 'POSTE') => {
+  const handleEdit = (item: Atelier | Ligne | Poste, type: 'ATELIER' | 'LIGNE' | 'POSTE') => {
     setEditingId(item.id);
     setModalType(type);
-    setFormData({
+    setInitialFormData({
       nom: item.nom,
       description: item.description || '',
-      atelierId: item.atelierId?.toString() || '',
-      ligneId: item.ligneId?.toString() || '',
+      atelierId: (item as any).atelierId,
+      ligneId: (item as any).ligneId,
       technicienIds:
-        type === 'LIGNE' ? item.techniciens?.map((t: any) => t.id.toString()) || [] : [],
+        type === 'LIGNE' ? (item as any).techniciens?.map((t: any) => t.id) || [] : [],
     });
     setIsModalOpen(true);
   };
 
-  const handleManagePannes = (item: any, type: 'LIGNE' | 'POSTE') => {
-    setSelectedEquipementForPannes({
-      id: item.id,
-      type,
-      nom: item.nom,
-    });
+  const handleManagePannes = (item: Ligne | Poste, type: 'LIGNE' | 'POSTE') => {
+    setSelectedEquipementForPannes({ id: item.id, type, nom: item.nom });
     setIsPannesModalOpen(true);
+  };
+
+  const handleViewKpis = (item: Ligne | Poste, type: 'LIGNE' | 'POSTE') => {
+    setSelectedEquipementForKpis({ id: item.id, type, nom: item.nom });
+    setIsKpisModalOpen(true);
   };
 
   const handleDelete = async (id: number, type: 'ATELIER' | 'LIGNE' | 'POSTE') => {
@@ -98,21 +106,12 @@ export function EquipementsClient({
     )
       return;
     try {
-      const endpoint =
-        type === 'ATELIER'
-          ? `/equipements/ateliers/${id}`
-          : type === 'LIGNE'
-            ? `/equipements/lignes/${id}`
-            : `/equipements/postes/${id}`;
-
-      await api.delete(endpoint);
+      if (type === 'ATELIER') await manager.deleteAtelier(id);
+      else if (type === 'LIGNE') await manager.deleteLigne(id);
+      else await manager.deletePoste(id);
       toast.success('Équipement supprimé avec succès');
-
-      if (type === 'ATELIER') mutateAteliers();
-      if (type === 'LIGNE') mutateLignes();
-      if (type === 'POSTE') mutatePostes();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la suppression');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la suppression');
     }
   };
 
@@ -122,79 +121,47 @@ export function EquipementsClient({
     currentStatus: boolean,
   ) => {
     try {
-      const endpoint =
-        type === 'ATELIER'
-          ? `/equipements/ateliers/${id}`
-          : type === 'LIGNE'
-            ? `/equipements/lignes/${id}`
-            : `/equipements/postes/${id}`;
-
-      await api.put(endpoint, { actif: !currentStatus });
+      if (type === 'ATELIER') await manager.toggleAtelierActive(id, !currentStatus);
+      else if (type === 'LIGNE') await manager.toggleLigneActive(id, !currentStatus);
+      else await manager.togglePosteActive(id, !currentStatus);
       toast.success(`Équipement ${!currentStatus ? 'activé' : 'désactivé'} avec succès`);
-
-      if (type === 'ATELIER') mutateAteliers();
-      if (type === 'LIGNE') mutateLignes();
-      if (type === 'POSTE') mutatePostes();
-    } catch (err: any) {
-      toast.error(err.message || "Erreur lors du changement d'état");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || "Erreur lors du changement d'état");
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (data: EquipementFormData) => {
     try {
       if (modalType === 'ATELIER') {
-        if (editingId) {
-          await api.put(`/equipements/ateliers/${editingId}`, {
-            nom: formData.nom,
-            description: formData.description,
-          });
-        } else {
-          await api.post('/equipements/ateliers', {
-            nom: formData.nom,
-            description: formData.description,
-          });
-        }
-        mutateAteliers();
+        const payload = { nom: data.nom, description: data.description ?? '' };
+        if (editingId) await manager.updateAtelier(editingId, payload);
+        else await manager.createAtelier(payload);
       } else if (modalType === 'LIGNE') {
-        if (editingId) {
-          await api.put(`/equipements/lignes/${editingId}`, {
-            nom: formData.nom,
-            description: formData.description,
-            atelierId: Number(formData.atelierId),
-            technicienIds: formData.technicienIds.map(Number),
-          });
-        } else {
-          await api.post('/equipements/lignes', {
-            nom: formData.nom,
-            description: formData.description,
-            atelierId: Number(formData.atelierId),
-            technicienIds: formData.technicienIds.map(Number),
-          });
-        }
-        mutateLignes();
+        const ligneData = data as LigneFormData;
+        const payload = {
+          nom: ligneData.nom,
+          description: ligneData.description ?? '',
+          atelierId: Number(ligneData.atelierId),
+          technicienIds: ligneData.technicienIds?.map(Number) || [],
+        };
+        if (editingId) await manager.updateLigne(editingId, payload);
+        else await manager.createLigne(payload);
       } else if (modalType === 'POSTE') {
-        if (editingId) {
-          await api.put(`/equipements/postes/${editingId}`, {
-            nom: formData.nom,
-            description: formData.description,
-            ligneId: Number(formData.ligneId),
-          });
-        } else {
-          await api.post('/equipements/postes', {
-            nom: formData.nom,
-            description: formData.description,
-            ligneId: Number(formData.ligneId),
-          });
-        }
-        mutatePostes();
+        const posteData = data as PosteFormData;
+        const payload = {
+          nom: posteData.nom,
+          description: posteData.description ?? '',
+          ligneId: Number(posteData.ligneId),
+        };
+        if (editingId) await manager.updatePoste(editingId, payload);
+        else await manager.createPoste(payload);
       }
       toast.success(
         `${modalType.charAt(0) + modalType.slice(1).toLowerCase()} ${editingId ? 'modifié' : 'créé'} avec succès`,
       );
       setIsModalOpen(false);
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la création');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la création');
     }
   };
 
@@ -214,6 +181,7 @@ export function EquipementsClient({
         onDelete={handleDelete}
         onToggleActive={handleToggleActive}
         onManagePannes={handleManagePannes}
+        onViewKpis={handleViewKpis}
       />
 
       <EquipementFormModal
@@ -221,8 +189,7 @@ export function EquipementsClient({
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
         modalType={modalType}
-        formData={formData}
-        setFormData={setFormData}
+        initialData={initialFormData}
         ateliers={ateliers || []}
         lignes={lignes || []}
         techniciens={techniciens || []}
@@ -235,6 +202,14 @@ export function EquipementsClient({
         equipementId={selectedEquipementForPannes?.id || null}
         equipementType={selectedEquipementForPannes?.type || null}
         equipementNom={selectedEquipementForPannes?.nom || ''}
+      />
+
+      <EquipementKpisModal
+        isOpen={isKpisModalOpen}
+        onClose={() => setIsKpisModalOpen(false)}
+        equipementId={selectedEquipementForKpis?.id || null}
+        equipementType={selectedEquipementForKpis?.type || null}
+        equipementNom={selectedEquipementForKpis?.nom || ''}
       />
     </div>
   );

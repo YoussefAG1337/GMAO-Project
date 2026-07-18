@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
-import { api } from '@/lib/api';
+import { usePannes } from '@/features/equipements/hooks/usePannes';
 import { toast } from 'sonner';
-import { Edit2, Trash2, Check, X, Plus } from 'lucide-react';
+import { Check, Plus, X, Edit2, Trash2 } from 'lucide-react';
+import { Panne } from '@/types/panne.types';
+import { getErrorMessage } from '@/lib/error';
+
 
 interface PannesListModalProps {
   isOpen: boolean;
@@ -20,50 +23,42 @@ export function PannesListModal({
   equipementType,
   equipementNom,
 }: PannesListModalProps) {
-  const [pannes, setPannes] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [newPanneNom, setNewPanneNom] = useState('');
+  const ligneId = equipementType === 'LIGNE' ? equipementId : null;
+  const posteId = equipementType === 'POSTE' ? equipementId : null;
 
+  const { pannes, isLoading, createPanne, updatePanne, deletePanne } = usePannes(
+    isOpen ? ligneId : null,
+    isOpen ? posteId : null
+  );
+
+  const [newPanneNom, setNewPanneNom] = useState('');
+  const [newPanneType, setNewPanneType] = useState<'TECHNIQUE' | 'QUALITE'>('TECHNIQUE');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingNom, setEditingNom] = useState('');
-
-  const fetchPannes = async () => {
-    if (!equipementId || !equipementType) return;
-    setIsLoading(true);
-    try {
-      const paramKey = equipementType === 'LIGNE' ? 'ligneId' : 'posteId';
-      const res: any = await api.get(`/pannes?${paramKey}=${equipementId}`);
-      setPannes(res.data || []);
-    } catch (err: any) {
-      toast.error('Erreur lors du chargement des pannes');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [editingType, setEditingType] = useState<'TECHNIQUE' | 'QUALITE'>('TECHNIQUE');
 
   useEffect(() => {
     if (isOpen) {
-      fetchPannes();
       setNewPanneNom('');
+      setNewPanneType('TECHNIQUE');
       setEditingId(null);
     }
-  }, [isOpen, equipementId, equipementType]);
+  }, [isOpen]);
 
   const handleAddPanne = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPanneNom.trim()) return;
 
     try {
-      const body: any = { nom: newPanneNom };
+      const body: any = { nom: newPanneNom, type: newPanneType };
       if (equipementType === 'LIGNE') body.ligneId = equipementId;
       if (equipementType === 'POSTE') body.posteId = equipementId;
 
-      await api.post('/pannes', body);
+      await createPanne(body);
       toast.success('Panne ajoutée avec succès');
       setNewPanneNom('');
-      fetchPannes();
-    } catch (err: any) {
-      toast.error(err.message || "Erreur lors de l'ajout de la panne");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || "Erreur lors de l'ajout de la panne");
     }
   };
 
@@ -74,12 +69,11 @@ export function PannesListModal({
     }
 
     try {
-      await api.put(`/pannes/${id}`, { nom: editingNom });
+      await updatePanne(id, { nom: editingNom, type: editingType });
       toast.success('Panne modifiée avec succès');
       setEditingId(null);
-      fetchPannes();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la modification de la panne');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la modification de la panne');
     }
   };
 
@@ -87,11 +81,10 @@ export function PannesListModal({
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette panne ?')) return;
 
     try {
-      await api.delete(`/pannes/${id}`);
+      await deletePanne(id);
       toast.success('Panne supprimée avec succès');
-      fetchPannes();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la suppression de la panne');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la suppression de la panne');
     }
   };
 
@@ -108,6 +101,14 @@ export function PannesListModal({
             className="flex-1 bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
             required
           />
+          <select
+            value={newPanneType}
+            onChange={(e) => setNewPanneType(e.target.value as 'TECHNIQUE' | 'QUALITE')}
+            className="bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white text-sm"
+          >
+            <option value="TECHNIQUE">Technique</option>
+            <option value="QUALITE">Qualité</option>
+          </select>
           <Button type="submit" className="bg-emerald-500 hover:bg-emerald-600 text-white shrink-0">
             <Plus className="w-4 h-4 mr-1" /> Ajouter
           </Button>
@@ -122,7 +123,7 @@ export function PannesListModal({
             </div>
           ) : (
             <ul className="divide-y divide-white/5">
-              {pannes.map((panne) => (
+              {pannes.map((panne: Panne) => (
                 <li
                   key={panne.id}
                   className="flex items-center justify-between p-3 hover:bg-white/[0.02] transition-colors"
@@ -140,6 +141,14 @@ export function PannesListModal({
                           if (e.key === 'Escape') setEditingId(null);
                         }}
                       />
+                      <select
+                        value={editingType}
+                        onChange={(e) => setEditingType(e.target.value as 'TECHNIQUE' | 'QUALITE')}
+                        className="bg-zinc-900 border border-amber-500/30 rounded px-2 py-1 text-white text-sm"
+                      >
+                        <option value="TECHNIQUE">Technique</option>
+                        <option value="QUALITE">Qualité</option>
+                      </select>
                       <button
                         onClick={() => handleUpdatePanne(panne.id)}
                         className="text-emerald-400 hover:text-emerald-300 p-1"
@@ -155,12 +164,24 @@ export function PannesListModal({
                     </div>
                   ) : (
                     <>
-                      <span className="text-white text-sm">{panne.nom}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-white text-sm">{panne.nom}</span>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                            panne.type === 'QUALITE'
+                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                              : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                          }`}
+                        >
+                          {panne.type === 'QUALITE' ? 'Qualité' : 'Technique'}
+                        </span>
+                      </div>
                       <div className="flex gap-2">
                         <button
                           onClick={() => {
                             setEditingId(panne.id);
                             setEditingNom(panne.nom);
+                            setEditingType(panne.type || 'TECHNIQUE');
                           }}
                           className="text-muted-foreground hover:text-white p-1"
                           title="Modifier"

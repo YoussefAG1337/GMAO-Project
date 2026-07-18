@@ -1,5 +1,7 @@
 import { MagasinClient } from '@/features/magasin/components/MagasinClient';
 import { apiServer } from '@/lib/api-server';
+import { ApiResponse } from '@/types/api.types';
+import { Piece } from '@/types/magasin.types';
 
 export const metadata = {
   title: 'Magasin PDR | GMAO',
@@ -7,7 +9,7 @@ export const metadata = {
 
 async function getMagasinData() {
   const data = await apiServer
-    .get<any>('/magasin/pieces')
+    .get<ApiResponse<Piece[]>>('/magasin/pieces')
     .then((res) => res.data)
     .catch((error) => {
       console.error('Erreur lors du chargement des données magasin:', error);

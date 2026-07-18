@@ -49,11 +49,11 @@ module "monitoring" {
   environment         = var.environment
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  backend_app_id      = ""#module.compute.backend_app_id
-  frontend_app_id     = ""#module.compute.frontend_app_id
+  backend_app_id      = "" #module.compute.backend_app_id
+  frontend_app_id     = "" #module.compute.frontend_app_id
   mysql_server_id     = module.database.server_id
-  backend_hostname    = ""#module.compute.backend_hostname
-  frontend_hostname   = ""#module.compute.frontend_hostname
+  backend_hostname    = "" #module.compute.backend_hostname
+  frontend_hostname   = "" #module.compute.frontend_hostname
   alert_email         = var.alert_email
 }
 
@@ -74,23 +74,23 @@ module "registry" {
 module "container_apps" {
   source = "./modules/container_apps"
 
-  project_name                   = var.project_name
-  environment                    = var.environment
-  location                       = azurerm_resource_group.main.location
-  resource_group_name            = azurerm_resource_group.main.name
-  
+  project_name        = var.project_name
+  environment         = var.environment
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
   # Connect logging
-  log_analytics_workspace_id     = module.monitoring.log_analytics_workspace_id
-  
+  log_analytics_workspace_id = module.monitoring.log_analytics_workspace_id
+
   # Connect the database and App Insights
   database_url                   = module.database.connection_string
   app_insights_connection_string = module.monitoring.app_insights_connection_string
-  
+
   # Pass the registry credentials so ACA can pull our images later
-  registry_login_server          = module.registry.login_server
-  registry_username              = module.registry.admin_username
-  registry_password              = module.registry.admin_password
-  app_subnet_id                  = module.networking.app_subnet_id
+  registry_login_server = module.registry.login_server
+  registry_username     = module.registry.admin_username
+  registry_password     = module.registry.admin_password
+  app_subnet_id         = module.networking.app_subnet_id
 }
 
 # Compute — App Service Plan, Backend,Frontend

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
 import { useReferenceData } from '@/hooks/useReferenceData';
-import { api } from '@/lib/api';
+import { useDis } from '@/features/dis/hooks/useDis';
+import { useProduits } from '@/features/produits/hooks/useProduits';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
@@ -13,11 +13,17 @@ import { DiFormModal } from '@/features/dis/components/DiFormModal';
 import { DiDetailModal } from '@/features/dis/components/DiDetailModal';
 import { DiEditModal } from '@/features/dis/components/DiEditModal';
 
+import { Di } from '@/types/di.types';
+import { Atelier, Ligne, Poste } from '@/types/equipement.types';
+import { getErrorMessage } from '@/lib/error';
+import { CreateDiFormData, UpdateDiFormData } from '@/lib/validations/di';
+
+
 interface DisClientProps {
-  initialDis: any;
-  initialAteliers: any[];
-  initialLignes: any[];
-  initialPostes: any[];
+  initialDis: Di[];
+  initialAteliers: Atelier[];
+  initialLignes: Ligne[];
+  initialPostes: Poste[];
 }
 
 export function DisClient({
@@ -30,77 +36,52 @@ export function DisClient({
   const isAdmin = user?.role === 'ADMIN';
   const isAdminOrChef = isAdmin || user?.role === 'CHEF_MAINTENANCE';
 
-  const { data: disResponse, mutate } = useSWR('/dis', {
-    fallbackData: initialDis,
-  });
-  const dis = disResponse?.dis || [];
+  const { dis, createDi, updateDi, deleteDi, startWork } = useDis(initialDis);
 
-  const { ateliers, lignes, postes } = useReferenceData({
+  const { ateliers, lignes, postes, techniciens } = useReferenceData({
     initialAteliers,
     initialLignes,
     initialPostes,
+    fetchTechniciens: isAdminOrChef,
   });
 
-  const { data: familles } = useSWR('/produits/familles');
-  const { data: produits } = useSWR('/produits');
+  const { familles, produits } = useProduits();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    atelierId: '',
-    ligneId: '',
-    posteId: '',
-    familleId: '',
-    produitId: '',
-    panneId: '',
-    nouvellePanneNom: '',
-    priorite: 'MOYENNE',
-    document: null as File | null,
-  });
-
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<Di | null>(null);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDiId, setSelectedDiId] = useState<number | null>(null);
-  const [editFormData, setEditFormData] = useState({
-    atelierId: '',
-    ligneId: '',
-    posteId: '',
-    familleId: '',
-    produitId: '',
-    panneId: '',
-    nouvellePanneNom: '',
-    priorite: 'MOYENNE',
-  });
+  const [initialEditData, setInitialEditData] = useState<any>(null);
 
-  const handleOpenEdit = (di: any) => {
+  const handleOpenEdit = (di: Di) => {
     setSelectedDiId(di.id);
-    setEditFormData({
-      atelierId: di.atelierId?.toString() || '',
-      ligneId: di.ligneId?.toString() || '',
-      posteId: di.posteId?.toString() || '',
-      familleId: di.produit?.familleProduitId?.toString() || '',
-      produitId: di.produitId?.toString() || '',
-      panneId: di.panneId?.toString() || '',
-      nouvellePanneNom: '',
+    setInitialEditData({
+      atelierId: di.atelierId,
+      ligneId: di.ligneId,
+      posteId: di.posteId,
+      familleId: di.produit?.familleProduitId,
+      produitId: di.produitId,
+      panneId: di.panneId,
+      nouvellePanneNom: di.nouvellePanneNom || '',
       priorite: di.priorite || 'MOYENNE',
+      technicienId: di.technicienId,
     });
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEditSubmit = async (formData: UpdateDiFormData) => {
     if (!selectedDiId) return;
 
     setIsSubmitting(true);
     try {
-      await api.put(`/dis/${selectedDiId}`, editFormData);
+      await updateDi(selectedDiId, formData as any);
       toast.success("Demande d'intervention modifiée avec succès");
       setIsEditModalOpen(false);
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la modification');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la modification');
     } finally {
       setIsSubmitting(false);
     }
@@ -109,54 +90,51 @@ export function DisClient({
   const handleDeleteDI = async (id: number) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette DI ?')) return;
     try {
-      await api.delete(`/dis/${id}`);
+      await deleteDi(id);
       toast.success("Demande d'intervention supprimée avec succès");
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la suppression');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la suppression');
     }
   };
 
   const handleStartWork = async (diId: number) => {
     try {
-      await api.post(`/ots/start-from-di/${diId}`);
+      await startWork(diId);
       toast.success('Travail commencé, OT généré !');
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors du démarrage du travail');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors du démarrage du travail');
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: CreateDiFormData) => {
     setIsSubmitting(true);
     try {
       const data = new FormData();
-      data.append('atelierId', formData.atelierId);
-      data.append('ligneId', formData.ligneId);
-      data.append('posteId', formData.posteId);
-      if (formData.produitId) data.append('produitId', formData.produitId);
-      if (formData.panneId) data.append('panneId', formData.panneId);
+      data.append('atelierId', String(formData.atelierId));
+      data.append('ligneId', String(formData.ligneId));
+      data.append('posteId', String(formData.posteId));
+      if (formData.produitId) data.append('produitId', String(formData.produitId));
+      if (formData.panneId && formData.panneId !== 'NOUVELLE') data.append('panneId', String(formData.panneId));
       if (formData.nouvellePanneNom) data.append('nouvellePanneNom', formData.nouvellePanneNom);
       data.append('priorite', formData.priorite);
+      if (formData.technicienId) data.append('technicienId', String(formData.technicienId));
 
-      if (formData.document) {
-        data.append('document', formData.document);
+      if (formData.document && formData.document.length > 0) {
+        data.append('document', formData.document[0]);
       }
 
-      await api.post('/dis', data);
+      await createDi(data);
 
       toast.success("Demande d'intervention créée avec succès");
       setIsModalOpen(false);
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur lors de la création');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur lors de la création');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleOpenDetails = (di: any) => {
+  const handleOpenDetails = (di: Di) => {
     setSelectedItem(di);
     setIsDetailsModalOpen(true);
   };
@@ -165,12 +143,10 @@ export function DisClient({
     <div className="space-y-8 animate-fade-in-up">
       <DisHeader onOpenCreate={() => setIsModalOpen(true)} />
 
-      <DiList
-        dis={dis}
+      <DiList dis={dis} currentUserId={user?.id as any} user={user as any}  
         isAdmin={isAdmin}
         isAdminOrChef={isAdminOrChef}
         isTechnician={user?.role === 'TECHNICIEN' || user?.role === 'CHEF_TECHNICIEN'}
-        currentUserId={user?.id}
         onEdit={handleOpenEdit}
         onDelete={handleDeleteDI}
         onOpenDetails={handleOpenDetails}
@@ -181,13 +157,13 @@ export function DisClient({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
-        formData={formData}
-        setFormData={setFormData}
         ateliers={ateliers || []}
         lignes={lignes || []}
         postes={postes || []}
         familles={familles || []}
         produits={produits || []}
+        techniciens={techniciens || []}
+        isAdminOrChef={isAdminOrChef}
         isSubmitting={isSubmitting}
       />
 
@@ -201,8 +177,7 @@ export function DisClient({
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSubmit={handleEditSubmit}
-        editFormData={editFormData}
-        setEditFormData={setEditFormData}
+        initialData={initialEditData}
         ateliers={ateliers || []}
         lignes={lignes || []}
         postes={postes || []}

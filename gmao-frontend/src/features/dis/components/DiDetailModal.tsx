@@ -2,10 +2,12 @@
 
 import { Modal } from '@/components/ui/modal';
 
+import { Di } from '@/types/di.types';
+
 interface DiDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedItem: any;
+  selectedItem: Di | null;
 }
 
 export function DiDetailModal({ isOpen, onClose, selectedItem }: DiDetailModalProps) {
@@ -29,7 +31,20 @@ export function DiDetailModal({ isOpen, onClose, selectedItem }: DiDetailModalPr
               </div>
               <div>
                 <span className="text-muted-foreground block text-xs">Panne</span>{' '}
-                {selectedItem.panne?.nom || 'Non spécifiée'}
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span>{selectedItem.panne?.nom || 'Non spécifiée'}</span>
+                  {selectedItem.panne?.type && (
+                    <span
+                      className={`text-[9px] px-1.5 py-0.2 rounded-full font-medium ${
+                        selectedItem.panne.type === 'QUALITE'
+                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                          : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                      }`}
+                    >
+                      {selectedItem.panne.type === 'QUALITE' ? 'Qualité' : 'Technique'}
+                    </span>
+                  )}
+                </div>
               </div>
               <div>
                 <span className="text-muted-foreground block text-xs">Technicien</span>{' '}

@@ -23,7 +23,7 @@ router.use(authMiddleware);
 
 router.get(
   '/techniciens',
-  rbac([Role.ADMIN, Role.CHEF_MAINTENANCE, Role.CHEF_TECHNICIEN]),
+  rbac([Role.ADMIN, Role.CHEF_MAINTENANCE, Role.CHEF_TECHNICIEN, Role.TECHNICIEN, Role.MAGASINIER]),
   getTechniciens,
 );
 

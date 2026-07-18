@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
-import { api } from '@/lib/api';
+import { useMagasin } from '@/features/magasin/hooks/useMagasin';
 import { useAuth } from '@/context/AuthContext';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { pieceSchema, mouvementSchema, type PieceFormData, type MouvementFormData } from '@/lib/validations/magasin';
 
 import { toast } from 'sonner';
 
@@ -12,8 +14,12 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+import { Piece } from '@/types/magasin.types';
+import { getErrorMessage } from '@/lib/error';
+
+
 interface MagasinClientProps {
-  initialData: { pieces: any[] };
+  initialData: any;
 }
 
 export function MagasinClient({ initialData }: MagasinClientProps) {
@@ -22,36 +28,46 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
   const isMagasinierOrAdmin =
     user?.role === 'ADMIN' || user?.role === 'CHEF_MAINTENANCE' || user?.role === 'MAGASINIER';
 
-  const { data: pieces, mutate } = useSWR('/magasin/pieces', {
-    fallbackData: initialData.pieces,
-  });
+  const { pieces, createPiece, updatePiece, deletePiece, createMouvement } = useMagasin(
+    initialData.pieces,
+  );
 
   const [isPieceModalOpen, setIsPieceModalOpen] = useState(false);
-  const [pieceForm, setPieceForm] = useState({
-    id: 0,
-    code: '',
-    nom: '',
-    description: '',
-    seuilAlerte: 10,
-    prixUnitaire: 0,
-  });
+  const [selectedPieceId, setSelectedPieceId] = useState<number | null>(null);
   const [isUpdatingPiece, setIsUpdatingPiece] = useState(false);
 
-  const [isMouvementModalOpen, setIsMouvementModalOpen] = useState(false);
-  const [mvtForm, setMvtForm] = useState({
-    pieceId: 0,
-    type: 'ENTREE',
-    quantite: 1,
-    referenceOT: '',
+  const {
+    register: registerPiece,
+    handleSubmit: handlePieceSubmit,
+    reset: resetPiece,
+    formState: { errors: pieceErrors, isValid: isPieceValid },
+  } = useForm<PieceFormData>({
+    resolver: zodResolver(pieceSchema),
+    mode: 'onChange',
   });
+
+  const [isMouvementModalOpen, setIsMouvementModalOpen] = useState(false);
   const [isUpdatingMvt, setIsUpdatingMvt] = useState(false);
+
+  const {
+    register: registerMvt,
+    handleSubmit: handleMvtSubmit,
+    reset: resetMvt,
+    watch: watchMvt,
+    formState: { errors: mvtErrors, isValid: isMvtValid },
+  } = useForm<MouvementFormData>({
+    resolver: zodResolver(mouvementSchema),
+    mode: 'onChange',
+  });
+
+  const currentMvtType = watchMvt('type');
 
   if (!user) return null;
 
   // Actions Pieces
-  const handleEditPiece = (p: any) => {
-    setPieceForm({
-      id: p.id,
+  const handleEditPiece = (p: Piece) => {
+    setSelectedPieceId(p.id);
+    resetPiece({
       code: p.code,
       nom: p.nom,
       description: p.description || '',
@@ -62,64 +78,56 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
   };
   const handleAddPiece = () => {
     if (!isMagasinierOrAdmin) return toast.error('Non autorisé');
-    setPieceForm({ id: 0, code: '', nom: '', description: '', seuilAlerte: 10, prixUnitaire: 0 });
+    setSelectedPieceId(null);
+    resetPiece({ code: '', nom: '', description: '', seuilAlerte: 10, prixUnitaire: 0 });
     setIsPieceModalOpen(true);
   };
   const handleDeletePiece = async (id: number) => {
     if (!isMagasinierOrAdmin) return toast.error('Non autorisé');
     if (!confirm('Voulez-vous vraiment supprimer cette pièce ?')) return;
     try {
-      await api.delete(`/magasin/pieces/${id}`);
+      await deletePiece(id);
       toast.success('Pièce supprimée');
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur');
     }
   };
-  const submitPiece = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitPiece = async (data: PieceFormData) => {
     setIsUpdatingPiece(true);
     try {
-      const payload: any = {
-        ...pieceForm,
-        seuilAlerte: Number(pieceForm.seuilAlerte),
-        prixUnitaire: Number(pieceForm.prixUnitaire),
-      };
-      if (pieceForm.id) {
-        await api.put(`/magasin/pieces/${pieceForm.id}`, payload);
+      if (selectedPieceId) {
+        await updatePiece(selectedPieceId, data);
         toast.success('Pièce modifiée');
       } else {
-        delete payload.id; // Ne pas envoyer id=0 au backend pour éviter les erreurs Prisma
-        await api.post('/magasin/pieces', payload);
+        await createPiece(data);
         toast.success('Pièce créée');
       }
       setIsPieceModalOpen(false);
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur');
     } finally {
       setIsUpdatingPiece(false);
     }
   };
 
   // Actions Mouvement
-  const handleMouvement = (piece: any, type: 'ENTREE' | 'SORTIE') => {
-    setMvtForm({ pieceId: piece.id, type, quantite: 1, referenceOT: '' });
+  const handleMouvement = (piece: Piece, type: 'ENTREE' | 'SORTIE') => {
+    resetMvt({ pieceId: piece.id, type, quantite: 1, referenceOT: '' });
     setIsMouvementModalOpen(true);
   };
-  const submitMouvement = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitMouvement = async (data: MouvementFormData) => {
     setIsUpdatingMvt(true);
     try {
-      await api.post('/magasin/mouvements', {
-        ...mvtForm,
-        quantite: Number(mvtForm.quantite),
+      await createMouvement({
+        pieceId: data.pieceId,
+        type: data.type,
+        quantite: data.quantite,
+        referenceOT: data.referenceOT || undefined,
       });
       toast.success('Mouvement enregistré');
       setIsMouvementModalOpen(false);
-      mutate();
-    } catch (err: any) {
-      toast.error(err.message || 'Erreur');
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err) || 'Erreur');
     } finally {
       setIsUpdatingMvt(false);
     }
@@ -139,36 +147,37 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
       <Modal
         isOpen={isPieceModalOpen}
         onClose={() => setIsPieceModalOpen(false)}
-        title={pieceForm.id ? 'Modifier Pièce' : 'Ajouter Pièce'}
+        title={selectedPieceId ? 'Modifier Pièce' : 'Ajouter Pièce'}
       >
-        <form onSubmit={submitPiece} className="space-y-4">
+        <form onSubmit={handlePieceSubmit(submitPiece)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Code</label>
               <Input
-                required
-                value={pieceForm.code}
-                onChange={(e) => setPieceForm({ ...pieceForm, code: e.target.value })}
+                {...registerPiece('code')}
                 placeholder="PDR-001"
+                className={pieceErrors.code ? 'border-red-500' : ''}
               />
+              {pieceErrors.code && <p className="text-[10px] text-red-400">{pieceErrors.code.message}</p>}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Nom</label>
               <Input
-                required
-                value={pieceForm.nom}
-                onChange={(e) => setPieceForm({ ...pieceForm, nom: e.target.value })}
+                {...registerPiece('nom')}
                 placeholder="Roulement A"
+                className={pieceErrors.nom ? 'border-red-500' : ''}
               />
+              {pieceErrors.nom && <p className="text-[10px] text-red-400">{pieceErrors.nom.message}</p>}
             </div>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Description</label>
             <Input
-              value={pieceForm.description}
-              onChange={(e) => setPieceForm({ ...pieceForm, description: e.target.value })}
+              {...registerPiece('description')}
               placeholder="..."
+              className={pieceErrors.description ? 'border-red-500' : ''}
             />
+            {pieceErrors.description && <p className="text-[10px] text-red-400">{pieceErrors.description.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -176,12 +185,10 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
               <Input
                 type="number"
                 min="0"
-                required
-                value={pieceForm.seuilAlerte}
-                onChange={(e) =>
-                  setPieceForm({ ...pieceForm, seuilAlerte: Number(e.target.value) })
-                }
+                {...registerPiece('seuilAlerte', { valueAsNumber: true })}
+                className={pieceErrors.seuilAlerte ? 'border-red-500' : ''}
               />
+              {pieceErrors.seuilAlerte && <p className="text-[10px] text-red-400">{pieceErrors.seuilAlerte.message}</p>}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Prix Unitaire</label>
@@ -189,18 +196,17 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
                 type="number"
                 min="0"
                 step="0.01"
-                value={pieceForm.prixUnitaire}
-                onChange={(e) =>
-                  setPieceForm({ ...pieceForm, prixUnitaire: Number(e.target.value) })
-                }
+                {...registerPiece('prixUnitaire', { valueAsNumber: true })}
+                className={pieceErrors.prixUnitaire ? 'border-red-500' : ''}
               />
+              {pieceErrors.prixUnitaire && <p className="text-[10px] text-red-400">{pieceErrors.prixUnitaire.message}</p>}
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
             <Button type="button" variant="ghost" onClick={() => setIsPieceModalOpen(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isUpdatingPiece}>
+            <Button type="submit" disabled={isUpdatingPiece || !isPieceValid}>
               {isUpdatingPiece ? '...' : 'Enregistrer'}
             </Button>
           </div>
@@ -210,27 +216,30 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
       <Modal
         isOpen={isMouvementModalOpen}
         onClose={() => setIsMouvementModalOpen(false)}
-        title={mvtForm.type === 'ENTREE' ? 'Entrée en Stock' : 'Sortie de Stock'}
+        title={currentMvtType === 'ENTREE' ? 'Entrée en Stock' : 'Sortie de Stock'}
       >
-        <form onSubmit={submitMouvement} className="space-y-4">
+        <form onSubmit={handleMvtSubmit(submitMouvement)} className="space-y-4">
+          <input type="hidden" {...registerMvt('pieceId', { valueAsNumber: true })} />
+          <input type="hidden" {...registerMvt('type')} />
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Quantité</label>
             <Input
               type="number"
               min="1"
-              required
-              value={mvtForm.quantite}
-              onChange={(e) => setMvtForm({ ...mvtForm, quantite: Number(e.target.value) })}
+              {...registerMvt('quantite', { valueAsNumber: true })}
+              className={mvtErrors.quantite ? 'border-red-500' : ''}
             />
+            {mvtErrors.quantite && <p className="text-[10px] text-red-400">{mvtErrors.quantite.message}</p>}
           </div>
-          {mvtForm.type === 'SORTIE' && (
+          {currentMvtType === 'SORTIE' && (
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Référence OT (Optionnel)</label>
               <Input
-                value={mvtForm.referenceOT}
-                onChange={(e) => setMvtForm({ ...mvtForm, referenceOT: e.target.value })}
+                {...registerMvt('referenceOT')}
                 placeholder="OT-XXXXXX"
+                className={mvtErrors.referenceOT ? 'border-red-500' : ''}
               />
+              {mvtErrors.referenceOT && <p className="text-[10px] text-red-400">{mvtErrors.referenceOT.message}</p>}
             </div>
           )}
           <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
@@ -239,9 +248,9 @@ export function MagasinClient({ initialData }: MagasinClientProps) {
             </Button>
             <Button
               type="submit"
-              disabled={isUpdatingMvt}
+              disabled={isUpdatingMvt || !isMvtValid}
               className={
-                mvtForm.type === 'ENTREE'
+                currentMvtType === 'ENTREE'
                   ? 'bg-emerald-600 hover:bg-emerald-700'
                   : 'bg-rose-600 hover:bg-rose-700'
               }

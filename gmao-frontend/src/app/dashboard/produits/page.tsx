@@ -1,5 +1,7 @@
 import { ProduitsClient } from '@/features/produits/components/ProduitsClient';
 import { apiServer } from '@/lib/api-server';
+import { ApiResponse } from '@/types/api.types';
+import { FamilleProduit, Produit } from '@/types/produit.types';
 
 export const metadata = {
   title: 'Produits | GMAO',
@@ -8,11 +10,11 @@ export const metadata = {
 async function getProduitsData() {
   const [familles, produits] = await Promise.all([
     apiServer
-      .get<any>('/produits/familles')
+      .get<ApiResponse<FamilleProduit[]>>('/produits/familles')
       .then((res) => res.data)
       .catch(() => []),
     apiServer
-      .get<any>('/produits')
+      .get<ApiResponse<Produit[]>>('/produits')
       .then((res) => res.data)
       .catch(() => []),
   ]);

@@ -1,16 +1,23 @@
 'use client';
 
+import { Atelier, Ligne, Poste } from '@/types/equipement.types';
+import { UseFormRegister, FieldErrors } from 'react-hook-form';
+
 interface EquipmentSelectProps {
-  formData: any;
-  setFormData: (data: any) => void;
-  ateliers: any[];
-  lignes: any[];
-  postes: any[];
+  register: UseFormRegister<any>;
+  errors: FieldErrors<any>;
+  watchAtelierId?: number;
+  watchLigneId?: number;
+  ateliers: Atelier[];
+  lignes: Ligne[];
+  postes: Poste[];
 }
 
 export function EquipmentSelect({
-  formData,
-  setFormData,
+  register,
+  errors,
+  watchAtelierId,
+  watchLigneId,
   ateliers,
   lignes,
   postes,
@@ -20,54 +27,51 @@ export function EquipmentSelect({
       <div className="space-y-2">
         <label className="text-sm font-medium text-white">Atelier</label>
         <select
-          required
-          className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
-          value={formData.atelierId}
-          onChange={(e) => setFormData({ ...formData, atelierId: e.target.value })}
+          {...register('atelierId', { valueAsNumber: true })}
+          className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.atelierId ? 'border-red-500' : ''}`}
         >
-          <option value="">Sélectionner</option>
-          {ateliers?.map((a: any) => (
+          <option value={0} disabled>Sélectionner</option>
+          {ateliers?.map((a: Atelier) => (
             <option key={a.id} value={a.id}>
               {a.nom}
             </option>
           ))}
         </select>
+        {errors.atelierId && <p className="text-[10px] text-red-400">{errors.atelierId.message as string}</p>}
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium text-white">Ligne</label>
         <select
-          required
-          className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
-          value={formData.ligneId}
-          onChange={(e) => setFormData({ ...formData, ligneId: e.target.value })}
+          {...register('ligneId', { valueAsNumber: true })}
+          className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.ligneId ? 'border-red-500' : ''}`}
         >
-          <option value="">Sélectionner</option>
+          <option value={0} disabled>Sélectionner</option>
           {lignes
-            ?.filter((l: any) => !formData.atelierId || l.atelierId === Number(formData.atelierId))
-            .map((l: any) => (
+            ?.filter((l: Ligne) => !watchAtelierId || l.atelierId === watchAtelierId || isNaN(watchAtelierId))
+            .map((l: Ligne) => (
               <option key={l.id} value={l.id}>
                 {l.nom}
               </option>
             ))}
         </select>
+        {errors.ligneId && <p className="text-[10px] text-red-400">{errors.ligneId.message as string}</p>}
       </div>
       <div className="space-y-2 md:col-span-2">
         <label className="text-sm font-medium text-white">Poste (Équipement)</label>
         <select
-          required
-          className="w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white"
-          value={formData.posteId}
-          onChange={(e) => setFormData({ ...formData, posteId: e.target.value })}
+          {...register('posteId', { valueAsNumber: true })}
+          className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.posteId ? 'border-red-500' : ''}`}
         >
-          <option value="">Sélectionner</option>
+          <option value={0} disabled>Sélectionner</option>
           {postes
-            ?.filter((p: any) => !formData.ligneId || p.ligneId === Number(formData.ligneId))
-            .map((p: any) => (
+            ?.filter((p: Poste) => !watchLigneId || p.ligneId === watchLigneId || isNaN(watchLigneId))
+            .map((p: Poste) => (
               <option key={p.id} value={p.id}>
                 {p.nom}
               </option>
             ))}
         </select>
+        {errors.posteId && <p className="text-[10px] text-red-400">{errors.posteId.message as string}</p>}
       </div>
     </div>
   );
