@@ -20,9 +20,7 @@ const log = logger.child({ module: 'auth-service' });
 
 const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
-
 const REFRESH_ROTATION_GRACE_SECONDS = 30;
-
 
 const refreshGraceKey = (tokenHash: string) => `refresh:grace:${tokenHash}`;
 
@@ -33,7 +31,6 @@ interface RefreshGraceEntry {
 }
 
 class AuthService implements IAuthService {
-
   public async logAudit(
     action: AuditAction,
     email: string,
@@ -56,7 +53,6 @@ class AuthService implements IAuthService {
       log.error({ err: error }, "Erreur lors de l'écriture du journal d'audit");
     }
   }
-
 
   public async signup(data: RegisterDTO): Promise<Partial<User>> {
     const { nom, prenom, email, motDePasse } = data;
@@ -81,7 +77,6 @@ class AuthService implements IAuthService {
 
     return { id: newUser.id, email: newUser.email };
   }
-
 
   public async login(
     data: LoginDTO,
@@ -200,7 +195,6 @@ class AuthService implements IAuthService {
     return { user: userSansMotDePasse, accessToken, refreshToken };
   }
 
-
   public async refresh(
     refreshTokenCookie: string,
     context: AuditContext,
@@ -235,9 +229,7 @@ class AuthService implements IAuthService {
       );
     }
 
-
     if (storedToken.revoque) {
- 
       if (storedToken.revoqueRaison === 'ROTATION') {
         const grace = await this.readRefreshGrace(tokenHash);
         if (grace) {
@@ -253,10 +245,7 @@ class AuthService implements IAuthService {
         where: { tokenFamily: storedToken.tokenFamily, revoque: false },
         data: { revoque: true, revoqueRaison: 'REUSE_DETECTION' },
       });
-      log.warn(
-        { familyId: storedToken.tokenFamily },
-        'Détection de réutilisation de token',
-      );
+      log.warn({ familyId: storedToken.tokenFamily }, 'Détection de réutilisation de token');
       throw new UnauthorizedError(
         'Token de rafraîchissement invalide. Veuillez vous reconnecter.',
         'TOKEN_REUSE_DETECTED',
@@ -291,7 +280,6 @@ class AuthService implements IAuthService {
       newRefreshToken,
     };
 
-   
     await this.writeRefreshGrace(tokenHash, result);
 
     await prisma.refreshToken.update({
@@ -313,7 +301,6 @@ class AuthService implements IAuthService {
     return result;
   }
 
-
   private async readRefreshGrace(tokenHash: string): Promise<RefreshGraceEntry | null> {
     try {
       const raw = await redis.get(refreshGraceKey(tokenHash));
@@ -323,7 +310,6 @@ class AuthService implements IAuthService {
       return null;
     }
   }
-
 
   private async writeRefreshGrace(tokenHash: string, entry: RefreshGraceEntry): Promise<void> {
     try {
@@ -337,7 +323,6 @@ class AuthService implements IAuthService {
       log.error({ err: error }, 'Écriture de la fenêtre de grâce Redis impossible');
     }
   }
-
 
   public async logout(
     refreshTokenCookie: string | undefined,
@@ -362,7 +347,6 @@ class AuthService implements IAuthService {
     await this.logAudit(AuditAction.LOGOUT, email, context, userId);
   }
 
-
   public async getProfile(userId: number): Promise<Partial<User>> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -385,7 +369,6 @@ class AuthService implements IAuthService {
 
     return user;
   }
-
 
   public async changePassword(
     userId: number,

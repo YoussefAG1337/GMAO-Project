@@ -1,8 +1,5 @@
-
-
 import prisma from '../config/prisma';
 import { FrequenceMaintenance, TypeMaintenance, Priorite, StatutOT } from '@prisma/client';
-
 
 export function calculateNextExecution(from: Date, frequence: FrequenceMaintenance): Date {
   const next = new Date(from);
@@ -28,9 +25,7 @@ export function calculateNextExecution(from: Date, frequence: FrequenceMaintenan
   return next;
 }
 
-
 export async function generateOTFromPlan(planId: number) {
-
   const plan = await prisma.planMaintenance.findUnique({
     where: { id: planId },
   });
@@ -42,7 +37,6 @@ export async function generateOTFromPlan(planId: number) {
   if (!plan.actif) {
     throw new Error('Ce plan de maintenance est inactif');
   }
-
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -62,12 +56,10 @@ export async function generateOTFromPlan(planId: number) {
     },
   });
 
-
   const updatedOT = await prisma.ordreTravail.update({
     where: { id: ot.id },
     data: { numeroOT: 'OT-' + ot.id.toString().padStart(6, '0') },
   });
-
 
   const nextDate = calculateNextExecution(plan.prochaineExecution || today, plan.frequence);
 

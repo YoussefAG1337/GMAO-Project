@@ -10,9 +10,8 @@ export async function register() {
     // server-side Node runtime path, never shipped to the browser.
     if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
       const { NodeSDK } = await import('@opentelemetry/sdk-node');
-      const { getNodeAutoInstrumentations } = await import(
-        '@opentelemetry/auto-instrumentations-node'
-      );
+      const { getNodeAutoInstrumentations } =
+        await import('@opentelemetry/auto-instrumentations-node');
       const { OTLPTraceExporter } = await import('@opentelemetry/exporter-trace-otlp-http');
       const { OTLPMetricExporter } = await import('@opentelemetry/exporter-metrics-otlp-http');
       const { PeriodicExportingMetricReader } = await import('@opentelemetry/sdk-metrics');

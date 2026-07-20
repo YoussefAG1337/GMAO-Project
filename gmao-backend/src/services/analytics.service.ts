@@ -164,7 +164,6 @@ export class AnalyticsService {
     };
   }
 
-
   public async getTechnicianWorkrates(anchorDate: Date) {
     const dayStart = startOfDay(anchorDate);
     const dayEnd = endOfDay(anchorDate);

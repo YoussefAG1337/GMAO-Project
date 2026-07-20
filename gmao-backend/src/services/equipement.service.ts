@@ -11,8 +11,6 @@ import {
 } from '../dtos/equipement.dto';
 
 class EquipementService implements IEquipementService {
-
-
   public async getAteliers(actif?: boolean) {
     const where = actif !== undefined ? { actif } : {};
 
@@ -90,8 +88,6 @@ class EquipementService implements IEquipementService {
       where: { id },
     });
   }
-
-
 
   public async getLignes(atelierId?: number, actif?: boolean) {
     const where: any = {};
@@ -179,8 +175,6 @@ class EquipementService implements IEquipementService {
     });
   }
 
-
-
   public async getPostes(ligneId?: number, actif?: boolean) {
     const where: any = {};
     if (actif !== undefined) where.actif = actif;
@@ -247,8 +241,6 @@ class EquipementService implements IEquipementService {
       where: { id },
     });
   }
-
-
 
   public async getLigneKpis(id: number) {
     const ligne = await prisma.ligne.findUnique({ where: { id } });

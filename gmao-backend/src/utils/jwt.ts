@@ -1,13 +1,11 @@
 import jwt, { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 import crypto from 'crypto';
 
-
 export interface AccessTokenPayload {
   userId: number;
   email: string;
   role: string;
 }
-
 
 export interface RefreshTokenPayload {
   userId: number;
@@ -15,7 +13,6 @@ export interface RefreshTokenPayload {
   role: string;
   tokenFamily: string;
 }
-
 
 export function signAccessToken(payload: AccessTokenPayload): string {
   const secret = process.env.ACCESS_TOKEN_SECRET;
@@ -32,7 +29,6 @@ export function signAccessToken(payload: AccessTokenPayload): string {
   });
 }
 
-
 export function signRefreshToken(payload: RefreshTokenPayload): string {
   const secret = process.env.REFRESH_TOKEN_SECRET;
   if (!secret) {
@@ -48,7 +44,6 @@ export function signRefreshToken(payload: RefreshTokenPayload): string {
   });
 }
 
-
 export function verifyAccessToken(token: string): AccessTokenPayload {
   const secret = process.env.ACCESS_TOKEN_SECRET;
   if (!secret) {
@@ -61,7 +56,6 @@ export function verifyAccessToken(token: string): AccessTokenPayload {
   }) as AccessTokenPayload;
 }
 
-
 export function verifyRefreshToken(token: string): RefreshTokenPayload {
   const secret = process.env.REFRESH_TOKEN_SECRET;
   if (!secret) {
@@ -73,7 +67,6 @@ export function verifyRefreshToken(token: string): RefreshTokenPayload {
     audience: 'gmao-client',
   }) as RefreshTokenPayload;
 }
-
 
 export function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
