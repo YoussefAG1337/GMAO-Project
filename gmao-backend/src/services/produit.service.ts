@@ -2,7 +2,6 @@ import prisma from '../config/prisma';
 import { NotFoundError, ConflictError } from '../utils/errors';
 
 class ProduitService {
-  // --- FamilleProduit ---
   public async getFamilles() {
     return prisma.familleProduit.findMany({
       orderBy: { nom: 'asc' },

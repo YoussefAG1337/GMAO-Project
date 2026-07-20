@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import { diService } from '../services/di.service';
 import { emailQueue } from '../jobs/email.queue';
 import prisma from '../config/prisma';
+import { logger } from '../utils/logger';
+
+const log = logger.child({ module: 'di-controller' });
 
 export const getDIs = async (req: Request, res: Response): Promise<void> => {
   const { statut, priorite, atelierId, ligneId, posteId, page = '1', limit = '20' } = req.query;
@@ -80,7 +83,7 @@ export const createDI = async (req: Request, res: Response): Promise<void> => {
         data: { status: 'QUEUED' },
       });
     } catch (redisError) {
-      console.error('Redis push failed, relying on Node-Cron fallback.', redisError);
+      log.warn({ err: redisError }, 'Redis push failed, relying on Node-Cron fallback');
     }
   }
 

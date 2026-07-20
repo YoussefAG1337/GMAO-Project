@@ -1,23 +1,4 @@
 import 'dotenv/config';
-import { useAzureMonitor } from '@azure/monitor-opentelemetry';
-
-import { PrismaInstrumentation } from '@prisma/instrumentation';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
-
-if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
-  // 1. Initialize the standard Azure Monitor exporting
-  useAzureMonitor({
-    azureMonitorExporterOptions: {
-      connectionString: process.env.APPLICATIONINSIGHTS_CONNECTION_STRING,
-    },
-  });
-
-  // 2. Manually register the custom Prisma instrumentation
-  registerInstrumentations({
-    instrumentations: [new PrismaInstrumentation()],
-  });
-}
-
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -37,17 +18,20 @@ import panneRoutes from './routes/panne.routes';
 import { initPreventiveCron } from './cron/preventive.cron';
 import { generalLimiter } from './middleware/rateLimiter.middleware';
 import { errorHandler } from './middleware/errorHandler.middleware';
-import './jobs/email.queue';
+import { logger } from './utils/logger';
+import prisma from './config/prisma';
+import { redis } from './config/redis';
+import { emailQueue, emailWorker } from './jobs/email.queue';
 import './cron/outbox.cron';
 const app = express();
 app.set('trust proxy', 1);
 const PORT = parseInt(process.env.PORT || '5000', 10);
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-/** En-têtes de sécurité HTTP */
+// En-têtes de sécurité HTTP
 app.use(helmet());
 
-/** Configuration CORS pour le frontend */
+//Configuration CORS pour le frontend
 app.use(
   cors({
     origin: FRONTEND_URL,
@@ -57,22 +41,17 @@ app.use(
   }),
 );
 
-/** Parsing des cookies */
 app.use(cookieParser());
 
-/** Parsing du corps JSON avec une limite de taille */
 app.use(express.json({ limit: '10mb' }));
 
-/** Parsing des formulaires URL-encoded */
 app.use(express.urlencoded({ extended: true }));
 
-/** Serve static uploads directory for documents */
 app.use('/uploads', express.static('uploads'));
 
 /** Limiteur de débit général */
 app.use(generalLimiter);
 
-/** Route de santé pour les vérifications de disponibilité */
 app.get('/api/health', (_req, res) => {
   res.status(200).json({
     success: true,
@@ -82,10 +61,8 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-/** Routes d'authentification */
 app.use('/api/auth', authRoutes);
 
-/** Routes GMAO */
 app.use('/api/users', userRoutes);
 app.use('/api/equipements', equipementRoutes);
 app.use('/api/dis', diRoutes);
@@ -98,7 +75,6 @@ app.use('/api/magasin', magasinRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/pannes', panneRoutes);
 
-/** Route 404 pour les endpoints non trouvés */
 app.use((_req, res) => {
   res.status(404).json({
     success: false,
@@ -107,17 +83,63 @@ app.use((_req, res) => {
   });
 });
 
-/** Gestionnaire d'erreurs global */
 app.use(errorHandler);
 
 // Initialisation du cron de maintenance préventive
 initPreventiveCron();
 
-app.listen(PORT, () => {
-  console.log(`Serveur GMAO démarré sur le port ${PORT}`);
-  console.log(`URL: http://localhost:${PORT}`);
-  console.log(`Environnement: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Frontend: ${FRONTEND_URL}`);
+const server = app.listen(PORT, () => {
+  logger.info(
+    { port: PORT, environment: process.env.NODE_ENV || 'development', frontendUrl: FRONTEND_URL },
+    'Serveur GMAO démarré',
+  );
 });
+
+/**
+ * Arrêt propre : sur SIGTERM/SIGINT (envoyés par Docker/Container Apps/k8s
+ * avant le SIGKILL), on cesse d'accepter de nouvelles connexions, on laisse
+ * les requêtes en cours se terminer, on draine le worker BullMQ (pour ne pas
+ * tuer un envoi d'email en cours), puis on ferme proprement Redis et Prisma.
+ * Un délai de sécurité force la sortie si l'arrêt se bloque (connexions
+ * keep-alive, job récalcitrant).
+ *
+ * Note : les crons (préventif, outbox) ne sont pas drainés explicitement — ils
+ * sont conçus pour être ré-exécutés sans effet de bord (l'outbox rejoue depuis
+ * la DB, le préventif régénère au prochain passage), donc une interruption au
+ * niveau du process est sûre.
+ */
+let shuttingDown = false;
+async function shutdown(signal: string): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  logger.info({ signal }, 'Signal d’arrêt reçu, fermeture propre en cours...');
+
+  const forceExit = setTimeout(() => {
+    logger.error('Arrêt propre trop long — sortie forcée');
+    process.exit(1);
+  }, 10000);
+  forceExit.unref();
+
+  server.close(async (err) => {
+    if (err) {
+      logger.error({ err }, 'Erreur lors de la fermeture du serveur HTTP');
+    }
+    try {
+      await emailWorker.close();
+      await emailQueue.close();
+      await redis.quit();
+      await prisma.$disconnect();
+      logger.info('Arrêt propre terminé');
+      clearTimeout(forceExit);
+      process.exit(0);
+    } catch (e) {
+      logger.error({ err: e }, "Erreur pendant l'arrêt propre");
+      process.exit(1);
+    }
+  });
+}
+
+process.on('SIGTERM', () => void shutdown('SIGTERM'));
+process.on('SIGINT', () => void shutdown('SIGINT'));
 
 export default app;

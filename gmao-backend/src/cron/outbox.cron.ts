@@ -1,9 +1,12 @@
 import cron from 'node-cron';
 import prisma from '../config/prisma';
 import { emailQueue } from '../jobs/email.queue';
+import { logger } from '../utils/logger';
 
-// Run every minute: "*/1 * * * *"
-cron.schedule('*/1 * * * *', async () => {
+const log = logger.child({ module: 'outbox-cron' });
+
+// Run every 5 minutes: "*/5 * * * *"
+cron.schedule('*/5 * * * *', async () => {
   try {
     // 1. Find all PENDING events
     const pendingEvents = await prisma.outboxEvent.findMany({
@@ -13,7 +16,7 @@ cron.schedule('*/1 * * * *', async () => {
 
     if (pendingEvents.length === 0) return;
 
-    console.log(`[Outbox Relay] Found ${pendingEvents.length} pending events. Queuing...`);
+    log.info({ count: pendingEvents.length }, 'Found pending events. Queuing...');
 
     // 2. Loop through and push to BullMQ
     for (const event of pendingEvents) {
@@ -34,6 +37,6 @@ cron.schedule('*/1 * * * *', async () => {
       });
     }
   } catch (error) {
-    console.error('[Outbox Relay] Error sweeping outbox:', error);
+    log.error({ err: error }, 'Error sweeping outbox');
   }
 });

@@ -164,13 +164,7 @@ export class AnalyticsService {
     };
   }
 
-  /**
-   * Compute workrate (total tempsIntervention in minutes) for each active technician
-   * over three windows anchored on the given date:
-   *   - daily:   the given day
-   *   - weekly:  the Monday–Sunday week containing that day
-   *   - monthly: the full calendar month containing that day
-   */
+
   public async getTechnicianWorkrates(anchorDate: Date) {
     const dayStart = startOfDay(anchorDate);
     const dayEnd = endOfDay(anchorDate);

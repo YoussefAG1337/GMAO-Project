@@ -230,9 +230,6 @@ model Panne {
   @@map("pannes")
 }
 
-// ============================================================
-// MODÈLES GMAO — Produits & Magasin PDR
-// ============================================================
 
 /// Famille de produits
 model FamilleProduit {
@@ -318,9 +315,7 @@ model PieceUtilisee {
   @@map("pieces_utilisees")
 }
 
-// ============================================================
-// MODÈLES GMAO — Maintenance Corrective
-// ============================================================
+
 
 /// Demande d'Intervention (DI) — ticket initial d'un incident
 model DemandeIntervention {
@@ -430,9 +425,7 @@ model RapportIntervention {
   @@map("rapports_intervention")
 }
 
-// ============================================================
-// MODÈLES GMAO — Maintenance Préventive
-// ============================================================
+
 
 /// Plan de Maintenance Préventive
 model PlanMaintenance {

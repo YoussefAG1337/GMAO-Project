@@ -1,4 +1,7 @@
 import nodemailer from 'nodemailer';
+import { logger } from '../utils/logger';
+
+const log = logger.child({ module: 'email-service' });
 
 // Create a transporter using your SMTP settings
 const transporter = nodemailer.createTransport({
@@ -81,6 +84,6 @@ export const sendDiAssignmentEmail = async (to: string, data: DiAssignmentEmailD
   };
 
   const info = await transporter.sendMail(mailOptions);
-  console.log(`[Email Service] Email sent: ${info.messageId}`);
+  log.info({ messageId: info.messageId }, 'Email sent');
   return info;
 };

@@ -44,5 +44,7 @@ USER node
 EXPOSE 8080
 ENV PORT=8080
 
-# Command to run the application
-CMD ["node", "dist/index.js"]
+# Command to run the application — tracing.js, not index.js: it sets up
+# OpenTelemetry instrumentation before dynamically importing the real app.
+# See src/tracing.ts for why this ordering matters.
+CMD ["node", "dist/tracing.js"]

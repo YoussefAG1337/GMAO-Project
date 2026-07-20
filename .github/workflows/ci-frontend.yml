@@ -85,9 +85,7 @@ jobs:
         env:
           # Prevents Next.js from sending anonymous telemetry during CI builds.
           NEXT_TELEMETRY_DISABLED: 1
-
-      #Security
-
+          
       - name: Audit dependencies for known vulnerabilities
         working-directory: gmao-frontend
         run: npm audit --audit-level=high

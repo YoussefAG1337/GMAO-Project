@@ -1,0 +1,36 @@
+# Minimal single-binary Loki config — filesystem storage, no object store.
+# Fine for a learning/on-prem setup; would need a real backend (S3/GCS/etc.)
+# for multi-instance or long-retention production use. Matches tempo.yaml's
+# approach for consistency.
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+common:
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+# Loki's native OTLP log ingestion (not the older, now-deprecated Collector
+# lokiexporter) — the Collector sends logs here via a plain otlphttp exporter.
+limits_config:
+  allow_structured_metadata: true

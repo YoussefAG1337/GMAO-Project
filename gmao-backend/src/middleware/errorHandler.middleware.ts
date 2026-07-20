@@ -5,6 +5,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/errors';
+import { logger } from '../utils/logger';
 
 /**
  * Middleware de gestion globale des erreurs Express
@@ -32,21 +33,7 @@ export function errorHandler(
     code = (err as any).code || 'UNKNOWN_ERROR';
   }
 
-  // Log détaillé en développement
-  if (process.env.NODE_ENV === 'development') {
-    console.error('═══════════════════════════════════════');
-    console.error(`[ERREUR] ${new Date().toISOString()}`);
-    console.error(`[URL] ${req.method} ${req.originalUrl}`);
-    console.error(`[STATUS] ${statusCode}`);
-    console.error(`[MESSAGE] ${message}`);
-    if (err.stack) {
-      console.error(`[STACK] ${err.stack}`);
-    }
-    console.error('═══════════════════════════════════════');
-  } else {
-    // Log minimal en production
-    console.error(`[ERREUR] ${new Date().toISOString()} - ${statusCode} - ${message}`);
-  }
+  logger.error({ method: req.method, url: req.originalUrl, statusCode, code, err }, message);
 
   res.status(statusCode).json({
     success: false,

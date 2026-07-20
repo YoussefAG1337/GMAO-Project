@@ -13,16 +13,27 @@ import {
 } from '../utils/errors';
 import { IAuthService, AuditContext } from '../interfaces/services/IAuthService';
 import { LoginDTO, RegisterDTO, ChangePasswordDTO } from '../dtos/auth.dto';
+import { logger } from '../utils/logger';
+import { redis } from '../config/redis';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_for_dev';
-const JWT_EXPIRES_IN = '24h';
+const log = logger.child({ module: 'auth-service' });
 
 const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
+
+const REFRESH_ROTATION_GRACE_SECONDS = 30;
+
+
+const refreshGraceKey = (tokenHash: string) => `refresh:grace:${tokenHash}`;
+
+interface RefreshGraceEntry {
+  user: Partial<User>;
+  newAccessToken: string;
+  newRefreshToken: string;
+}
+
 class AuthService implements IAuthService {
-  /**
-   * Enregistre une entrée dans le journal d'audit
-   */
+
   public async logAudit(
     action: AuditAction,
     email: string,
@@ -42,13 +53,11 @@ class AuthService implements IAuthService {
         },
       });
     } catch (error) {
-      console.error("[AUDIT] Erreur lors de l'écriture du journal d'audit:", error);
+      log.error({ err: error }, "Erreur lors de l'écriture du journal d'audit");
     }
   }
 
-  /**
-   * Inscription d'un nouvel utilisateur
-   */
+
   public async signup(data: RegisterDTO): Promise<Partial<User>> {
     const { nom, prenom, email, motDePasse } = data;
 
@@ -73,9 +82,7 @@ class AuthService implements IAuthService {
     return { id: newUser.id, email: newUser.email };
   }
 
-  /**
-   * Connexion de l'utilisateur
-   */
+
   public async login(
     data: LoginDTO,
     context: AuditContext,
@@ -193,9 +200,7 @@ class AuthService implements IAuthService {
     return { user: userSansMotDePasse, accessToken, refreshToken };
   }
 
-  /**
-   * Rafraîchissement du token d'accès
-   */
+
   public async refresh(
     refreshTokenCookie: string,
     context: AuditContext,
@@ -216,15 +221,42 @@ class AuthService implements IAuthService {
       include: { user: true },
     });
 
-    if (!storedToken || storedToken.revoque) {
-      if (storedToken || payload.tokenFamily) {
-        const familyId = storedToken?.tokenFamily || payload.tokenFamily;
+    if (!storedToken) {
+      if (payload.tokenFamily) {
         await prisma.refreshToken.updateMany({
-          where: { tokenFamily: familyId, revoque: false },
+          where: { tokenFamily: payload.tokenFamily, revoque: false },
           data: { revoque: true, revoqueRaison: 'REUSE_DETECTION' },
         });
-        console.warn(`[SÉCURITÉ] Détection de réutilisation de token pour la famille: ${familyId}`);
+        log.warn({ familyId: payload.tokenFamily }, 'Détection de réutilisation de token');
       }
+      throw new UnauthorizedError(
+        'Token de rafraîchissement invalide. Veuillez vous reconnecter.',
+        'TOKEN_REUSE_DETECTED',
+      );
+    }
+
+
+    if (storedToken.revoque) {
+ 
+      if (storedToken.revoqueRaison === 'ROTATION') {
+        const grace = await this.readRefreshGrace(tokenHash);
+        if (grace) {
+          log.info(
+            { userId: storedToken.userId, familyId: storedToken.tokenFamily },
+            'Rafraîchissement rejoué pendant la fenêtre de grâce (rotation)',
+          );
+          return grace;
+        }
+      }
+
+      await prisma.refreshToken.updateMany({
+        where: { tokenFamily: storedToken.tokenFamily, revoque: false },
+        data: { revoque: true, revoqueRaison: 'REUSE_DETECTION' },
+      });
+      log.warn(
+        { familyId: storedToken.tokenFamily },
+        'Détection de réutilisation de token',
+      );
       throw new UnauthorizedError(
         'Token de rafraîchissement invalide. Veuillez vous reconnecter.',
         'TOKEN_REUSE_DETECTED',
@@ -242,11 +274,6 @@ class AuthService implements IAuthService {
       );
     }
 
-    await prisma.refreshToken.update({
-      where: { id: storedToken.id },
-      data: { revoque: true, revoqueRaison: 'ROTATION' },
-    });
-
     const user = storedToken.user;
     const newAccessToken = signAccessToken({ userId: user.id, email: user.email, role: user.role });
     const newRefreshToken = signRefreshToken({
@@ -256,6 +283,21 @@ class AuthService implements IAuthService {
       tokenFamily: storedToken.tokenFamily,
     });
     const newTokenHash = hashToken(newRefreshToken);
+
+    const { motDePasse: _, ...userSansMotDePasse } = user;
+    const result: RefreshGraceEntry = {
+      user: userSansMotDePasse,
+      newAccessToken,
+      newRefreshToken,
+    };
+
+   
+    await this.writeRefreshGrace(tokenHash, result);
+
+    await prisma.refreshToken.update({
+      where: { id: storedToken.id },
+      data: { revoque: true, revoqueRaison: 'ROTATION' },
+    });
 
     await prisma.refreshToken.create({
       data: {
@@ -268,13 +310,35 @@ class AuthService implements IAuthService {
 
     await this.logAudit(AuditAction.TOKEN_REFRESH, user.email, context, user.id);
 
-    const { motDePasse: _, ...userSansMotDePasse } = user;
-    return { user: userSansMotDePasse, newAccessToken, newRefreshToken };
+    return result;
   }
 
-  /**
-   * Déconnexion de l'utilisateur
-   */
+
+  private async readRefreshGrace(tokenHash: string): Promise<RefreshGraceEntry | null> {
+    try {
+      const raw = await redis.get(refreshGraceKey(tokenHash));
+      return raw ? (JSON.parse(raw) as RefreshGraceEntry) : null;
+    } catch (error) {
+      log.error({ err: error }, 'Lecture de la fenêtre de grâce Redis impossible');
+      return null;
+    }
+  }
+
+
+  private async writeRefreshGrace(tokenHash: string, entry: RefreshGraceEntry): Promise<void> {
+    try {
+      await redis.set(
+        refreshGraceKey(tokenHash),
+        JSON.stringify(entry),
+        'EX',
+        REFRESH_ROTATION_GRACE_SECONDS,
+      );
+    } catch (error) {
+      log.error({ err: error }, 'Écriture de la fenêtre de grâce Redis impossible');
+    }
+  }
+
+
   public async logout(
     refreshTokenCookie: string | undefined,
     email: string,
@@ -298,9 +362,7 @@ class AuthService implements IAuthService {
     await this.logAudit(AuditAction.LOGOUT, email, context, userId);
   }
 
-  /**
-   * Récupération du profil
-   */
+
   public async getProfile(userId: number): Promise<Partial<User>> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -324,9 +386,7 @@ class AuthService implements IAuthService {
     return user;
   }
 
-  /**
-   * Changement de mot de passe
-   */
+
   public async changePassword(
     userId: number,
     email: string,

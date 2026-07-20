@@ -1,0 +1,55 @@
+# OpenTelemetry Collector — single gateway all telemetry (traces now, metrics
+# and logs in later milestones) flows through before reaching its backend.
+# See observability.md for the overall architecture.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 256
+  resourcedetection:
+    detectors: [env, system]
+    timeout: 2s
+  batch: {}
+
+exporters:
+  # Verifies data is actually arriving before anything downstream exists —
+  # keep this even after otlp/tempo is added, it's useful for debugging.
+  debug:
+    verbosity: detailed
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  # The Collector, not the app, is what Prometheus scrapes — this exporter
+  # turns received OTLP metrics into a /metrics endpoint on port 8889.
+  prometheus:
+    endpoint: 0.0.0.0:8889
+
+service:
+  # Expose the Collector's own health metrics on :8888 for Prometheus —
+  # newer Collector versions need this declared explicitly.
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: 0.0.0.0
+                port: 8888
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters: [debug, otlp/tempo]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters: [debug, prometheus]

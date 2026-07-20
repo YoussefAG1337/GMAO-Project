@@ -11,9 +11,7 @@ import {
 } from '../dtos/equipement.dto';
 
 class EquipementService implements IEquipementService {
-  // ==========================================
-  // ATELIERS
-  // ==========================================
+
 
   public async getAteliers(actif?: boolean) {
     const where = actif !== undefined ? { actif } : {};
@@ -93,9 +91,7 @@ class EquipementService implements IEquipementService {
     });
   }
 
-  // ==========================================
-  // LIGNES
-  // ==========================================
+
 
   public async getLignes(atelierId?: number, actif?: boolean) {
     const where: any = {};
@@ -183,9 +179,7 @@ class EquipementService implements IEquipementService {
     });
   }
 
-  // ==========================================
-  // POSTES
-  // ==========================================
+
 
   public async getPostes(ligneId?: number, actif?: boolean) {
     const where: any = {};
@@ -254,9 +248,7 @@ class EquipementService implements IEquipementService {
     });
   }
 
-  // ==========================================
-  // KPIs
-  // ==========================================
+
 
   public async getLigneKpis(id: number) {
     const ligne = await prisma.ligne.findUnique({ where: { id } });

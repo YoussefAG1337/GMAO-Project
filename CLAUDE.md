@@ -55,7 +55,8 @@ routes/ -> middleware (auth, rbac, validate) -> controllers/ -> services/ -> Pri
 - **Services** (`src/services/*.service.ts`) hold all business logic and talk to Prisma directly - there is no separate repository layer (a deliberate choice to avoid over-engineering).
 - **Interfaces** (`src/interfaces/services/I*.ts`) define explicit contracts for each service (Interface Segregation Principle). When adding a service method, update the interface too.
 - **DTOs** (`src/dtos/*.dto.ts`) are Zod schemas (Zod v4, not Joi/class-validator - chosen for TS inference). `validate.middleware.ts` parses `body`/`query`/`params` against a DTO before the controller runs.
-- **Auth**: JWT via `access_token`/`refresh_token` HTTP-only cookies (`auth.middleware.ts`), role-based access via `rbac.middleware.ts` and the Prisma `Role` enum (`ADMIN`, `CHEF_MAINTENANCE`, `CHEF_TECHNICIEN`, `TECHNICIEN`, `MAGASINIER`).
+- **Auth**: JWT via `access_token` (15 min) / `refresh_token` (7 day) HTTP-only cookies (`auth.middleware.ts`), role-based access via `rbac.middleware.ts` and the Prisma `Role` enum (`ADMIN`, `CHEF_MAINTENANCE`, `CHEF_TECHNICIEN`, `TECHNICIEN`, `MAGASINIER`). Refresh tokens **rotate** with family-wide reuse detection (`auth.service.ts`). Rotation has a **30s grace window**: the newly-issued token pair is cached in Redis keyed by the old token's hash (`refresh:grace:<hash>`), so a benign replay of a just-rotated token (multiple tabs share the refresh cookie and race on `/refresh`) returns the same pair idempotently instead of tripping reuse-detection and logging everyone out. Replays *after* the window still revoke the family. Redis failure degrades to strict behavior. **Don't** revert rotation to hard-revoke-on-use without restoring this grace path — it reintroduces spurious ~15-min multi-tab logouts.
+- **Config & lifecycle**: `src/config/env.ts` validates all env vars with Zod at boot (imported first in `tracing.ts`) — missing/invalid config, or weak/default JWT secrets in production, abort startup. `src/index.ts` handles `SIGTERM`/`SIGINT` for graceful shutdown (close HTTP → drain BullMQ worker → close Redis/Prisma → exit 0). `src/config/redis.ts` is a shared `ioredis` client (grace cache, general use) separate from BullMQ's own connection — both need `error` listeners (an unlistened `ioredis` `error` crashes Node).
 - **Cron/jobs** (`src/cron/`, `src/jobs/`): `preventive.service.ts` generates OTs from maintenance plans; both the daily cron and the manual "trigger now" HTTP endpoint call the same service method (no duplicated generation logic). `outbox.cron.ts` sweeps unsent email events as a fallback.
 - **Email notifications** use a Transactional Outbox Pattern: the intent to send an email is written to the `OutboxEvent` table in the same DB transaction as the triggering entity (e.g. a new DI), then BullMQ (Redis-backed, `email.queue.ts`) attempts instant delivery. The Node-Cron sweeper picks up anything still `PENDING`. BullMQ's `jobId` is set to `OutboxEvent.id` for idempotency (prevents duplicate sends if both the instant push and the cron fire). Queue/worker `error` listeners are mandatory - an unhandled `ioredis` `error` event crashes the Node process.
 - **Express 5 quirk**: `req.query`/`req.params` are getter-only; mutate with `Object.assign(req.query, result.data)` rather than reassigning.
@@ -87,9 +88,14 @@ Strict layering: **components never call `api`/`useSWR` directly.** Component ->
 
 ## Repo-specific documents worth checking before large changes
 
-- `progress.md` - Epic/phase tracking, current backlog, tech stack summary.
-- `learnings.md` - detailed post-mortems of past architectural decisions and infra obstacles (Azure, Terraform, Prisma, email reliability, RSC migration, etc.) - check here before re-deciding something already evaluated.
+Project documentation is split by concern - check the one matching what you're touching before re-deciding something already evaluated:
+
+- `dev.md` - Epic/feature tracking and application-level architecture decisions (backend SOLID/service layer, frontend FSD/RSC, email reliability, etc.).
+- `ci-cd.md` - GitHub Actions pipeline design and history (CI checks, OIDC deployment auth, container registry tagging).
+- `iac.md` - Terraform-specific patterns and gotchas (state management, module refactors, lifecycle blocks) - cloud-agnostic IaC mechanics, as distinct from Azure product behavior.
+- `azure.md` - Azure-specific service selection, product quirks, and observability/cost decisions.
+- `observability.md` - the self-hosted OTel/Tempo/Prometheus/Grafana stack: architecture, milestone log, and hard-won gotchas (entry-point ordering, honor_labels, flush timing) - read before touching instrumentation or `observability/` configs.
 - `memory.md` - most recent session's state, decisions, and "next session starts with" pointer.
 - `ui-registry.md` - canonical Tailwind class choices for UI consistency.
 
-These are living docs; update them when making a significant architectural decision, per this repo's existing convention (see `learnings.md` bottom).
+These are living docs; update the relevant one when making a significant architectural decision, per this repo's existing convention (see the bottom of `dev.md`).

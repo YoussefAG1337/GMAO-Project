@@ -1,6 +1,9 @@
 import { Queue, Worker, Job } from 'bullmq';
 import { sendDiAssignmentEmail, DiAssignmentEmailData } from '../services/email.service';
 import prisma from '../config/prisma'; // Make sure this path is correct for your Prisma client
+import { logger } from '../utils/logger';
+
+const log = logger.child({ module: 'email-queue' });
 
 const QUEUE_NAME = 'email-queue';
 
@@ -24,14 +27,14 @@ export const emailQueue = new Queue(QUEUE_NAME, {
 });
 
 emailQueue.on('error', (err) => {
-  console.error('[BullMQ Queue] Error:', err.message);
+  log.error({ err }, 'Queue error');
 });
 
 // 2. Initialize the Worker (The consumer)
 export const emailWorker = new Worker(
   QUEUE_NAME,
   async (job: Job) => {
-    console.log(`[BullMQ] Processing job ${job.id} of type ${job.name}`);
+    log.info({ jobId: job.id, jobName: job.name }, 'Processing job');
 
     if (job.name === 'EMAIL_DI_ASSIGNED') {
       const {
@@ -75,7 +78,7 @@ export const emailWorker = new Worker(
 
 // Listen for errors
 emailWorker.on('failed', async (job, err) => {
-  console.error(`[BullMQ] Job ${job?.id} failed with error: ${err.message}`);
+  log.error({ jobId: job?.id, err }, 'Job failed');
 
   if (job?.data?.outboxEventId) {
     // Mark as failed in DB if we run out of retries
@@ -89,5 +92,5 @@ emailWorker.on('failed', async (job, err) => {
 });
 
 emailWorker.on('error', (err) => {
-  console.error('[BullMQ Worker] Error:', err.message);
+  log.error({ err }, 'Worker error');
 });

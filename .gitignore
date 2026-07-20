@@ -5,7 +5,7 @@
 **/gmao-frontend/.next/
 **/gmao-frontend/out/
 **/gmao-frontend/build/
-AGENTS.md
+
 CLAUDE.md
 flow.md
 /UI
@@ -17,12 +17,16 @@ flow.md
 **/.env
 **/.env.local
 **/.env.*.local
+observability/secrets/*.txt
 
 # IDEs & System files
 .DS_Store
 .vscode/
 .idea/
 *.pem
+
+# Claude Code local (machine-specific) settings
+.claude/settings.local.json
 
 # Logs
 *.log
@@ -32,11 +36,15 @@ yarn-error.log*
 .pnpm-debug.log*
 azure_logs
 logs.zip
-progress.md
-learnings.md
+
+azure.md
+ci-cd.md
+dev.md
+iac.md
 memory.md
 ui-registry.md
 skills
+
 # Terraform
 **/.terraform/
 *.tfstate
