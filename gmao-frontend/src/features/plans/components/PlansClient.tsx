@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { useReferenceData } from '@/hooks/useReferenceData';
 import { usePlans } from '@/features/plans/hooks/usePlans';
@@ -10,20 +11,25 @@ import { toast } from 'sonner';
 
 import { PlansHeader } from '@/features/plans/components/PlansHeader';
 import { PlanList } from '@/features/plans/components/PlanList';
+import { PlanFilters } from '@/features/plans/components/PlanFilters';
 import { PlanFormModal } from '@/features/plans/components/PlanFormModal';
 import { PlanDetailModal } from '@/features/plans/components/PlanDetailModal';
+import { Pagination } from '@/components/ui/pagination';
 import { getErrorMessage } from '@/lib/error';
 import { type PlanFormData } from '@/lib/validations/plan';
+import { Plan } from '@/types/plan.types';
+import { PaginatedResponse } from '@/types/api.types';
+import { parseListParams } from '@/lib/pagination';
 
 interface PlansClientProps {
-  initialPlans: any[];
+  initialData: PaginatedResponse<Plan>;
   initialAteliers: any[];
   initialLignes: any[];
   initialPostes: any[];
 }
 
 export function PlansClient({
-  initialPlans,
+  initialData,
   initialAteliers,
   initialLignes,
   initialPostes,
@@ -32,7 +38,10 @@ export function PlansClient({
   const isAdmin = user?.role === 'ADMIN';
   const isAdminOrChef = isAdmin || user?.role === 'CHEF_MAINTENANCE';
 
-  const { plans, updatePlan, deletePlan, togglePlanActive, triggerPlan } = usePlans(initialPlans);
+  const searchParams = useSearchParams();
+  const params = parseListParams(Object.fromEntries(searchParams.entries()));
+  const { plans, total, page, totalPages, updatePlan, deletePlan, togglePlanActive, triggerPlan } =
+    usePlans(params, initialData);
 
   const { ateliers, lignes, postes } = useReferenceData({
     initialAteliers,
@@ -51,8 +60,8 @@ export function PlansClient({
 
   const isEditing = !!editingPlan;
 
-  // Derive initialData for the modal from the plan being edited
-  const initialData = editingPlan
+  // Derive form values for the edit modal from the plan being edited
+  const editInitialData = editingPlan
     ? {
         intitule: editingPlan.intitule,
         description: editingPlan.description || '',
@@ -135,6 +144,8 @@ export function PlansClient({
     <div className="space-y-8 animate-fade-in-up">
       <PlansHeader isAdminOrChef={isAdminOrChef} onOpenCreate={handleOpenCreate} />
 
+      <PlanFilters ateliers={ateliers || []} />
+
       <PlanList
         plans={plans}
         isAdmin={isAdmin}
@@ -147,12 +158,14 @@ export function PlansClient({
         onOpenCreate={handleOpenCreate}
       />
 
+      <Pagination page={page} totalPages={totalPages} total={total} />
+
       <PlanFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
         isEditing={isEditing}
-        initialData={initialData}
+        initialData={editInitialData}
         ateliers={ateliers || []}
         lignes={lignes || []}
         postes={postes || []}

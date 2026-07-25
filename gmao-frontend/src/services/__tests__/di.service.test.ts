@@ -16,25 +16,31 @@ describe('diService', () => {
     vi.clearAllMocks();
   });
 
-  describe('getAll', () => {
-    it('should fetch all DIs and extract the nested array if present', async () => {
-      // Mocking the scenario where backend returns { data: { dis: [...] } }
-      vi.mocked(api.get).mockResolvedValue({ data: { dis: [{ id: 1, name: 'Panne' }] } });
+  describe('list', () => {
+    it('fetches a page with params and returns the paginated envelope', async () => {
+      const page = {
+        items: [{ id: 1, name: 'Panne' }],
+        total: 1,
+        page: 2,
+        limit: 10,
+        totalPages: 1,
+      };
+      vi.mocked(api.get).mockResolvedValue({ data: page });
 
-      const result = await diService.getAll();
+      const result = await diService.list({ page: 2, limit: 10, statut: 'NOUVELLE' });
 
-      expect(api.get).toHaveBeenCalledWith('/dis');
-      expect(result).toEqual([{ id: 1, name: 'Panne' }]);
+      expect(api.get).toHaveBeenCalledWith('/dis?page=2&limit=10&statut=NOUVELLE');
+      expect(result).toEqual(page);
     });
 
-    it('should fetch all DIs and return data directly if nested array is absent', async () => {
-      // Mocking the scenario where backend returns just an array in { data: [...] }
-      vi.mocked(api.get).mockResolvedValue({ data: [{ id: 2, name: 'Autre' }] });
+    it('omits empty params from the query', async () => {
+      vi.mocked(api.get).mockResolvedValue({
+        data: { items: [], total: 0, page: 1, limit: 20, totalPages: 1 },
+      });
 
-      const result = await diService.getAll();
+      await diService.list();
 
-      expect(api.get).toHaveBeenCalledWith('/dis');
-      expect(result).toEqual([{ id: 2, name: 'Autre' }]);
+      expect(api.get).toHaveBeenCalledWith('/dis?');
     });
   });
 

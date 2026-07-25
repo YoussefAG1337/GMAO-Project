@@ -5,10 +5,12 @@ import { rapportService } from '@/services/rapport.service';
 import { SWRConfig } from 'swr';
 import React from 'react';
 
+const emptyPage = { items: [], total: 0, page: 1, limit: 20, totalPages: 1 };
+
 vi.mock('@/services/rapport.service', () => ({
   rapportService: {
-    keys: { all: '/rapports' },
-    getAll: vi.fn(),
+    keys: { list: () => '/ots/rapports' },
+    list: vi.fn(),
   },
 }));
 
@@ -22,12 +24,16 @@ describe('useRapports hook', () => {
   );
 
   it('should fetch rapports', async () => {
-    vi.mocked(rapportService.getAll).mockResolvedValue([{ id: 1 } as any]);
+    vi.mocked(rapportService.list).mockResolvedValue({
+      ...emptyPage,
+      items: [{ id: 1 }],
+      total: 1,
+    } as any);
 
     const { result } = renderHook(() => useRapports(), { wrapper });
 
     await waitFor(() => {
-      expect(rapportService.getAll).toHaveBeenCalledTimes(1);
+      expect(rapportService.list).toHaveBeenCalledTimes(1);
       expect(result.current.rapports).toEqual([{ id: 1 }]);
     });
   });

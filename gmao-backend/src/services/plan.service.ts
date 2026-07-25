@@ -4,18 +4,27 @@ import { NotFoundError, BadRequestError } from '../utils/errors';
 import { IPlanService } from '../interfaces/services/IPlanService';
 import { CreatePlanDTO, UpdatePlanDTO } from '../dtos/plan.dto';
 import { generateOTFromPlan } from './preventive.service';
+import { buildPagination, paginated } from '../utils/pagination';
 
 class PlanService implements IPlanService {
-  public async getPlans(filters: any) {
-    return prisma.planMaintenance.findMany({
-      where: filters,
-      include: {
-        atelier: { select: { nom: true } },
-        ligne: { select: { nom: true } },
-        poste: { select: { nom: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  public async getPlans(filters: any, page: number, limit: number) {
+    const { skip, take } = buildPagination(page, limit);
+    const [total, items] = await Promise.all([
+      prisma.planMaintenance.count({ where: filters }),
+      prisma.planMaintenance.findMany({
+        where: filters,
+        include: {
+          atelier: { select: { nom: true } },
+          ligne: { select: { nom: true } },
+          poste: { select: { nom: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+    ]);
+
+    return paginated(items, total, page, limit);
   }
 
   public async getPlanById(id: number) {

@@ -1,19 +1,14 @@
 import { CreateOTDTO, UpdateOTDTO, SubmitRapportDTO } from '../../dtos/ot.dto';
 import { OrdreTravail, RapportIntervention, Role } from '@prisma/client';
+import { Paginated } from '../../utils/pagination';
 
 export interface IOtService {
   getOTs(
     filters: any,
-    pageNum: number,
-    limitNum: number,
+    page: number,
+    limit: number,
     currentUser: { userId: number; role: Role },
-  ): Promise<{
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-    ots: OrdreTravail[];
-  }>;
+  ): Promise<Paginated<OrdreTravail>>;
   getOTById(id: number): Promise<OrdreTravail>;
   createOT(data: CreateOTDTO): Promise<OrdreTravail>;
   updateOT(id: number, data: UpdateOTDTO): Promise<OrdreTravail>;

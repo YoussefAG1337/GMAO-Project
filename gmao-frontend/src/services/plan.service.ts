@@ -1,19 +1,19 @@
 import { api } from '@/lib/api';
-import { ApiResponse } from '@/types/api.types';
+import { ApiResponse, PaginatedResponse } from '@/types/api.types';
 import { Plan, CreatePlanDto, UpdatePlanDto } from '@/types/plan.types';
 import { Ot } from '@/types/ot.types';
+import { buildListQuery, ListParams } from '@/lib/pagination';
 
 export const planService = {
   keys: {
-    all: '/plans',
+    list: (params: ListParams = {}) => `/plans?${buildListQuery(params)}`,
     detail: (id: number) => `/plans/${id}`,
   },
 
-  getAll: () =>
-    api.get<ApiResponse<{ plans: Plan[] } | Plan[]>>('/plans').then((res) => {
-      const data = res.data;
-      return data && 'plans' in data && Array.isArray(data.plans) ? data.plans : (data as Plan[]);
-    }),
+  list: (params: ListParams = {}) =>
+    api
+      .get<ApiResponse<PaginatedResponse<Plan>>>(`/plans?${buildListQuery(params)}`)
+      .then((res) => res.data as PaginatedResponse<Plan>),
 
   getById: (id: number) => api.get<ApiResponse<Plan>>(`/plans/${id}`).then((res) => res.data),
 

@@ -3,21 +3,22 @@ import prisma from '../config/prisma';
 import { NotFoundError, BadRequestError, UnauthorizedError } from '../utils/errors';
 import { IOtService } from '../interfaces/services/IOtService';
 import { CreateOTDTO, UpdateOTDTO, SubmitRapportDTO } from '../dtos/ot.dto';
+import { buildPagination, paginated } from '../utils/pagination';
 
 class OtService implements IOtService {
   public async getOTs(
     filters: any,
-    pageNum: number,
-    limitNum: number,
+    page: number,
+    limit: number,
     currentUser: { userId: number; role: Role },
   ) {
-    const skip = (pageNum - 1) * limitNum;
+    const { skip, take } = buildPagination(page, limit);
 
     if (currentUser.role === Role.TECHNICIEN) {
       filters.technicienId = currentUser.userId;
     }
 
-    const [total, ots] = await Promise.all([
+    const [total, items] = await Promise.all([
       prisma.ordreTravail.count({ where: filters }),
       prisma.ordreTravail.findMany({
         where: filters,
@@ -30,17 +31,11 @@ class OtService implements IOtService {
         },
         orderBy: [{ datePrevue: 'asc' }, { createdAt: 'desc' }],
         skip,
-        take: limitNum,
+        take,
       }),
     ]);
 
-    return {
-      total,
-      page: pageNum,
-      limit: limitNum,
-      totalPages: Math.ceil(total / limitNum),
-      ots,
-    };
+    return paginated(items, total, page, limit);
   }
 
   public async getOTById(id: number) {
@@ -210,10 +205,6 @@ class OtService implements IOtService {
     return updatedOT;
   }
 
-  /**
-   * Technicien soumet le rapport.
-   * Statut → RAPPORTE. Le rapport reste modifiable jusqu'à la validation technicien.
-   */
   public async submitRapport(
     id: number,
     data: SubmitRapportDTO,
@@ -303,10 +294,6 @@ class OtService implements IOtService {
     });
   }
 
-  /**
-   * Technicien valide son propre travail.
-   * Statut → EN_ATTENTE_VALIDATION. Le rapport est verrouillé.
-   */
   public async validerTechnicien(id: number, currentUser: { userId: number; role: Role }) {
     const ot = await prisma.ordreTravail.findUnique({
       where: { id },
@@ -335,10 +322,6 @@ class OtService implements IOtService {
     });
   }
 
-  /**
-   * Validation finale par admin/chef.
-   * Statut → FERME. Clôture la DI si tous ses OTs sont fermés.
-   */
   public async validateOT(id: number, userId: number) {
     const ot = await prisma.ordreTravail.findUnique({ where: { id } });
     if (!ot) throw new NotFoundError('OT introuvable');
@@ -369,10 +352,6 @@ class OtService implements IOtService {
     return updatedOt;
   }
 
-  /**
-   * Reporte l'intervention à une autre date (technicien, depuis EN_COURS).
-   * Aucun rapport n'est créé.
-   */
   public async reporterOT(id: number, raison: string, currentUser: { userId: number; role: Role }) {
     const ot = await prisma.ordreTravail.findUnique({ where: { id } });
     if (!ot) throw new NotFoundError('OT introuvable');
@@ -391,9 +370,6 @@ class OtService implements IOtService {
     });
   }
 
-  /**
-   * Annule l'OT avec une explication (depuis EN_COURS ou RAPPORTE).
-   */
   public async annulerOT(id: number, raison: string, currentUser: { userId: number; role: Role }) {
     const ot = await prisma.ordreTravail.findUnique({ where: { id } });
     if (!ot) throw new NotFoundError('OT introuvable');
@@ -413,12 +389,6 @@ class OtService implements IOtService {
     });
   }
 
-  /**
-   * Marque l'OT comme non validé avec raison.
-   * - Technicien: depuis RAPPORTE
-   * - Admin/Chef: depuis EN_ATTENTE_VALIDATION
-   * Ensuite, admin/chef peut réassigner l'OT à un autre technicien.
-   */
   public async nonValiderOT(
     id: number,
     raison: string,

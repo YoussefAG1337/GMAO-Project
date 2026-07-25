@@ -7,14 +7,16 @@ import React from 'react';
 
 vi.mock('@/services/di.service', () => ({
   diService: {
-    keys: { all: '/dis' },
-    getAll: vi.fn(),
+    keys: { list: () => '/dis' },
+    list: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
     startWork: vi.fn(),
   },
 }));
+
+const emptyPage = { items: [], total: 0, page: 1, limit: 20, totalPages: 1 };
 
 describe('useDis hook', () => {
   beforeEach(() => {
@@ -25,26 +27,31 @@ describe('useDis hook', () => {
     <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>{children}</SWRConfig>
   );
 
-  it('should fetch data and return it', async () => {
-    vi.mocked(diService.getAll).mockResolvedValue([{ id: 1, code: 'DI-001' } as any]);
+  it('should fetch a page and expose items + meta', async () => {
+    vi.mocked(diService.list).mockResolvedValue({
+      ...emptyPage,
+      items: [{ id: 1, code: 'DI-001' }],
+      total: 1,
+    } as any);
 
     const { result } = renderHook(() => useDis(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.dis).toEqual([{ id: 1, code: 'DI-001' }]);
+      expect(result.current.total).toBe(1);
       expect(result.current.isLoading).toBe(false);
     });
   });
 
   it('should call createDi and trigger mutate', async () => {
-    vi.mocked(diService.getAll).mockResolvedValue([]);
+    vi.mocked(diService.list).mockResolvedValue(emptyPage as any);
     vi.mocked(diService.create).mockResolvedValue({ id: 2 } as any);
 
     const { result } = renderHook(() => useDis(), { wrapper });
 
     // wait for initial fetch
     await waitFor(() => {
-      expect(diService.getAll).toHaveBeenCalledTimes(1);
+      expect(diService.list).toHaveBeenCalledTimes(1);
     });
 
     await act(async () => {
@@ -53,6 +60,6 @@ describe('useDis hook', () => {
 
     expect(diService.create).toHaveBeenCalled();
     // mutate() forces a re-validation (re-fetch)
-    expect(diService.getAll).toHaveBeenCalledTimes(2);
+    expect(diService.list).toHaveBeenCalledTimes(2);
   });
 });

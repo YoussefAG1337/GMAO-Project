@@ -1,16 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import { planService } from '../services/plan.service';
 import { UnauthorizedError } from '../utils/errors';
+import { GetPlansQuery } from '../dtos/plan.dto';
 
 export const getPlans = async (req: Request, res: Response): Promise<void> => {
-  const { actif, atelierId, frequence } = req.query;
+  // Validated + coerced by validateRequest(getPlansSchema).
+  const { page, limit, actif, atelierId, frequence } = req.query as unknown as GetPlansQuery;
 
   const filters: any = {};
-  if (actif !== undefined) filters.actif = actif === 'true';
-  if (atelierId) filters.atelierId = parseInt(atelierId as string, 10);
+  if (actif !== undefined) filters.actif = actif;
+  if (atelierId) filters.atelierId = atelierId;
   if (frequence) filters.frequence = frequence;
 
-  const plans = await planService.getPlans(filters);
+  const plans = await planService.getPlans(filters, page, limit);
 
   res.status(200).json({
     success: true,

@@ -1,5 +1,3 @@
-# modules/networking/main.tf
-
 resource "azurerm_virtual_network" "main" {
   name                = "vnet-${var.project_name}-${var.environment}"
   location            = var.location

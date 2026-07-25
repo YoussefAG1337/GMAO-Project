@@ -1,13 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { rapportService } from '../services/rapport.service';
 import { UnauthorizedError } from '../utils/errors';
+import { PaginationQuery } from '../dtos/pagination.dto';
 
 export const getRapports = async (req: Request, res: Response): Promise<void> => {
   if (!req.user) {
     throw new UnauthorizedError('Utilisateur non authentifié');
   }
 
-  const rapports = await rapportService.getRapports(req.user);
+  const { page, limit } = req.query as unknown as PaginationQuery;
+  const rapports = await rapportService.getRapports(req.user, page, limit);
 
   res.status(200).json({
     success: true,

@@ -1,0 +1,21 @@
+{
+  // Fails CI on any new high/critical advisory. Moderate/low are ignored,
+  // matching the previous `npm audit --audit-level=high` behavior.
+  "high": true,
+  "critical": true,
+  "allowlist": [
+    // brace-expansion DoS (GHSA-mh99-v99m-4gvg) — reachable only via minimatch@3.1.5,
+    // bundled transitively by eslint / @eslint/config-array / @eslint/eslintrc /
+    // eslint-config-next's own eslint-plugin-import|jsx-a11y|react. Confirmed forcing
+    // brace-expansion to a fixed major (5.x) breaks ESLint's flat-config path matching
+    // outright — no compatible fix exists upstream yet. Lint-time only, not shipped.
+    "GHSA-mh99-v99m-4gvg",
+    // postcss XSS/path-traversal advisories (GHSA-6g55-p6wh-862q, GHSA-r28c-9q8g-f849) —
+    // Next.js's own internal postcss@8.4.31 is a hardcoded pin used by its build tooling,
+    // unrelated to the project's actual postcss (already patched at 8.5.23 via
+    // @tailwindcss/postcss). Even Next's latest preview release still pins this
+    // internally; no fix available to take yet.
+    "GHSA-6g55-p6wh-862q",
+    "GHSA-r28c-9q8g-f849"
+  ]
+}

@@ -2,28 +2,41 @@ import { Role } from '@prisma/client';
 import prisma from '../config/prisma';
 import { NotFoundError } from '../utils/errors';
 import { IRapportService } from '../interfaces/services/IRapportService';
+import { buildPagination, paginated } from '../utils/pagination';
 
 class RapportService implements IRapportService {
-  public async getRapports(currentUser: { userId: number; role: Role }) {
+  public async getRapports(
+    currentUser: { userId: number; role: Role },
+    page: number,
+    limit: number,
+  ) {
     const where: any = {};
     if (currentUser.role === Role.TECHNICIEN) {
       where.redacteurId = currentUser.userId;
     }
 
-    return prisma.rapportIntervention.findMany({
-      where,
-      include: {
-        ordreTravail: {
-          include: {
-            atelier: { select: { nom: true } },
-            ligne: { select: { nom: true } },
-            poste: { select: { nom: true } },
+    const { skip, take } = buildPagination(page, limit);
+    const [total, items] = await Promise.all([
+      prisma.rapportIntervention.count({ where }),
+      prisma.rapportIntervention.findMany({
+        where,
+        include: {
+          ordreTravail: {
+            include: {
+              atelier: { select: { nom: true } },
+              ligne: { select: { nom: true } },
+              poste: { select: { nom: true } },
+            },
           },
+          redacteur: { select: { nom: true, prenom: true } },
         },
-        redacteur: { select: { nom: true, prenom: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+    ]);
+
+    return paginated(items, total, page, limit);
   }
 
   public async getRapportById(id: number) {

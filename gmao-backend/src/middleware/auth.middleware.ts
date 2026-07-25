@@ -1,18 +1,7 @@
-/**
- * @fileoverview Middleware d'authentification JWT
- * @description Extrait et vérifie le token JWT depuis le cookie httpOnly.
- *              Définit req.user avec les informations de l'utilisateur authentifié.
- */
-
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken, TokenExpiredError, JsonWebTokenError } from '../utils/jwt';
 import { Role } from '@prisma/client';
 
-/**
- * Middleware d'authentification
- * Vérifie le token d'accès JWT dans le cookie 'access_token'.
- * En cas de succès, ajoute les données utilisateur à req.user.
- */
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   try {
     const token = req.cookies?.access_token;

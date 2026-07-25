@@ -1,5 +1,18 @@
 import { z } from 'zod';
-import { Priorite } from '@prisma/client';
+import { Priorite, StatutDI } from '@prisma/client';
+import { paginationQuery } from './pagination.dto';
+
+export const getDIsSchema = z.object({
+  query: paginationQuery.extend({
+    statut: z.nativeEnum(StatutDI).optional(),
+    priorite: z.nativeEnum(Priorite).optional(),
+    atelierId: z.coerce.number().int().positive().optional(),
+    ligneId: z.coerce.number().int().positive().optional(),
+    posteId: z.coerce.number().int().positive().optional(),
+  }),
+});
+
+export type GetDIsQuery = z.infer<typeof getDIsSchema>['query'];
 
 export const createDISchema = z.object({
   body: z.object({

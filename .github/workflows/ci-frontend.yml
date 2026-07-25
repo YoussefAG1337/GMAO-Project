@@ -33,7 +33,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: gmao-frontend/package-lock.json
 
@@ -88,4 +88,7 @@ jobs:
           
       - name: Audit dependencies for known vulnerabilities
         working-directory: gmao-frontend
-        run: npm audit --audit-level=high
+        # audit-ci.jsonc allowlists two currently-unfixable high advisories
+        # (brace-expansion via eslint's minimatch@3.1.5 chain, postcss via
+        # Next.js's own internal build-tooling pin) — see comments in that file.
+        run: npx audit-ci --config audit-ci.jsonc

@@ -11,14 +11,14 @@ import {
 import { authMiddleware } from '../middleware/auth.middleware';
 import { rbac } from '../middleware/rbac.middleware';
 import { validateRequest } from '../middleware/validate.middleware';
-import { createDISchema, updateDISchema } from '../dtos/di.dto';
+import { createDISchema, updateDISchema, getDIsSchema } from '../dtos/di.dto';
 import { upload } from '../config/multer';
 
 const router = Router();
 
 router.use(authMiddleware);
 
-router.get('/', getDIs);
+router.get('/', validateRequest(getDIsSchema), getDIs);
 router.get('/stats', getDIStats);
 router.get('/:id', getDIById);
 

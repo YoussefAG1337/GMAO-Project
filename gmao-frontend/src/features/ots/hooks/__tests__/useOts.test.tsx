@@ -5,10 +5,12 @@ import { otService } from '@/services/ot.service';
 import { SWRConfig } from 'swr';
 import React from 'react';
 
+const emptyPage = { items: [], total: 0, page: 1, limit: 20, totalPages: 1 };
+
 vi.mock('@/services/ot.service', () => ({
   otService: {
-    keys: { all: '/ots' },
-    getAll: vi.fn(),
+    keys: { list: () => '/ots' },
+    list: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     assign: vi.fn(),
@@ -33,7 +35,11 @@ describe('useOts hook', () => {
   );
 
   it('should fetch data and return it', async () => {
-    vi.mocked(otService.getAll).mockResolvedValue([{ id: 1, code: 'OT-001' } as any]);
+    vi.mocked(otService.list).mockResolvedValue({
+      ...emptyPage,
+      items: [{ id: 1, code: 'OT-001' }],
+      total: 1,
+    } as any);
 
     const { result } = renderHook(() => useOts(), { wrapper });
 
@@ -44,13 +50,13 @@ describe('useOts hook', () => {
   });
 
   it('should call createOt and trigger mutate', async () => {
-    vi.mocked(otService.getAll).mockResolvedValue([]);
+    vi.mocked(otService.list).mockResolvedValue(emptyPage as any);
     vi.mocked(otService.create).mockResolvedValue({ id: 2 } as any);
 
     const { result } = renderHook(() => useOts(), { wrapper });
 
     await waitFor(() => {
-      expect(otService.getAll).toHaveBeenCalledTimes(1);
+      expect(otService.list).toHaveBeenCalledTimes(1);
     });
 
     await act(async () => {
@@ -65,6 +71,6 @@ describe('useOts hook', () => {
     });
 
     expect(otService.create).toHaveBeenCalled();
-    expect(otService.getAll).toHaveBeenCalledTimes(2);
+    expect(otService.list).toHaveBeenCalledTimes(2);
   });
 });

@@ -8,13 +8,8 @@ export const metadata = {
 };
 
 async function getMagasinData() {
-  const data = await apiServer
-    .get<ApiResponse<Piece[]>>('/magasin/pieces')
-    .then((res) => res.data)
-    .catch((error) => {
-      console.error('Erreur lors du chargement des données magasin:', error);
-      return [];
-    });
+  // Primary resource: let failures/redirects surface instead of masking them.
+  const data = await apiServer.get<ApiResponse<Piece[]>>('/magasin/pieces').then((res) => res.data);
 
   return {
     pieces: Array.isArray(data) ? data : [],

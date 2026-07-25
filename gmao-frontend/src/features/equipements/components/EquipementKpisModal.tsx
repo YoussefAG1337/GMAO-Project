@@ -4,6 +4,7 @@ import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import { Clock, Activity } from 'lucide-react';
 import { ApiResponse } from '@/types/api.types';
+import { Spinner } from '@/components/ui/spinner';
 
 interface EquipementKpisModalProps {
   isOpen: boolean;
@@ -55,8 +56,9 @@ export function EquipementKpisModal({
         </p>
 
         {isLoading ? (
-          <div className="flex justify-center p-8">
-            <span className="text-muted-foreground animate-pulse">Chargement des KPIs...</span>
+          <div className="flex items-center justify-center gap-3 p-8">
+            <Spinner className="h-5 w-5" />
+            <span className="text-muted-foreground">Chargement des KPIs...</span>
           </div>
         ) : kpis ? (
           <div className="grid grid-cols-2 gap-4">

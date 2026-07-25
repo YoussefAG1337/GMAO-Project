@@ -33,7 +33,9 @@ import {
   reporterOTSchema,
   annulerOTSchema,
   nonValideOTSchema,
+  getOTsSchema,
 } from '../dtos/ot.dto';
+import { paginationOnlySchema } from '../dtos/pagination.dto';
 
 const router = Router();
 
@@ -42,13 +44,13 @@ router.use(authMiddleware);
 // ==========================================
 // RAPPORTS
 // ==========================================
-router.get('/rapports', getRapports);
+router.get('/rapports', validateRequest(paginationOnlySchema), getRapports);
 router.get('/rapports/:id', getRapportById);
 
 // ==========================================
 // ORDRES DE TRAVAIL
 // ==========================================
-router.get('/', getOTs);
+router.get('/', validateRequest(getOTsSchema), getOTs);
 router.get('/stats', getOTStats);
 router.get('/:id', getOTById);
 router.get('/:otId/rapport', getRapportByOT);

@@ -49,6 +49,10 @@
     "uuid": "^14.0.0",
     "zod": "^4.4.3"
   },
+  "overrides": {
+    "gcp-metadata": "^8.1.4",
+    "gaxios": "^7.3.0"
+  },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",

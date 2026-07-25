@@ -3,23 +3,24 @@ import { diService } from '../services/di.service';
 import { emailQueue } from '../jobs/email.queue';
 import prisma from '../config/prisma';
 import { logger } from '../utils/logger';
+import { GetDIsQuery } from '../dtos/di.dto';
 
 const log = logger.child({ module: 'di-controller' });
 
 export const getDIs = async (req: Request, res: Response): Promise<void> => {
-  const { statut, priorite, atelierId, ligneId, posteId, page = '1', limit = '20' } = req.query;
-
-  const pageNum = parseInt(page as string, 10);
-  const limitNum = parseInt(limit as string, 10);
+  // Query params are validated + coerced by validateRequest(getDIsSchema),
+  // so page/limit are numbers with defaults and filters are typed.
+  const { page, limit, statut, priorite, atelierId, ligneId, posteId } =
+    req.query as unknown as GetDIsQuery;
 
   const filters: any = {};
   if (statut) filters.statut = statut;
   if (priorite) filters.priorite = priorite;
-  if (atelierId) filters.atelierId = parseInt(atelierId as string, 10);
-  if (ligneId) filters.ligneId = parseInt(ligneId as string, 10);
-  if (posteId) filters.posteId = parseInt(posteId as string, 10);
+  if (atelierId) filters.atelierId = atelierId;
+  if (ligneId) filters.ligneId = ligneId;
+  if (posteId) filters.posteId = posteId;
 
-  const result = await diService.getDIs(filters, pageNum, limitNum);
+  const result = await diService.getDIs(filters, page, limit);
 
   res.status(200).json({
     success: true,

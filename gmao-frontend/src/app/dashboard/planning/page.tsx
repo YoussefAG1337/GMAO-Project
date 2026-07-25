@@ -8,10 +8,10 @@ export default async function PlanningPage() {
   const month = currentDate.getMonth() + 1;
   const year = currentDate.getFullYear();
 
+  // Primary resource: let failures/redirects surface instead of masking them.
   const calendarData = await apiServer
     .get<ApiResponse<CalendarResponse>>(`/calendar?month=${month}&year=${year}`)
-    .then((res) => res.data)
-    .catch(() => ({ ots: [], upcomingPlans: [] }));
+    .then((res) => res.data);
 
   return (
     <PlanningClient initialCalendarData={calendarData} initialMonth={month} initialYear={year} />

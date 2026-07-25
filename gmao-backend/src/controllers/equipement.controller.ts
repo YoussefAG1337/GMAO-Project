@@ -1,10 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { equipementService } from '../services/equipement.service';
 
-// ==========================================
-// ATELIERS
-// ==========================================
-
 export const getAteliers = async (req: Request, res: Response): Promise<void> => {
   const { actif } = req.query;
   const isActif = actif !== undefined ? actif === 'true' : undefined;
@@ -60,10 +56,6 @@ export const deleteAtelier = async (req: Request, res: Response): Promise<void> 
     data: atelier,
   });
 };
-
-// ==========================================
-// LIGNES
-// ==========================================
 
 export const getLignes = async (req: Request, res: Response): Promise<void> => {
   const { actif, atelierId } = req.query;
@@ -133,10 +125,6 @@ export const deleteLigne = async (req: Request, res: Response): Promise<void> =>
     data: ligne,
   });
 };
-
-// ==========================================
-// POSTES
-// ==========================================
 
 export const getPostes = async (req: Request, res: Response): Promise<void> => {
   const { actif, ligneId } = req.query;

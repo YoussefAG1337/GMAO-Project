@@ -1,11 +1,15 @@
 import useSWR from 'swr';
 import { diService } from '@/services/di.service';
-import { CreateDiDto, UpdateDiDto } from '@/types/di.types';
+import { CreateDiDto, UpdateDiDto, Di } from '@/types/di.types';
+import { ListParams } from '@/lib/pagination';
+import { PaginatedResponse } from '@/types/api.types';
 
-export function useDis(initialData?: any) {
-  const { data, mutate, error, isLoading } = useSWR(diService.keys.all, diService.getAll, {
-    fallbackData: initialData?.dis ?? initialData,
-  });
+export function useDis(params: ListParams = {}, initialData?: PaginatedResponse<Di>) {
+  const { data, mutate, error, isLoading } = useSWR(
+    diService.keys.list(params),
+    () => diService.list(params),
+    { fallbackData: initialData, keepPreviousData: true },
+  );
 
   const createDi = async (data: FormData | CreateDiDto) => {
     const result = await diService.create(data);
@@ -32,7 +36,10 @@ export function useDis(initialData?: any) {
   };
 
   return {
-    dis: data ?? [],
+    dis: data?.items ?? [],
+    total: data?.total ?? 0,
+    page: data?.page ?? 1,
+    totalPages: data?.totalPages ?? 1,
     isLoading,
     error,
     isError: !!error,

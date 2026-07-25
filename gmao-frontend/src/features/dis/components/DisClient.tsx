@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useReferenceData } from '@/hooks/useReferenceData';
 import { useDis } from '@/features/dis/hooks/useDis';
 import { useProduits } from '@/features/produits/hooks/useProduits';
@@ -9,24 +10,28 @@ import { toast } from 'sonner';
 
 import { DisHeader } from '@/features/dis/components/DisHeader';
 import { DiList } from '@/features/dis/components/DiList';
+import { DiFilters } from '@/features/dis/components/DiFilters';
 import { DiFormModal } from '@/features/dis/components/DiFormModal';
 import { DiDetailModal } from '@/features/dis/components/DiDetailModal';
 import { DiEditModal } from '@/features/dis/components/DiEditModal';
+import { Pagination } from '@/components/ui/pagination';
 
 import { Di } from '@/types/di.types';
 import { Atelier, Ligne, Poste } from '@/types/equipement.types';
+import { PaginatedResponse } from '@/types/api.types';
+import { parseListParams } from '@/lib/pagination';
 import { getErrorMessage } from '@/lib/error';
 import { CreateDiFormData, UpdateDiFormData } from '@/lib/validations/di';
 
 interface DisClientProps {
-  initialDis: Di[];
+  initialData: PaginatedResponse<Di>;
   initialAteliers: Atelier[];
   initialLignes: Ligne[];
   initialPostes: Poste[];
 }
 
 export function DisClient({
-  initialDis,
+  initialData,
   initialAteliers,
   initialLignes,
   initialPostes,
@@ -35,7 +40,12 @@ export function DisClient({
   const isAdmin = user?.role === 'ADMIN';
   const isAdminOrChef = isAdmin || user?.role === 'CHEF_MAINTENANCE';
 
-  const { dis, createDi, updateDi, deleteDi, startWork } = useDis(initialDis);
+  const searchParams = useSearchParams();
+  const params = parseListParams(Object.fromEntries(searchParams.entries()));
+  const { dis, total, page, totalPages, createDi, updateDi, deleteDi, startWork } = useDis(
+    params,
+    initialData,
+  );
 
   const { ateliers, lignes, postes, techniciens } = useReferenceData({
     initialAteliers,
@@ -143,6 +153,8 @@ export function DisClient({
     <div className="space-y-8 animate-fade-in-up">
       <DisHeader onOpenCreate={() => setIsModalOpen(true)} />
 
+      <DiFilters ateliers={ateliers || []} />
+
       <DiList
         dis={dis}
         currentUserId={user?.id as any}
@@ -154,6 +166,7 @@ export function DisClient({
         onDelete={handleDeleteDI}
         onOpenDetails={handleOpenDetails}
         onStartWork={handleStartWork}
+        footer={<Pagination page={page} totalPages={totalPages} total={total} />}
       />
 
       <DiFormModal

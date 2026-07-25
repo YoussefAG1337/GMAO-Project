@@ -28,10 +28,8 @@ app.set('trust proxy', 1);
 const PORT = parseInt(process.env.PORT || '5000', 10);
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-// En-têtes de sécurité HTTP
 app.use(helmet());
 
-//Configuration CORS pour le frontend
 app.use(
   cors({
     origin: FRONTEND_URL,
@@ -95,19 +93,6 @@ const server = app.listen(PORT, () => {
   );
 });
 
-/**
- * Arrêt propre : sur SIGTERM/SIGINT (envoyés par Docker/Container Apps/k8s
- * avant le SIGKILL), on cesse d'accepter de nouvelles connexions, on laisse
- * les requêtes en cours se terminer, on draine le worker BullMQ (pour ne pas
- * tuer un envoi d'email en cours), puis on ferme proprement Redis et Prisma.
- * Un délai de sécurité force la sortie si l'arrêt se bloque (connexions
- * keep-alive, job récalcitrant).
- *
- * Note : les crons (préventif, outbox) ne sont pas drainés explicitement — ils
- * sont conçus pour être ré-exécutés sans effet de bord (l'outbox rejoue depuis
- * la DB, le préventif régénère au prochain passage), donc une interruption au
- * niveau du process est sûre.
- */
 let shuttingDown = false;
 async function shutdown(signal: string): Promise<void> {
   if (shuttingDown) return;

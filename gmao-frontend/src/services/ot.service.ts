@@ -7,19 +7,19 @@ import {
   RaisonDto,
   Ot,
 } from '@/types/ot.types';
-import { ApiResponse } from '@/types/api.types';
+import { ApiResponse, PaginatedResponse } from '@/types/api.types';
+import { buildListQuery, ListParams } from '@/lib/pagination';
 
 export const otService = {
   keys: {
-    all: '/ots',
+    list: (params: ListParams = {}) => `/ots?${buildListQuery(params)}`,
     detail: (id: number) => `/ots/${id}`,
   },
 
-  getAll: () =>
-    api.get<ApiResponse<{ ots: Ot[] } | Ot[]>>('/ots').then((res) => {
-      const data = res.data;
-      return data && 'ots' in data && Array.isArray(data.ots) ? data.ots : (data as Ot[]);
-    }),
+  list: (params: ListParams = {}) =>
+    api
+      .get<ApiResponse<PaginatedResponse<Ot>>>(`/ots?${buildListQuery(params)}`)
+      .then((res) => res.data as PaginatedResponse<Ot>),
 
   create: (data: CreateOtDto) => api.post<ApiResponse<Ot>>('/ots', data).then((res) => res.data),
 

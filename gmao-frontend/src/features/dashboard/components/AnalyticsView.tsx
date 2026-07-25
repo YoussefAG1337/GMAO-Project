@@ -9,6 +9,7 @@ import { useWorkrates } from '@/features/dashboard/hooks/useWorkrates';
 import { TechnicianWorkrateCard } from '@/features/dashboard/components/TechnicianWorkrateCard';
 import { useAuth } from '@/context/AuthContext';
 import { Users } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function workingDaysInMonth(dateStr: string): number {
   const anchor = new Date(dateStr);
@@ -53,7 +54,7 @@ export function AnalyticsView() {
   }
 
   if (isLoading) {
-    return <div className="animate-pulse h-64 bg-card rounded-xl"></div>;
+    return <Skeleton className="h-64 rounded-xl" />;
   }
 
   if (!analytics) return null;
@@ -209,7 +210,7 @@ export function AnalyticsView() {
           {workrateLoading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="animate-pulse h-28 bg-zinc-900 rounded-2xl" />
+                <Skeleton key={i} className="h-28 rounded-2xl" />
               ))}
             </div>
           )}

@@ -16,11 +16,18 @@ describe('planService', () => {
     vi.clearAllMocks();
   });
 
-  it('should call api.get for getAll', async () => {
-    vi.mocked(api.get).mockResolvedValue({ data: { plans: [{ id: 1, intitule: 'Plan 1' }] } });
-    const result = await planService.getAll();
-    expect(api.get).toHaveBeenCalledWith('/plans');
-    expect(result).toEqual([{ id: 1, intitule: 'Plan 1' }]);
+  it('should call api.get for list and return the paginated envelope', async () => {
+    const page = {
+      items: [{ id: 1, intitule: 'Plan 1' }],
+      total: 1,
+      page: 1,
+      limit: 20,
+      totalPages: 1,
+    };
+    vi.mocked(api.get).mockResolvedValue({ data: page });
+    const result = await planService.list({ actif: 'true' });
+    expect(api.get).toHaveBeenCalledWith('/plans?actif=true');
+    expect(result).toEqual(page);
   });
 
   it('should call api.post for create', async () => {

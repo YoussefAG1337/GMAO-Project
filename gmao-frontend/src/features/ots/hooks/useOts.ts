@@ -6,12 +6,17 @@ import {
   AssignOtDto,
   SubmitRapportDto,
   RaisonDto,
+  Ot,
 } from '@/types/ot.types';
+import { ListParams } from '@/lib/pagination';
+import { PaginatedResponse } from '@/types/api.types';
 
-export function useOts(initialData?: any) {
-  const { data, mutate, error, isLoading } = useSWR(otService.keys.all, otService.getAll, {
-    fallbackData: initialData?.ots ?? initialData,
-  });
+export function useOts(params: ListParams = {}, initialData?: PaginatedResponse<Ot>) {
+  const { data, mutate, error, isLoading } = useSWR(
+    otService.keys.list(params),
+    () => otService.list(params),
+    { fallbackData: initialData, keepPreviousData: true },
+  );
 
   const createOt = async (data: CreateOtDto) => {
     const result = await otService.create(data);
@@ -80,7 +85,10 @@ export function useOts(initialData?: any) {
   };
 
   return {
-    ots: data ?? [],
+    ots: data?.items ?? [],
+    total: data?.total ?? 0,
+    page: data?.page ?? 1,
+    totalPages: data?.totalPages ?? 1,
     isLoading,
     error,
     isError: !!error,

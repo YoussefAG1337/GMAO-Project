@@ -1,11 +1,15 @@
 import useSWR from 'swr';
 import { planService } from '@/services/plan.service';
-import { CreatePlanDto, UpdatePlanDto } from '@/types/plan.types';
+import { CreatePlanDto, UpdatePlanDto, Plan } from '@/types/plan.types';
+import { ListParams } from '@/lib/pagination';
+import { PaginatedResponse } from '@/types/api.types';
 
-export function usePlans(initialData?: any) {
-  const { data, mutate, error, isLoading } = useSWR(planService.keys.all, planService.getAll, {
-    fallbackData: initialData,
-  });
+export function usePlans(params: ListParams = {}, initialData?: PaginatedResponse<Plan>) {
+  const { data, mutate, error, isLoading } = useSWR(
+    planService.keys.list(params),
+    () => planService.list(params),
+    { fallbackData: initialData, keepPreviousData: true },
+  );
 
   const createPlan = async (data: CreatePlanDto) => {
     const result = await planService.create(data);
@@ -37,7 +41,10 @@ export function usePlans(initialData?: any) {
   };
 
   return {
-    plans: data ?? [],
+    plans: data?.items ?? [],
+    total: data?.total ?? 0,
+    page: data?.page ?? 1,
+    totalPages: data?.totalPages ?? 1,
     isLoading,
     error,
     isError: !!error,

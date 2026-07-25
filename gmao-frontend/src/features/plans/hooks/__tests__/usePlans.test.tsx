@@ -5,10 +5,12 @@ import { planService } from '@/services/plan.service';
 import { SWRConfig } from 'swr';
 import React from 'react';
 
+const emptyPage = { items: [], total: 0, page: 1, limit: 20, totalPages: 1 };
+
 vi.mock('@/services/plan.service', () => ({
   planService: {
-    keys: { all: '/plans', detail: vi.fn() },
-    getAll: vi.fn(),
+    keys: { list: () => '/plans', detail: vi.fn() },
+    list: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
@@ -27,13 +29,13 @@ describe('usePlans hook', () => {
   );
 
   it('should call trigger and mutate', async () => {
-    vi.mocked(planService.getAll).mockResolvedValue([]);
+    vi.mocked(planService.list).mockResolvedValue(emptyPage as any);
     vi.mocked(planService.trigger).mockResolvedValue({ id: 1 } as any);
 
     const { result } = renderHook(() => usePlans(), { wrapper });
 
     await waitFor(() => {
-      expect(planService.getAll).toHaveBeenCalledTimes(1);
+      expect(planService.list).toHaveBeenCalledTimes(1);
     });
 
     await act(async () => {
@@ -41,6 +43,6 @@ describe('usePlans hook', () => {
     });
 
     expect(planService.trigger).toHaveBeenCalledWith(5);
-    expect(planService.getAll).toHaveBeenCalledTimes(2);
+    expect(planService.list).toHaveBeenCalledTimes(2);
   });
 });

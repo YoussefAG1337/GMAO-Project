@@ -1,7 +1,3 @@
-
-
-# Resource Group
-
 resource "azurerm_resource_group" "main" {
   name     = "rg-${var.project_name}-${var.environment}"
   location = var.location
@@ -14,8 +10,6 @@ resource "azurerm_resource_group" "main" {
 }
 
 
-# Networking — VNet, Subnets, Private DNS
-
 
 module "networking" {
   source = "./modules/networking"
@@ -26,7 +20,6 @@ module "networking" {
   resource_group_name = azurerm_resource_group.main.name
 }
 
-# Database — MySQL Flexible Server
 
 module "database" {
   source = "./modules/database"
@@ -40,7 +33,6 @@ module "database" {
 }
 
 
-# Monitoring — Log Analytics, App Insights, Diagnostics, Alerts
 
 module "monitoring" {
   source = "./modules/monitoring"
@@ -57,7 +49,6 @@ module "monitoring" {
   alert_email         = var.alert_email
 }
 
-# Container Registry (The Docker App Store)
 
 module "registry" {
   source = "./modules/registry"
@@ -69,7 +60,6 @@ module "registry" {
 }
 
 
-# Compute — Azure Container Apps (ACA)
 
 module "container_apps" {
   source = "./modules/container_apps"

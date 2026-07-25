@@ -15,13 +15,13 @@ import {
 import { authMiddleware } from '../middleware/auth.middleware';
 import { rbac } from '../middleware/rbac.middleware';
 import { validateRequest } from '../middleware/validate.middleware';
-import { createPlanSchema, updatePlanSchema } from '../dtos/plan.dto';
+import { createPlanSchema, updatePlanSchema, getPlansSchema } from '../dtos/plan.dto';
 
 const router = Router();
 
 router.use(authMiddleware);
 
-router.get('/', getPlans);
+router.get('/', validateRequest(getPlansSchema), getPlans);
 router.get('/:id', getPlanById);
 
 router.post(

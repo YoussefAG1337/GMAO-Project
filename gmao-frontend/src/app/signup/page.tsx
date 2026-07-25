@@ -12,16 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { toast } from 'sonner';
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  Loader2,
-  AlertCircle,
-  User as UserIcon,
-  CheckCircle2,
-} from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, User as UserIcon, CheckCircle2 } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import Link from 'next/link';
 
 function SignupForm() {
@@ -222,7 +214,7 @@ function SignupForm() {
                 disabled={loading || !isValid}
                 className="w-full mt-2 bg-[#651FAA] hover:bg-purple-600 text-white rounded-xl h-11 disabled:opacity-50"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {loading ? <Spinner className="w-4 h-4 mr-2 text-current" /> : null}
                 S&apos;inscrire
               </Button>
             </form>

@@ -2,7 +2,7 @@
 
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
-import { EquipmentSelect } from '@/components/EquipmentSelect';
+import { EquipmentSelect, numberOrUndefined } from '@/components/EquipmentSelect';
 import { useEffect } from 'react';
 import { usePannes } from '@/features/equipements/hooks/usePannes';
 import { useForm, useWatch } from 'react-hook-form';
@@ -26,7 +26,12 @@ interface DiEditModalProps {
   isSubmitting?: boolean;
 }
 
-export function DiEditModal({
+export function DiEditModal(props: DiEditModalProps) {
+  if (!props.isOpen) return null;
+  return <DiEditModalInner {...props} />;
+}
+
+function DiEditModalInner({
   isOpen,
   onClose,
   onSubmit,
@@ -90,12 +95,10 @@ export function DiEditModal({
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Famille de Produit (Optionnel)</label>
             <select
-              {...register('familleId', { valueAsNumber: true })}
+              {...register('familleId', { setValueAs: numberOrUndefined })}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.familleId ? 'border-red-500' : ''}`}
             >
-              <option value={0} disabled>
-                Sélectionner
-              </option>
+              <option value="">Sélectionner</option>
               {familles?.map((f: FamilleProduit) => (
                 <option key={f.id} value={f.id}>
                   {f.nom}
@@ -109,12 +112,10 @@ export function DiEditModal({
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Produit Concerné (Optionnel)</label>
             <select
-              {...register('produitId', { valueAsNumber: true })}
+              {...register('produitId', { setValueAs: numberOrUndefined })}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.produitId ? 'border-red-500' : ''}`}
             >
-              <option value={0} disabled>
-                Sélectionner
-              </option>
+              <option value="">Sélectionner</option>
               {produits
                 ?.filter(
                   (p: Produit) =>
@@ -143,9 +144,7 @@ export function DiEditModal({
               })}
               className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.panneId ? 'border-red-500' : ''}`}
             >
-              <option value="" disabled>
-                Sélectionner ou ajouter
-              </option>
+              <option value="">Sélectionner ou ajouter</option>
               {pannes.map((p: Panne) => (
                 <option key={p.id} value={p.id}>
                   {p.nom} ({p.type === 'QUALITE' ? 'Qualité' : 'Technique'})

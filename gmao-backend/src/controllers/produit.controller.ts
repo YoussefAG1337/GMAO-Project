@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { produitService } from '../services/produit.service';
 
 class ProduitController {
-  // --- FamilleProduit ---
   public getFamilles = async (req: Request, res: Response) => {
     const familles = await produitService.getFamilles();
     res.status(200).json({ success: true, data: familles });
@@ -28,7 +27,6 @@ class ProduitController {
     res.status(200).json({ success: true });
   };
 
-  // --- Produit ---
   public getProduits = async (req: Request, res: Response) => {
     const familleId = req.query.familleId ? parseInt(req.query.familleId as string) : undefined;
     const produits = await produitService.getProduits(familleId);

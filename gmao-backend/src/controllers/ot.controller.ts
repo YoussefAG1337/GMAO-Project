@@ -1,24 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
 import { otService } from '../services/ot.service';
 import { UnauthorizedError } from '../utils/errors';
+import { GetOTsQuery } from '../dtos/ot.dto';
 
 export const getOTs = async (req: Request, res: Response): Promise<void> => {
-  const { statut, typeMaintenance, technicienId, atelierId, page = '1', limit = '20' } = req.query;
-
-  const pageNum = parseInt(page as string, 10);
-  const limitNum = parseInt(limit as string, 10);
+  // Validated + coerced by validateRequest(getOTsSchema).
+  const { page, limit, statut, typeMaintenance, technicienId, atelierId } =
+    req.query as unknown as GetOTsQuery;
 
   const filters: any = {};
   if (statut) filters.statut = statut;
   if (typeMaintenance) filters.typeMaintenance = typeMaintenance;
-  if (technicienId) filters.technicienId = parseInt(technicienId as string, 10);
-  if (atelierId) filters.atelierId = parseInt(atelierId as string, 10);
+  if (technicienId) filters.technicienId = technicienId;
+  if (atelierId) filters.atelierId = atelierId;
 
   if (!req.user) {
     throw new UnauthorizedError('Utilisateur non authentifié');
   }
 
-  const result = await otService.getOTs(filters, pageNum, limitNum, req.user);
+  const result = await otService.getOTs(filters, page, limit, req.user);
 
   res.status(200).json({
     success: true,

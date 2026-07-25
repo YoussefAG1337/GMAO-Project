@@ -13,6 +13,7 @@ import { TechnicianView } from '@/features/dashboard/components/TechnicianView';
 import { DashboardCharts } from '@/features/dashboard/components/DashboardCharts';
 import { UserDetailsGrid } from '@/features/dashboard/components/UserDetailsGrid';
 import { AnalyticsView } from '@/features/dashboard/components/AnalyticsView';
+import { Spinner } from '@/components/ui/spinner';
 
 const fetcher = <T,>(url: string) => api.get<ApiResponse<T>>(url).then((res) => res.data);
 
@@ -36,7 +37,7 @@ export default function DashboardPage() {
   if (authLoading || !isMounted) {
     return (
       <div className="relative min-h-screen bg-[#07080d] text-foreground flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-purple-500"></div>
+        <Spinner className="h-8 w-8" />
       </div>
     );
   }

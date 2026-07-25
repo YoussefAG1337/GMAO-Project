@@ -3,6 +3,8 @@
 import { Atelier, Ligne, Poste } from '@/types/equipement.types';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
 
+export const numberOrUndefined = (v: string) => (v === '' || v == null ? undefined : Number(v));
+
 interface EquipmentSelectProps {
   register: UseFormRegister<any>;
   errors: FieldErrors<any>;
@@ -27,12 +29,10 @@ export function EquipmentSelect({
       <div className="space-y-2">
         <label className="text-sm font-medium text-white">Atelier</label>
         <select
-          {...register('atelierId', { valueAsNumber: true })}
+          {...register('atelierId', { setValueAs: numberOrUndefined })}
           className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.atelierId ? 'border-red-500' : ''}`}
         >
-          <option value={0} disabled>
-            Sélectionner
-          </option>
+          <option value="">Sélectionner</option>
           {ateliers?.map((a: Atelier) => (
             <option key={a.id} value={a.id}>
               {a.nom}
@@ -46,12 +46,10 @@ export function EquipmentSelect({
       <div className="space-y-2">
         <label className="text-sm font-medium text-white">Ligne</label>
         <select
-          {...register('ligneId', { valueAsNumber: true })}
+          {...register('ligneId', { setValueAs: numberOrUndefined })}
           className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.ligneId ? 'border-red-500' : ''}`}
         >
-          <option value={0} disabled>
-            Sélectionner
-          </option>
+          <option value="">Sélectionner</option>
           {lignes
             ?.filter(
               (l: Ligne) =>
@@ -70,12 +68,10 @@ export function EquipmentSelect({
       <div className="space-y-2 md:col-span-2">
         <label className="text-sm font-medium text-white">Poste (Équipement)</label>
         <select
-          {...register('posteId', { valueAsNumber: true })}
+          {...register('posteId', { setValueAs: numberOrUndefined })}
           className={`w-full bg-zinc-900 border border-white/10 rounded-lg p-2.5 text-white ${errors.posteId ? 'border-red-500' : ''}`}
         >
-          <option value={0} disabled>
-            Sélectionner
-          </option>
+          <option value="">Sélectionner</option>
           {postes
             ?.filter(
               (p: Poste) => !watchLigneId || p.ligneId === watchLigneId || isNaN(watchLigneId),

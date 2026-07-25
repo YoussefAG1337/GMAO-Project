@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// Rôles disponibles dans le système GMAO
 enum Role {
   ADMIN
   CHEF_MAINTENANCE
@@ -22,7 +21,6 @@ enum TypePanne {
 }
 
 
-/// Actions d'audit pour le suivi des connexions
 enum AuditAction {
   LOGIN_SUCCESS
   LOGIN_FAILED
@@ -32,7 +30,6 @@ enum AuditAction {
   PASSWORD_CHANGED
 }
 
-/// Statuts possibles d'une Demande d'Intervention
 enum StatutDI {
   NOUVELLE
   EN_COURS
@@ -40,20 +37,18 @@ enum StatutDI {
   CLOTUREE
 }
 
-/// Statuts possibles d'un Ordre de Travail
 enum StatutOT {
   CREE
   ASSIGNE
   EN_COURS
-  REPORTE        // Technicien reporte à une autre date
-  RAPPORTE       // Rapport soumis — en attente de validation par le technicien
-  EN_ATTENTE_VALIDATION // Technicien a validé son propre travail — en attente admin/chef
-  NON_VALIDE     // Rejeté (tech ou admin) avec raison
-  ANNULE         // OT annulé avec explication
-  FERME          // Clôturé par admin/chef
+  REPORTE        
+  RAPPORTE       
+  EN_ATTENTE_VALIDATION 
+  NON_VALIDE    
+  ANNULE       
+  FERME          
 }
 
-/// Niveaux de priorité
 enum Priorite {
   BASSE
   MOYENNE
@@ -61,13 +56,11 @@ enum Priorite {
   CRITIQUE
 }
 
-/// Types de maintenance
 enum TypeMaintenance {
   CORRECTIVE
   PREVENTIVE
 }
 
-/// Fréquences de maintenance préventive
 enum FrequenceMaintenance {
   HEBDOMADAIRE
   MENSUELLE
@@ -76,7 +69,6 @@ enum FrequenceMaintenance {
   ANNUELLE
 }
 
-/// Utilisateur du système GMAO
 model User {
   id                 Int       @id @default(autoincrement())
   nom                String    @db.VarChar(100)
@@ -94,7 +86,6 @@ model User {
   refreshTokens RefreshToken[]
   loginAudits   LoginAudit[]
 
-  // Relations GMAO
   demandesIntervention        DemandeIntervention[] @relation("DIDeclarePar")
   demandesInterventionAssigne DemandeIntervention[] @relation("DIAssigneA")
   ordresTravailTechnicien     OrdreTravail[]        @relation("OTTechnicien")
@@ -109,7 +100,6 @@ model User {
   @@map("users")
 }
 
-/// Token de rafraîchissement pour la rotation sécurisée
 model RefreshToken {
   id            Int      @id @default(autoincrement())
   tokenHash     String   @db.VarChar(255)
@@ -128,7 +118,6 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-/// Journal d'audit des connexions et actions de sécurité
 model LoginAudit {
   id        Int         @id @default(autoincrement())
   userId    Int?
@@ -148,11 +137,8 @@ model LoginAudit {
   @@map("login_audits")
 }
 
-// ============================================================
-// MODÈLES GMAO — Structure Industrielle
-// ============================================================
 
-/// Atelier de production (niveau le plus haut de la hiérarchie)
+
 model Atelier {
   id          Int      @id @default(autoincrement())
   nom         String   @db.VarChar(100)
@@ -169,7 +155,6 @@ model Atelier {
   @@map("ateliers")
 }
 
-/// Ligne de production (appartient à un Atelier)
 model Ligne {
   id          Int      @id @default(autoincrement())
   nom         String   @db.VarChar(100)
@@ -191,7 +176,6 @@ model Ligne {
   @@map("lignes")
 }
 
-/// Poste de travail (appartient à une Ligne)
 model Poste {
   id          Int      @id @default(autoincrement())
   nom         String   @db.VarChar(100)
@@ -211,7 +195,6 @@ model Poste {
   @@map("postes")
 }
 
-/// Type de panne associée à une ligne ou un poste
 model Panne {
   id          Int       @id @default(autoincrement())
   nom         String    @db.VarChar(200)
@@ -231,7 +214,6 @@ model Panne {
 }
 
 
-/// Famille de produits
 model FamilleProduit {
   id        Int      @id @default(autoincrement())
   nom       String   @unique @db.VarChar(100)
@@ -243,7 +225,6 @@ model FamilleProduit {
   @@map("familles_produits")
 }
 
-/// Produit / Équipement spécifique
 model Produit {
   id               Int      @id @default(autoincrement())
   nom              String   @db.VarChar(200)
@@ -258,7 +239,6 @@ model Produit {
   @@map("produits")
 }
 
-/// Pièce de Rechange (Magasin PDR)
 model PieceRechange {
   id            Int      @id @default(autoincrement())
   code          String   @unique @db.VarChar(50)
@@ -281,7 +261,6 @@ enum TypeMouvement {
   SORTIE
 }
 
-/// Historique des mouvements de stock
 model MouvementStock {
   id          Int           @id @default(autoincrement())
   pieceId     Int
@@ -299,7 +278,6 @@ model MouvementStock {
   @@map("mouvements_stock")
 }
 
-/// Consommation de pièces dans un Rapport d'Intervention
 model PieceUtilisee {
   id                    Int      @id @default(autoincrement())
   rapportInterventionId Int
@@ -317,7 +295,6 @@ model PieceUtilisee {
 
 
 
-/// Demande d'Intervention (DI) — ticket initial d'un incident
 model DemandeIntervention {
   id               Int      @id @default(autoincrement())
   numeroDI         String   @unique @db.VarChar(20)
@@ -357,7 +334,6 @@ model DemandeIntervention {
   @@map("demandes_intervention")
 }
 
-/// Ordre de Travail (OT) — tâche de maintenance assignée
 model OrdreTravail {
   id                    Int             @id @default(autoincrement())
   numeroOT              String          @unique @db.VarChar(20)
@@ -403,7 +379,6 @@ model OrdreTravail {
   @@map("ordres_travail")
 }
 
-/// Rapport d'Intervention — bilan post-intervention (1:1 avec OT)
 model RapportIntervention {
   id                Int      @id @default(autoincrement())
   ordreTravailId    Int      @unique
@@ -427,7 +402,6 @@ model RapportIntervention {
 
 
 
-/// Plan de Maintenance Préventive
 model PlanMaintenance {
   id                 Int                  @id @default(autoincrement())
   intitule           String               @db.VarChar(200)
@@ -457,7 +431,6 @@ model PlanMaintenance {
   @@map("plans_maintenance")
 }
 
-/// Status of an Outbox Event
 enum OutboxStatus {
   PENDING   
   QUEUED    
@@ -465,7 +438,6 @@ enum OutboxStatus {
   FAILED   
 }
 
-/// Transactional Outbox table
 model OutboxEvent {
   id        Int          @id @default(autoincrement())
   type      String       @db.VarChar(100)

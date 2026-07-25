@@ -1,18 +1,9 @@
 import { CreateDIDTO, UpdateDIDTO } from '../../dtos/di.dto';
 import { DemandeIntervention, OutboxEvent } from '@prisma/client';
+import { Paginated } from '../../utils/pagination';
 
 export interface IDiService {
-  getDIs(
-    filters: any,
-    pageNum: number,
-    limitNum: number,
-  ): Promise<{
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-    dis: DemandeIntervention[];
-  }>;
+  getDIs(filters: any, page: number, limit: number): Promise<Paginated<DemandeIntervention>>;
   getDIById(id: number): Promise<DemandeIntervention>;
   createDI(
     userId: number,

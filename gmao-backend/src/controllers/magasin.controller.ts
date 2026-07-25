@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { magasinService } from '../services/magasin.service';
 
 class MagasinController {
-  // --- PieceRechange ---
   public getPieces = async (req: Request, res: Response) => {
     const pieces = await magasinService.getPieces();
     res.status(200).json({ success: true, data: pieces });
@@ -28,7 +27,6 @@ class MagasinController {
     res.status(200).json({ success: true });
   };
 
-  // --- MouvementStock ---
   public createMouvement = async (req: Request, res: Response) => {
     const userId = req.user?.userId || (req as any).user?.userId;
     const mouvement = await magasinService.createMouvement(userId, req.body);

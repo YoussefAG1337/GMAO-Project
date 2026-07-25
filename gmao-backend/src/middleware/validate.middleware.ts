@@ -13,10 +13,12 @@ export const validateRequest = (schema: ZodSchema) => {
       req.body = parsed.body;
 
       if (parsed.query) {
-        for (const key of Object.keys(req.query)) {
-          delete (req.query as any)[key];
-        }
-        Object.assign(req.query, parsed.query);
+        Object.defineProperty(req, 'query', {
+          value: parsed.query,
+          writable: true,
+          configurable: true,
+          enumerable: true,
+        });
       }
 
       if (parsed.params) {

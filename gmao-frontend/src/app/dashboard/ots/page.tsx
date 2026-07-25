@@ -1,37 +1,43 @@
-import { apiServer } from '@/lib/api-server';
+import { apiServer, REFERENCE_REVALIDATE } from '@/lib/api-server';
 import { OtsClient } from '@/features/ots/components/OtsClient';
-import { ApiResponse } from '@/types/api.types';
+import { ApiResponse, PaginatedResponse } from '@/types/api.types';
 import { Ot } from '@/types/ot.types';
 import { Atelier, Ligne, Poste } from '@/types/equipement.types';
 import { User } from '@/types/index';
+import { parseListParams, buildListQuery, emptyPage } from '@/lib/pagination';
 
-export default async function OrdresTravailPage() {
+export default async function OrdresTravailPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = parseListParams(await searchParams);
+
   const [otsData, ateliers, lignes, postes, techniciens] = await Promise.all([
     apiServer
-      .get<ApiResponse<Ot[]>>('/ots')
-      .then((res) => res.data)
-      .catch(() => ({ ots: [] })),
+      .get<ApiResponse<PaginatedResponse<Ot>>>(`/ots?${buildListQuery(params)}`)
+      .then((res) => res.data ?? emptyPage<Ot>()),
     apiServer
-      .get<ApiResponse<Atelier[]>>('/equipements/ateliers')
-      .then((res) => res.data)
-      .catch(() => []),
-    apiServer
-      .get<ApiResponse<Ligne[]>>('/equipements/lignes')
+      .get<ApiResponse<Atelier[]>>('/equipements/ateliers', { revalidate: REFERENCE_REVALIDATE })
       .then((res) => res.data)
       .catch(() => []),
     apiServer
-      .get<ApiResponse<Poste[]>>('/equipements/postes')
+      .get<ApiResponse<Ligne[]>>('/equipements/lignes', { revalidate: REFERENCE_REVALIDATE })
       .then((res) => res.data)
       .catch(() => []),
     apiServer
-      .get<ApiResponse<User[]>>('/users/techniciens')
+      .get<ApiResponse<Poste[]>>('/equipements/postes', { revalidate: REFERENCE_REVALIDATE })
+      .then((res) => res.data)
+      .catch(() => []),
+    apiServer
+      .get<ApiResponse<User[]>>('/users/techniciens', { revalidate: REFERENCE_REVALIDATE })
       .then((res) => res.data)
       .catch(() => []),
   ]);
 
   return (
     <OtsClient
-      initialOts={otsData}
+      initialData={otsData}
       initialAteliers={ateliers || []}
       initialLignes={lignes || []}
       initialPostes={postes || []}

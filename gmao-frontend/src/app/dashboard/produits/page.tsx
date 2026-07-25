@@ -13,10 +13,8 @@ async function getProduitsData() {
       .get<ApiResponse<FamilleProduit[]>>('/produits/familles')
       .then((res) => res.data)
       .catch(() => []),
-    apiServer
-      .get<ApiResponse<Produit[]>>('/produits')
-      .then((res) => res.data)
-      .catch(() => []),
+    // Primary resource: let failures/redirects surface instead of masking them.
+    apiServer.get<ApiResponse<Produit[]>>('/produits').then((res) => res.data),
   ]);
 
   return {

@@ -1,5 +1,3 @@
-# modules/database/outputs.tf
-
 output "server_id" {
   value       = azurerm_mysql_flexible_server.main.id
   description = "The resource ID of the MySQL Flexible Server"

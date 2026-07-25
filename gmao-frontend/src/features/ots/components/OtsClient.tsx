@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useReferenceData } from '@/hooks/useReferenceData';
 import { useOts } from '@/features/ots/hooks/useOts';
 import { useMagasin } from '@/features/magasin/hooks/useMagasin';
@@ -10,6 +11,10 @@ import { format } from 'date-fns';
 
 import { OtsHeader } from '@/features/ots/components/OtsHeader';
 import { OtList } from '@/features/ots/components/OtList';
+import { OtFilters } from '@/features/ots/components/OtFilters';
+import { Pagination } from '@/components/ui/pagination';
+import { PaginatedResponse } from '@/types/api.types';
+import { parseListParams } from '@/lib/pagination';
 import { OtFormModal } from '@/features/ots/components/OtFormModal';
 import { OtRapportModal } from '@/features/ots/components/OtRapportModal';
 import { OtDetailModal } from '@/features/ots/components/OtDetailModal';
@@ -20,7 +25,7 @@ import { CreateOtFormData, UpdateOtFormData, SubmitRapportFormData } from '@/lib
 import { Ot } from '@/types/ot.types';
 
 interface OtsClientProps {
-  initialOts: any;
+  initialData: PaginatedResponse<Ot>;
   initialAteliers: any[];
   initialLignes: any[];
   initialPostes: any[];
@@ -31,7 +36,7 @@ interface OtsClientProps {
 type ReasonModalType = 'reporter' | 'annuler' | 'nonValider' | null;
 
 export function OtsClient({
-  initialOts,
+  initialData,
   initialAteliers,
   initialLignes,
   initialPostes,
@@ -40,8 +45,13 @@ export function OtsClient({
   const { user } = useAuth();
   const isAdminOrChefTech = user?.role === 'ADMIN' || user?.role === 'CHEF_TECHNICIEN';
 
+  const searchParams = useSearchParams();
+  const params = parseListParams(Object.fromEntries(searchParams.entries()));
   const {
     ots,
+    total,
+    page,
+    totalPages,
     createOt,
     updateOt,
     assignOt,
@@ -53,7 +63,7 @@ export function OtsClient({
     reporterOt,
     annulerOt,
     nonValiderOt,
-  } = useOts(initialOts);
+  } = useOts(params, initialData);
 
   const { ateliers, lignes, postes, techniciens } = useReferenceData({
     initialAteliers,
@@ -263,6 +273,8 @@ export function OtsClient({
         onOpenCreate={() => setIsCreateModalOpen(true)}
       />
 
+      <OtFilters ateliers={ateliers || []} />
+
       <OtList
         ots={ots}
         user={user}
@@ -279,6 +291,8 @@ export function OtsClient({
         onDelete={handleDeleteOT}
         onOpenDetails={handleOpenDetails}
       />
+
+      <Pagination page={page} totalPages={totalPages} total={total} />
 
       <OtFormModal
         isOpen={isCreateModalOpen}

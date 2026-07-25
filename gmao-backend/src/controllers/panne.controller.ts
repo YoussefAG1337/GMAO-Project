@@ -14,7 +14,6 @@ export const getPannes = async (req: Request, res: Response, next: NextFunction)
       filters.OR = OR;
     }
 
-    // Si aucun filtre n'est fourni, on pourrait renvoyer une erreur, mais renvoyons tout pour l'instant
     const pannes = await panneService.getPannes(filters);
 
     res.status(200).json({

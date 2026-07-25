@@ -13,7 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, Shield, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Shield, ArrowRight } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import Link from 'next/link';
 
 function LoginForm() {
@@ -83,21 +84,16 @@ function LoginForm() {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-[#07080d] via-transparent to-transparent pointer-events-none" />
 
-      {/* Glassmorphism gradient circles */}
       <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-[#651FAA]/10 rounded-full blur-[120px] animate-pulse-glow pointer-events-none" />
       <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-[#651FAA]/8 rounded-full blur-[140px] animate-pulse-glow [animation-delay:1.5s] pointer-events-none" />
 
-      {/* Login card container */}
       <div className="relative z-10 w-full max-w-md mx-4 animate-fade-in-up">
-        {/* Glow effect surrounding the card */}
         <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-[#651FAA]/25 to-[#7c3aed]/25 blur-xl opacity-75 pointer-events-none" />
 
         <Card className="relative glass-card border-white/[0.06] bg-zinc-950/45 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] shadow-black/80 overflow-hidden">
-          {/* Subtle line glow at the top */}
           <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#651FAA]/50 to-[#7c3aed]/30" />
 
           <CardHeader className="text-center space-y-4 pb-2 pt-8">
-            {/* Logo animation */}
             <div className="flex justify-center">
               <div className="relative group/logo">
                 <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#651FAA] to-[#7c3aed] blur-sm opacity-50 group-hover/logo:opacity-100 transition duration-500" />
@@ -126,7 +122,6 @@ function LoginForm() {
 
           <CardContent className="pt-4 px-6 pb-8">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              {/* Error message */}
               {error && (
                 <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-fade-in-up">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -134,7 +129,6 @@ function LoginForm() {
                 </div>
               )}
 
-              {/* Email field */}
               <div className="space-y-2">
                 <Label
                   htmlFor="email"
@@ -204,7 +198,6 @@ function LoginForm() {
                 )}
               </div>
 
-              {/* Submit button with micro-interactions */}
               <Button
                 type="submit"
                 disabled={loading || !isValid}
@@ -213,7 +206,7 @@ function LoginForm() {
                 <span className="absolute inset-0 bg-white/5 opacity-0 group-hover/button:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Spinner className="w-4 h-4 text-current" />
                     Connexion en cours...
                   </span>
                 ) : (
@@ -273,7 +266,7 @@ export default function LoginPage() {
       fallback={
         <div className="relative min-h-screen flex items-center justify-center bg-[#07080d]">
           <div className="text-center space-y-4">
-            <div className="w-12 h-12 rounded-full border-4 border-[#651FAA]/30 border-t-[#651FAA] animate-spin mx-auto" />
+            <Spinner className="h-12 w-12 mx-auto" />
             <p className="text-sm text-purple-400/80 font-medium">Chargement de GMAO...</p>
           </div>
         </div>

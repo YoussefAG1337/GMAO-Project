@@ -5,12 +5,13 @@ import { IDiService } from '../interfaces/services/IDiService';
 import { CreateDIDTO, UpdateDIDTO } from '../dtos/di.dto';
 import { Role } from '@prisma/client';
 import { DiAssignmentEmailData } from './email.service';
+import { buildPagination, paginated } from '../utils/pagination';
 
 class DiService implements IDiService {
-  public async getDIs(filters: any, pageNum: number, limitNum: number) {
-    const skip = (pageNum - 1) * limitNum;
+  public async getDIs(filters: any, page: number, limit: number) {
+    const { skip, take } = buildPagination(page, limit);
 
-    const [total, dis] = await Promise.all([
+    const [total, items] = await Promise.all([
       prisma.demandeIntervention.count({ where: filters }),
       prisma.demandeIntervention.findMany({
         where: filters,
@@ -25,17 +26,11 @@ class DiService implements IDiService {
         },
         orderBy: { createdAt: 'desc' },
         skip,
-        take: limitNum,
+        take,
       }),
     ]);
 
-    return {
-      total,
-      page: pageNum,
-      limit: limitNum,
-      totalPages: Math.ceil(total / limitNum),
-      dis,
-    };
+    return paginated(items, total, page, limit);
   }
 
   public async getDIById(id: number) {
@@ -87,13 +82,11 @@ class DiService implements IDiService {
       throw new BadRequestError("La ligne n'existe pas ou n'appartient pas à l'atelier spécifié");
     }
 
-    // Auto-assign to the requested technician or the first technician associated with this line
     let technicienId = data.technicienId;
     if (!technicienId && ligne.techniciens && ligne.techniciens.length > 0) {
       technicienId = ligne.techniciens[0].id;
     }
 
-    // --- MAGIC HAPPENS HERE: We wrap everything in $transaction ---
     return await prisma.$transaction(async (tx) => {
       let finalPanneId = panneId;
       if (nouvellePanneNom && !finalPanneId) {
@@ -103,7 +96,6 @@ class DiService implements IDiService {
         finalPanneId = newPanne.id;
       }
 
-      // Create DI with a temporary numeroDI
       const di = await tx.demandeIntervention.create({
         data: {
           numeroDI: 'TEMP-' + Date.now(),
@@ -119,7 +111,6 @@ class DiService implements IDiService {
         },
       });
 
-      // Update with proper formatted numeroDI AND include everything needed to enrich the email
       const formattedNumero = di.id.toString().padStart(6, '0');
       const updatedDi = await tx.demandeIntervention.update({
         where: { id: di.id },
@@ -134,7 +125,6 @@ class DiService implements IDiService {
         },
       });
 
-      // If assigned to a technician, safely log our intent to send an email
       let outboxEvent = null;
       if (updatedDi.technicienId && updatedDi.technicien?.email) {
         const emailData: DiAssignmentEmailData = {
@@ -161,7 +151,6 @@ class DiService implements IDiService {
         });
       }
 
-      // Return both so the controller knows if it should push to Redis
       return { updatedDi, outboxEvent };
     });
   }
@@ -174,7 +163,6 @@ class DiService implements IDiService {
 
     let finalPanneId = updateData.panneId;
     if (nouvellePanneNom && !finalPanneId) {
-      // If we create a new panne, we need ligneId and posteId from the existing DI or the update data
       const existingDi = await prisma.demandeIntervention.findUnique({ where: { id } });
       if (existingDi) {
         const ligneId = updateData.ligneId || existingDi.ligneId;
@@ -204,8 +192,6 @@ class DiService implements IDiService {
     if (!di) {
       throw new NotFoundError('DI introuvable');
     }
-
-    // Restriction removed: ADMINs can delete DI in any state
 
     await prisma.$transaction(async (tx) => {
       const ots = await tx.ordreTravail.findMany({

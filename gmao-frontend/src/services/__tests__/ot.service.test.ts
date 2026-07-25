@@ -17,19 +17,19 @@ describe('otService', () => {
     vi.clearAllMocks();
   });
 
-  describe('getAll', () => {
-    it('should extract the nested array if present', async () => {
-      vi.mocked(api.get).mockResolvedValue({ data: { ots: [{ id: 1, description: 'OT1' }] } });
-      const result = await otService.getAll();
-      expect(api.get).toHaveBeenCalledWith('/ots');
-      expect(result).toEqual([{ id: 1, description: 'OT1' }]);
-    });
-
-    it('should return data directly if nested array is absent', async () => {
-      vi.mocked(api.get).mockResolvedValue({ data: [{ id: 2, description: 'OT2' }] });
-      const result = await otService.getAll();
-      expect(api.get).toHaveBeenCalledWith('/ots');
-      expect(result).toEqual([{ id: 2, description: 'OT2' }]);
+  describe('list', () => {
+    it('fetches a page with params and returns the paginated envelope', async () => {
+      const page = {
+        items: [{ id: 1, description: 'OT1' }],
+        total: 1,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+      };
+      vi.mocked(api.get).mockResolvedValue({ data: page });
+      const result = await otService.list({ statut: 'EN_COURS' });
+      expect(api.get).toHaveBeenCalledWith('/ots?statut=EN_COURS');
+      expect(result).toEqual(page);
     });
   });
 

@@ -1,5 +1,19 @@
 import { z } from 'zod';
 import { FrequenceMaintenance } from '@prisma/client';
+import { paginationQuery } from './pagination.dto';
+
+export const getPlansSchema = z.object({
+  query: paginationQuery.extend({
+    actif: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((v) => (v === undefined ? undefined : v === 'true')),
+    atelierId: z.coerce.number().int().positive().optional(),
+    frequence: z.nativeEnum(FrequenceMaintenance).optional(),
+  }),
+});
+
+export type GetPlansQuery = z.infer<typeof getPlansSchema>['query'];
 
 export const createPlanSchema = z.object({
   body: z.object({

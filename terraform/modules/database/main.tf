@@ -1,8 +1,4 @@
-# modules/database/main.tf
 
-# ──────────────────────────────────────────
-# Secrets
-# ──────────────────────────────────────────
 
 resource "random_password" "db_password" {
   length           = 16
@@ -10,9 +6,6 @@ resource "random_password" "db_password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
-# ──────────────────────────────────────────
-# MySQL Flexible Server
-# ──────────────────────────────────────────
 
 resource "azurerm_mysql_flexible_server" "main" {
   name                   = "${var.project_name}-db-${var.environment}-supra-v2"
@@ -35,9 +28,6 @@ resource "azurerm_mysql_flexible_server" "main" {
   }
 }
 
-# ──────────────────────────────────────────
-# MySQL Server Configurations (Observability)
-# ──────────────────────────────────────────
 
 resource "azurerm_mysql_flexible_server_configuration" "slow_query_log" {
   name                = "slow_query_log"

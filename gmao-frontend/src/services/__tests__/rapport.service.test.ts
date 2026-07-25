@@ -13,10 +13,17 @@ describe('rapportService', () => {
     vi.clearAllMocks();
   });
 
-  it('should fetch all rapports', async () => {
-    vi.mocked(api.get).mockResolvedValue({ data: { rapports: [{ id: 1, diagnostic: 'Test' }] } });
-    const result = await rapportService.getAll();
-    expect(api.get).toHaveBeenCalledWith('/ots/rapports');
-    expect(result).toEqual([{ id: 1, diagnostic: 'Test' }]);
+  it('should fetch a page of rapports and return the paginated envelope', async () => {
+    const page = {
+      items: [{ id: 1, diagnostic: 'Test' }],
+      total: 1,
+      page: 1,
+      limit: 20,
+      totalPages: 1,
+    };
+    vi.mocked(api.get).mockResolvedValue({ data: page });
+    const result = await rapportService.list({ page: 1 });
+    expect(api.get).toHaveBeenCalledWith('/ots/rapports?page=1');
+    expect(result).toEqual(page);
   });
 });

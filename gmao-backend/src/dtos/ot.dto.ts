@@ -1,5 +1,17 @@
 import { z } from 'zod';
-import { TypeMaintenance, Priorite } from '@prisma/client';
+import { TypeMaintenance, Priorite, StatutOT } from '@prisma/client';
+import { paginationQuery } from './pagination.dto';
+
+export const getOTsSchema = z.object({
+  query: paginationQuery.extend({
+    statut: z.nativeEnum(StatutOT).optional(),
+    typeMaintenance: z.nativeEnum(TypeMaintenance).optional(),
+    technicienId: z.coerce.number().int().positive().optional(),
+    atelierId: z.coerce.number().int().positive().optional(),
+  }),
+});
+
+export type GetOTsQuery = z.infer<typeof getOTsSchema>['query'];
 
 export const createOTSchema = z.object({
   body: z.object({
