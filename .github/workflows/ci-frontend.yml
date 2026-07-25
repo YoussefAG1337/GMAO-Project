@@ -118,6 +118,11 @@ jobs:
 
       - name: Build and push Docker image
         working-directory: gmao-frontend
+        # NEXT_PUBLIC_API_URL is inlined at build time (see Dockerfile) — set the
+        # repo Actions variable to the backend's stable Container App hostname
+        # (Settings > Secrets and variables > Actions > Variables).
         run: |
-          docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" \
+            -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
           docker push ${{ env.IMAGE_NAME }}:${{ github.sha }}

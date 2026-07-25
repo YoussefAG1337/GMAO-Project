@@ -7,8 +7,14 @@ resource "azurerm_container_app_environment" "main" {
   infrastructure_subnet_id   = var.app_subnet_id
 }
 
-# 2. Generate a secure secret for JWTs dynamically
-resource "random_password" "jwt_secret" {
+# 2. Generate secure secrets for JWTs dynamically — must be distinct, the
+# backend's env validation rejects REFRESH_TOKEN_SECRET == ACCESS_TOKEN_SECRET
+resource "random_password" "access_token_secret" {
+  length  = 32
+  special = true
+}
+
+resource "random_password" "refresh_token_secret" {
   length  = 32
   special = true
 }
@@ -57,11 +63,11 @@ resource "azurerm_container_app" "backend" {
       }
       env {
         name  = "ACCESS_TOKEN_SECRET"
-        value = random_password.jwt_secret.result
+        value = random_password.access_token_secret.result
       }
       env {
         name  = "REFRESH_TOKEN_SECRET"
-        value = random_password.jwt_secret.result
+        value = random_password.refresh_token_secret.result
       }
     }
   }
@@ -113,10 +119,10 @@ resource "azurerm_container_app" "frontend" {
         name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
         value = var.app_insights_connection_string
       }
-      env {
-        name  = "NEXT_PUBLIC_API_URL"
-        value = "https://${azurerm_container_app.backend.latest_revision_fqdn}/api"
-      }
+      # No BACKEND_URL/NEXT_PUBLIC_API_URL here on purpose: next.config.ts's
+      # rewrite and NEXT_PUBLIC_* are both resolved at build time and baked into
+      # the image, so setting them as runtime env vars has no effect. They are
+      # passed as Docker --build-arg from the CI workflow instead.
     }
   }
 

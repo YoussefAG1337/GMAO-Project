@@ -32,15 +32,11 @@ RUN npm ci --only=production
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-# Copy the Prisma schema + migrations so `prisma migrate deploy` can run
-# against this exact image (e.g. from a one-off Job at deploy time).
 COPY --from=builder /app/prisma ./prisma
 
-# Copy the compiled Javascript from the builder stage
 COPY --from=builder /app/dist ./dist
 
-# Run as the non-root 'node' user (built into the base image) instead of root.
-# uploads/ is created at runtime by multer, so /app must be writable by this user.
+
 RUN chown -R node:node /app
 USER node
 
@@ -48,7 +44,9 @@ USER node
 EXPOSE 8080
 ENV PORT=8080
 
-# Command to run the application — tracing.js, not index.js: it sets up
-# OpenTelemetry instrumentation before dynamically importing the real app.
-# See src/tracing.ts for why this ordering matters.
-CMD ["node", "dist/tracing.js"]
+
+# Run migrations (and seed, idempotent via upsert) before starting the app.
+# Container Apps has no separate migration step like the old App Service
+# app_command_line trick — `prisma migrate deploy` is safe to re-run on every
+# container start/restart, so this keeps every deploy self-healing.
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run db:seed && node dist/tracing.js"]

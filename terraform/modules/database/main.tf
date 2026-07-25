@@ -29,6 +29,14 @@ resource "azurerm_mysql_flexible_server" "main" {
 }
 
 
+resource "azurerm_mysql_flexible_database" "gmao_db" {
+  name                = "gmao_db"
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.main.name
+  charset             = "utf8mb4"
+  collation           = "utf8mb4_unicode_ci"
+}
+
 resource "azurerm_mysql_flexible_server_configuration" "slow_query_log" {
   name                = "slow_query_log"
   resource_group_name = var.resource_group_name

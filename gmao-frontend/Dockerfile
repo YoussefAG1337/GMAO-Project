@@ -10,6 +10,12 @@ RUN npm ci
 # Copy the rest of the Next.js source code
 COPY . .
 
+# NEXT_PUBLIC_* vars are inlined into the compiled output at build time, not
+# read at container runtime — a runtime env var on the Container App does
+# nothing for this. Must be passed in via --build-arg.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build the Next.js application
 # This will generate the optimized .next/standalone folder
 RUN npm run build
