@@ -32,6 +32,10 @@ RUN npm ci --only=production
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
+# Copy the Prisma schema + migrations so `prisma migrate deploy` can run
+# against this exact image (e.g. from a one-off Job at deploy time).
+COPY --from=builder /app/prisma ./prisma
+
 # Copy the compiled Javascript from the builder stage
 COPY --from=builder /app/dist ./dist
 
