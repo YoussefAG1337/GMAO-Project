@@ -30,6 +30,12 @@ module "database" {
   resource_group_name = azurerm_resource_group.main.name
   db_subnet_id        = module.networking.db_subnet_id
   dns_zone_id         = module.networking.dns_zone_id
+
+  # The flexible server only references the DNS zone's ID, not the
+  # zone-to-VNet link resource, so Terraform's graph doesn't otherwise
+  # know the link must finish first — causes a "VnetNotLinkedToPrivateDnsZone"
+  # race where the server creation starts before the link has propagated.
+  depends_on = [module.networking]
 }
 
 

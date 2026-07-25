@@ -43,7 +43,7 @@ resource "azurerm_linux_web_app" "backend" {
   site_config {
     always_on = false
     application_stack {
-      node_version = "20-lts"
+      node_version = "22-lts"
     }
     app_command_line = "npx prisma migrate deploy && npm run db:seed && npm start"
     cors {
@@ -90,7 +90,7 @@ resource "azurerm_linux_web_app" "frontend" {
   site_config {
     always_on = false
     application_stack {
-      node_version = "20-lts"
+      node_version = "22-lts"
     }
     app_command_line = "node server.js"
   }

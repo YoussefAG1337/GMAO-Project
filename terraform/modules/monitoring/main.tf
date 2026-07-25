@@ -20,8 +20,12 @@ resource "azurerm_log_analytics_workspace" "main" {
 
 
 # 2. Application Insights (APM)
+# Disabled to avoid App Insights ingestion/APM cost — kept for documentation.
+# Unlike the Log Analytics Workspace above (a hard dependency of the ACA
+# Container App Environment), nothing requires this resource to exist;
+# container_apps just gets an empty connection string when it's off.
 
-resource "azurerm_application_insights" "main" {
+/*resource "azurerm_application_insights" "main" {
   name                 = "appi-${var.project_name}-${var.environment}"
   location             = var.location
   resource_group_name  = var.resource_group_name
@@ -29,7 +33,7 @@ resource "azurerm_application_insights" "main" {
   application_type     = "Node.JS"
   daily_data_cap_in_gb = 0.05 # Cap daily data at 50MB to match workspace
   sampling_percentage  = 50   # Drop 50% of telemetry traces to reduce volume
-}
+}*/
 
 
 # 3. Diagnostic Settings — Stream platform logs and metrics to Log Analytics

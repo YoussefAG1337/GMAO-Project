@@ -1,11 +1,10 @@
 name:  CD — Deploy Backend
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI — Backend"]
     branches: [main]
-    paths:
-      - 'gmao-backend/**'
-      - '.github/workflows/cd-backend.yml'
+    types: [completed]
   workflow_dispatch:
 
 # Cancel in-flight runs when a new push arrives
@@ -15,17 +14,15 @@ concurrency:
 
 permissions:
   contents: read
+  packages: read # Required to pull the image CI already built
   id-token: write # Required for requesting the JWT for OIDC
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' # Only deploy on the main branch
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
 
+    steps:
       # 1. Log into Azure using your existing secret
       - name: Azure Login
         uses: azure/login@v2
@@ -36,14 +33,28 @@ jobs:
 
       - name: Login to Azure Container Registry
         run: az acr login --name crgmaotf
-      
 
-      # 3. Build the Docker image and tag it with the Git commit hash
-      - name: Build and push Docker image
+      # Same lowercasing CI uses to name the ghcr.io image (owner/repo can have mixed case)
+      - name: Set image vars
         run: |
-          cd gmao-backend
-          docker build -t crgmaotf.azurecr.io/gmao-backend:${{ github.sha }} -t crgmaotf.azurecr.io/gmao-backend:latest .
-          docker push crgmaotf.azurecr.io/gmao-backend:${{ github.sha }}
+          echo "IMAGE_SHA=${{ github.event.workflow_run.head_sha || github.sha }}" >> "$GITHUB_ENV"
+          echo "GHCR_IMAGE=$(echo 'ghcr.io/${{ github.repository }}/gmao-backend' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      # 2. Log into GHCR to pull the image CI already built and pushed
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. Pull the CI-built image and re-tag/push it into ACR (no rebuild)
+      - name: Pull CI image and push to ACR
+        run: |
+          docker pull ${{ env.GHCR_IMAGE }}:${{ env.IMAGE_SHA }}
+          docker tag ${{ env.GHCR_IMAGE }}:${{ env.IMAGE_SHA }} crgmaotf.azurecr.io/gmao-backend:${{ env.IMAGE_SHA }}
+          docker tag ${{ env.GHCR_IMAGE }}:${{ env.IMAGE_SHA }} crgmaotf.azurecr.io/gmao-backend:latest
+          docker push crgmaotf.azurecr.io/gmao-backend:${{ env.IMAGE_SHA }}
           docker push crgmaotf.azurecr.io/gmao-backend:latest
 
       # 4. Tell Azure Container Apps to use the new image
@@ -52,4 +63,4 @@ jobs:
         with:
           resourceGroup: rg-gmao-tf
           containerAppName: ca-backend-gmao-tf
-          imageToDeploy: crgmaotf.azurecr.io/gmao-backend:${{ github.sha }}
+          imageToDeploy: crgmaotf.azurecr.io/gmao-backend:${{ env.IMAGE_SHA }}

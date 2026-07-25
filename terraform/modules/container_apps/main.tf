@@ -78,7 +78,8 @@ resource "azurerm_container_app" "backend" {
 
   lifecycle {
     ignore_changes = [
-      template[0].container[0].image
+      template[0].container[0].image,
+      workload_profile_name # Azure auto-sets "Consumption"; config doesn't declare it
     ]
   }
 }
@@ -130,7 +131,8 @@ resource "azurerm_container_app" "frontend" {
 
   lifecycle {
     ignore_changes = [
-      template[0].container[0].image
+      template[0].container[0].image,
+      workload_profile_name # Azure auto-sets "Consumption"; config doesn't declare it
     ]
   }
 }
