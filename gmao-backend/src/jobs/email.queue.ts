@@ -14,14 +14,13 @@ const redisConnection = {
   enableOfflineQueue: false,
 };
 
-// 1. Initialize the Queue
 export const emailQueue = new Queue(QUEUE_NAME, {
   connection: redisConnection,
   defaultJobOptions: {
-    attempts: 3, // Retry 3 times if it fails
+    attempts: 3,
     backoff: {
       type: 'exponential',
-      delay: 5000, // Wait 5s, then 25s, then 125s...
+      delay: 5000,
     },
   },
 });
@@ -30,7 +29,6 @@ emailQueue.on('error', (err) => {
   log.error({ err }, 'Queue error');
 });
 
-// 2. Initialize the Worker (The consumer)
 export const emailWorker = new Worker(
   QUEUE_NAME,
   async (job: Job) => {
@@ -51,7 +49,6 @@ export const emailWorker = new Worker(
         panneType,
       } = job.data as DiAssignmentEmailData & { technicienEmail: string; outboxEventId?: number };
 
-      // Call our Nodemailer service
       await sendDiAssignmentEmail(technicienEmail, {
         diNumero,
         atelier,
@@ -64,7 +61,6 @@ export const emailWorker = new Worker(
         panneType,
       });
 
-      // Once successful, update the OutboxEvent status in the DB
       if (outboxEventId) {
         await prisma.outboxEvent.update({
           where: { id: outboxEventId },
@@ -76,12 +72,10 @@ export const emailWorker = new Worker(
   { connection: redisConnection },
 );
 
-// Listen for errors
 emailWorker.on('failed', async (job, err) => {
   log.error({ jobId: job?.id, err }, 'Job failed');
 
   if (job?.data?.outboxEventId) {
-    // Mark as failed in DB if we run out of retries
     if (job.attemptsMade >= (job.opts.attempts || 1)) {
       await prisma.outboxEvent.update({
         where: { id: job.data.outboxEventId },

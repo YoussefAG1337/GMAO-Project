@@ -8,11 +8,9 @@ const router = Router();
 
 router.use(authMiddleware);
 
-// --- Pieces de Rechange ---
 router.get('/pieces', magasinController.getPieces);
 router.get('/pieces/:id', magasinController.getPieceById);
 
-// Admin / Magasinier / Chef for mutations
 router.post(
   '/pieces',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE, Role.MAGASINIER]),
@@ -29,7 +27,6 @@ router.delete(
   magasinController.deletePiece,
 );
 
-// --- Mouvements de Stock ---
 router.post(
   '/mouvements',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE, Role.MAGASINIER, Role.TECHNICIEN]),

@@ -1,7 +1,3 @@
-/**
- * @fileoverview Routes des Plans de Maintenance
- */
-
 import { Router } from 'express';
 import { Role } from '@prisma/client';
 import {

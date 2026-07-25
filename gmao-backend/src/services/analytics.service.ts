@@ -22,40 +22,33 @@ export class AnalyticsService {
       rapports,
       lignes,
     ] = await Promise.all([
-      // Total DI
       prisma.demandeIntervention.count({ where: whereClause }),
-      // DI that were converted to OT
       prisma.demandeIntervention.count({
         where: {
           ...whereClause,
           ordresTravail: { some: {} },
         },
       }),
-      // DI by status
       prisma.demandeIntervention.groupBy({
         by: ['statut'],
         _count: true,
         where: whereClause,
       }),
-      // OT by status
       prisma.ordreTravail.groupBy({
         by: ['statut'],
         _count: true,
         where: whereClause,
       }),
-      // DI per ligne
       prisma.demandeIntervention.groupBy({
         by: ['ligneId'],
         _count: true,
         where: whereClause,
       }),
-      // OT per ligne
       prisma.ordreTravail.groupBy({
         by: ['ligneId'],
         _count: true,
         where: whereClause,
       }),
-      // Rapports for average times
       prisma.rapportIntervention.findMany({
         where: {
           ordreTravail: whereClause,
@@ -71,13 +64,11 @@ export class AnalyticsService {
           },
         },
       }),
-      // Fetch all lignes to map names
       prisma.ligne.findMany({ select: { id: true, nom: true } }),
     ]);
 
     const conversionRate = totalDI > 0 ? Math.round((diWithOT / totalDI) * 100) : 0;
 
-    // Process statuses
     const diEnCours = diStatusGroup
       .filter((g) => g.statut === StatutDI.EN_COURS || g.statut === StatutDI.NOUVELLE)
       .reduce((acc, g) => acc + g._count, 0);
@@ -111,7 +102,6 @@ export class AnalyticsService {
       count: g._count,
     }));
 
-    // Process Average Time per Panne (causePanne)
     const timePerPanneMap = new Map<string, { total: number; count: number }>();
     const timePerLigneMap = new Map<number, { total: number; count: number }>();
 

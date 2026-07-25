@@ -6,14 +6,11 @@ import { Role } from '@prisma/client';
 
 const router = Router();
 
-// Apply authentication to all routes
 router.use(authMiddleware);
 
-// --- Familles Produits ---
 router.get('/familles', produitController.getFamilles);
 router.get('/familles/:id', produitController.getFamilleById);
 
-// Admin / Chef only for mutations
 router.post(
   '/familles',
   rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]),
@@ -30,11 +27,9 @@ router.delete(
   produitController.deleteFamille,
 );
 
-// --- Produits ---
 router.get('/', produitController.getProduits);
 router.get('/:id', produitController.getProduitById);
 
-// Admin / Chef only for mutations
 router.post('/', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]), produitController.createProduit);
 router.put('/:id', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]), produitController.updateProduit);
 router.delete('/:id', rbac([Role.ADMIN, Role.CHEF_MAINTENANCE]), produitController.deleteProduit);

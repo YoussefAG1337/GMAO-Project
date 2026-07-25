@@ -1,8 +1,3 @@
-/**
- * @fileoverview Routes des équipements
- * @description Routes pour les Ateliers, Lignes et Postes
- */
-
 import { Router } from 'express';
 import { Role } from '@prisma/client';
 import {
@@ -38,12 +33,7 @@ import {
 
 const router = Router();
 
-// Toutes les routes nécessitent d'être authentifié
 router.use(authMiddleware);
-
-// ==========================================
-// ATELIERS
-// ==========================================
 
 router.get('/ateliers', getAteliers);
 router.get('/ateliers/:id', getAtelierById);
@@ -64,10 +54,6 @@ router.put(
 
 router.delete('/ateliers/:id', rbac([Role.ADMIN]), deleteAtelier);
 
-// ==========================================
-// LIGNES
-// ==========================================
-
 router.get('/lignes', getLignes);
 router.get('/lignes/:id', getLigneById);
 router.get('/lignes/:id/kpis', getLigneKpis);
@@ -87,10 +73,6 @@ router.put(
 );
 
 router.delete('/lignes/:id', rbac([Role.ADMIN]), deleteLigne);
-
-// ==========================================
-// POSTES
-// ==========================================
 
 router.get('/postes', getPostes);
 router.get('/postes/:id', getPosteById);

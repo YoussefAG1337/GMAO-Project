@@ -1,7 +1,3 @@
-/**
- * @fileoverview Routes du Tableau de Bord et des KPIs
- */
-
 import { Router } from 'express';
 import { Role } from '@prisma/client';
 import { getDashboardStats, getKPIs } from '../controllers/dashboard.controller';

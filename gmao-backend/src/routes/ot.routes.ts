@@ -1,7 +1,3 @@
-/**
- * @fileoverview Routes des Ordres de Travail (OT) et Rapports
- */
-
 import { Router } from 'express';
 import { Role } from '@prisma/client';
 import {
@@ -41,15 +37,9 @@ const router = Router();
 
 router.use(authMiddleware);
 
-// ==========================================
-// RAPPORTS
-// ==========================================
 router.get('/rapports', validateRequest(paginationOnlySchema), getRapports);
 router.get('/rapports/:id', getRapportById);
 
-// ==========================================
-// ORDRES DE TRAVAIL
-// ==========================================
 router.get('/', validateRequest(getOTsSchema), getOTs);
 router.get('/stats', getOTStats);
 router.get('/:id', getOTById);
@@ -84,7 +74,6 @@ router.post(
   startFromDi,
 );
 
-// Technicien soumet ou met à jour son rapport (statut → RAPPORTE)
 router.post(
   '/:id/rapport',
   rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
@@ -92,17 +81,14 @@ router.post(
   submitRapport,
 );
 
-// Technicien valide son propre travail (RAPPORTE → EN_ATTENTE_VALIDATION)
 router.patch(
   '/:id/valider-technicien',
   rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
   validerTechnicien,
 );
 
-// Admin/Chef donne la validation finale (EN_ATTENTE_VALIDATION → FERME)
 router.patch('/:id/validate', rbac([Role.ADMIN, Role.CHEF_TECHNICIEN]), validateOT);
 
-// Technicien reporte l'intervention (EN_COURS → REPORTE)
 router.patch(
   '/:id/reporter',
   rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
@@ -110,7 +96,6 @@ router.patch(
   reporterOT,
 );
 
-// Technicien annule l'OT (EN_COURS ou RAPPORTE → ANNULE)
 router.patch(
   '/:id/annuler',
   rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),
@@ -118,7 +103,6 @@ router.patch(
   annulerOT,
 );
 
-// Technicien ou Admin/Chef marque l'OT non validé avec raison
 router.patch(
   '/:id/non-valide',
   rbac([Role.ADMIN, Role.CHEF_TECHNICIEN, Role.TECHNICIEN]),

@@ -1,7 +1,3 @@
-/**
- * @fileoverview Routes de gestion des utilisateurs
- */
-
 import { Router } from 'express';
 import { Role } from '@prisma/client';
 import {
