@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE `ordres_travail` ADD COLUMN `raisonAnnulation` TEXT NULL,
+    ADD COLUMN `raisonNonValidation` TEXT NULL,
+    ADD COLUMN `raisonReport` TEXT NULL,
+    MODIFY `statut` ENUM('CREE', 'ASSIGNE', 'EN_COURS', 'REPORTE', 'RAPPORTE', 'EN_ATTENTE_VALIDATION', 'NON_VALIDE', 'ANNULE', 'FERME') NOT NULL DEFAULT 'CREE';
+
+-- AlterTable
+ALTER TABLE `pannes` ADD COLUMN `type` ENUM('TECHNIQUE', 'QUALITE') NOT NULL DEFAULT 'TECHNIQUE';
