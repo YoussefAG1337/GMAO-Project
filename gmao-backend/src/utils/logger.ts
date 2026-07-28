@@ -1,4 +1,5 @@
 import pino from 'pino';
+import { trace } from '@opentelemetry/api';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -7,9 +8,17 @@ export const logger = pino({
   serializers: {
     err: pino.stdSerializers.err,
   },
-  // pino-pretty is a devDependency only — this branch never runs in the
-  // production Docker image (NODE_ENV=production there), so it's safe for
-  // the module not to be resolvable in that build.
+
+  hooks: {
+    logMethod(inputArgs, method) {
+      const span = trace.getActiveSpan();
+      const lastIdx = inputArgs.length - 1;
+      if (span && typeof inputArgs[lastIdx] === 'string') {
+        inputArgs[lastIdx] += ` [trace_id=${span.spanContext().traceId}]`;
+      }
+      return method.apply(this, inputArgs);
+    },
+  },
   transport: isProduction
     ? undefined
     : {

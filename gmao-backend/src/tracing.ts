@@ -6,6 +6,8 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
+import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { PrismaInstrumentation } from '@prisma/instrumentation';
 
 if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
@@ -18,11 +20,11 @@ if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
         exportIntervalMillis: 10000,
       }),
     ],
+    logRecordProcessors: [new BatchLogRecordProcessor({ exporter: new OTLPLogExporter() })],
     instrumentations: [getNodeAutoInstrumentations(), new PrismaInstrumentation()],
   });
   otelSdk.start();
 }
 
-// Dynamic import, deliberately — a static `import './index'` here would be
-// hoisted above the SDK setup above and defeat the entire point of this file.
+
 import('./index');

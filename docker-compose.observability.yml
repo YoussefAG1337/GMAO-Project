@@ -19,6 +19,7 @@ services:
     restart: unless-stopped
     depends_on:
       - tempo
+      - loki
 
   tempo:
     image: grafana/tempo:2.10.7
@@ -28,7 +29,21 @@ services:
       - ./observability/tempo.yaml:/etc/tempo.yaml:ro
       - tempo-data:/var/tempo
     ports:
-      - "3200:3200" # Tempo query API
+      - "3200:3200" 
+    networks:
+      - observability
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:3.5.7
+    container_name: gmao-loki
+    command: ["-config.file=/etc/loki/loki-config.yaml"]
+    volumes:
+      - ./observability/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki-data:/loki
+    ports:
+      - "3100:3100" 
+      - "9096:9096" 
     networks:
       - observability
     restart: unless-stopped
@@ -58,15 +73,17 @@ services:
       - ./observability/grafana/dashboards:/etc/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
     ports:
-      - "3300:3000" # host 3300, not 3000 — that's already gmao-frontend's port
+      - "3300:3000"
     networks:
       - observability
     restart: unless-stopped
     depends_on:
       - prometheus
       - tempo
+      - loki
 
 volumes:
   tempo-data:
   prometheus-data:
   grafana-data:
+  loki-data:

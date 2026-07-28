@@ -1,6 +1,3 @@
-# Grafana datasources as code — reproducible, no manual UI setup.
-# See observability.md. Loki gets added here in Milestone 3.
-
 apiVersion: 1
 
 datasources:
@@ -26,3 +23,15 @@ datasources:
         datasourceUid: prometheus
       nodeGraph:
         enabled: true
+
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      derivedFields:
+        - datasourceUid: tempo
+          matcherRegex: '\[trace_id=(\w+)\]'
+          name: TraceID
+          url: '$${__value.raw}'

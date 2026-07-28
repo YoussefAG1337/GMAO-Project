@@ -1,7 +1,3 @@
-# OpenTelemetry Collector — single gateway all telemetry (traces now, metrics
-# and logs in later milestones) flows through before reaching its backend.
-# See observability.md for the overall architecture.
-
 receivers:
   otlp:
     protocols:
@@ -20,22 +16,20 @@ processors:
   batch: {}
 
 exporters:
-  # Verifies data is actually arriving before anything downstream exists —
-  # keep this even after otlp/tempo is added, it's useful for debugging.
   debug:
     verbosity: detailed
   otlp/tempo:
     endpoint: tempo:4317
     tls:
       insecure: true
-  # The Collector, not the app, is what Prometheus scrapes — this exporter
-  # turns received OTLP metrics into a /metrics endpoint on port 8889.
   prometheus:
     endpoint: 0.0.0.0:8889
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
 
 service:
-  # Expose the Collector's own health metrics on :8888 for Prometheus —
-  # newer Collector versions need this declared explicitly.
   telemetry:
     metrics:
       readers:
@@ -53,3 +47,7 @@ service:
       receivers: [otlp]
       processors: [memory_limiter, resourcedetection, batch]
       exporters: [debug, prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters: [debug, otlphttp/loki]

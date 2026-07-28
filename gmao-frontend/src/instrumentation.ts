@@ -1,13 +1,6 @@
 export async function register() {
-  // Next.js evaluates this file in both Node.js and Edge runtimes.
-  // The OTel Node SDK is a Node.js-only library and will crash the Edge runtime
-  // if imported statically. We must use a dynamic import inside a check for the
-  // 'nodejs' runtime.
+ 
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    // Opt-in and vendor-neutral: no OTEL_EXPORTER_OTLP_ENDPOINT set means no
-    // telemetry export, not a crash. See observability.md. Note this var is
-    // deliberately NOT NEXT_PUBLIC_-prefixed — it's read only in this
-    // server-side Node runtime path, never shipped to the browser.
     if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
       const { NodeSDK } = await import('@opentelemetry/sdk-node');
       const { getNodeAutoInstrumentations } =
@@ -25,7 +18,16 @@ export async function register() {
             exportIntervalMillis: 10000,
           }),
         ],
-        instrumentations: [getNodeAutoInstrumentations()],
+        instrumentations: [
+          getNodeAutoInstrumentations({
+            '@opentelemetry/instrumentation-http': {
+              requestHook: (span, request) => {
+                const path = 'path' in request ? request.path : request.url;
+                if (path) span.updateName(`${request.method} ${path}`);
+              },
+            },
+          }),
+        ],
       });
       otelSdk.start();
     }
