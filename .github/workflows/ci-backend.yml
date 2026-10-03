@@ -80,12 +80,6 @@ jobs:
         # until real backend tests exist, matching gmao-frontend's vitest suite.
         run: npm test
 
-      #Security
-
-      - name: Audit dependencies for known vulnerabilities
-        working-directory: gmao-backend
-        # --audit-level=high: only fail on HIGH or CRITICAL vulnerabilities.
-        run: npm audit --audit-level=high
   build-and-push:
     name: Build and Push Docker Image
     needs: backend

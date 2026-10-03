@@ -26,5 +26,4 @@ if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
   otelSdk.start();
 }
 
-
 import('./index');

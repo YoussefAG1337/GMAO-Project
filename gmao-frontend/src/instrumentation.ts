@@ -1,5 +1,4 @@
 export async function register() {
- 
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
       const { NodeSDK } = await import('@opentelemetry/sdk-node');
